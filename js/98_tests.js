@@ -50,25 +50,143 @@
   const gfx = CH.gfx;
   CH.TESTS.critters = () => {
     const s = new CH.Scene();
-    const makers = [CH.makeMom, CH.makeDoctor, (x, y) => CH.makeNurse(x, y, 0), (x, y) => CH.makeNurse(x, y, 1), CH.makeBrenda, CH.makeKevin, CH.makeTammy, CH.makeJorge, CH.makeDestiny];
-    const npcs = makers.map((m, i) => m(30 + i * 40, 60));
-    const custs = []; for (let i = 0; i < 12; i++) custs.push(CH.makeCustomer(20 + i * 38, 120));
-    const poses = [Object.assign(CH.makeMom(30, 180), { pose: 'lying' }), Object.assign(CH.makeMom(120, 180), { pose: 'inbed' }), Object.assign(CH.makeDoctor(180, 180), { arm: 'clipboard' }), Object.assign(CH.makeBrenda(240, 180), { arm: 'hips', face: 'angry' }), Object.assign(CH.makeCustomer(300, 180), { pose: 'sit' }), Object.assign(CH.makeKevin(360, 180), { arm: 'tray', face: 'happy' }), Object.assign(CH.makeNurse(420, 180), { arm: 'wave', talk: true })];
-    s.update = (dt) => { for (const n of [...npcs, ...custs, ...poses]) { n.walk += dt * 6; n.moving = 1; n.update(dt); } };
+    const FACE_LIST = ['normal', 'happy', 'warm', 'grin', 'proud', 'smug', 'sly', 'sad', 'cry', 'shock', 'scared', 'worried', 'angry', 'annoyed', 'bored', 'stern', 'tired', 'exhausted', 'sick', 'focused', 'determined', 'confused', 'love', 'dead', 'sleep', 'flat'];
+    const ARMS = ['idle', 'hips', 'clipboard', 'tray', 'wave', 'point', 'hold', 'headset', 'crossed', 'pocket'];
+    const cast = [
+      ['Mom', CH.makeMom], ['Doctor', CH.makeDoctor], ['Nurse G', (x, y) => CH.makeNurse(x, y, 0)],
+      ['Nurse R', (x, y) => CH.makeNurse(x, y, 1)], ['Brenda', CH.makeBrenda], ['Kevin', CH.makeKevin],
+      ['Tammy', CH.makeTammy], ['Jorge', CH.makeJorge], ['Destiny', CH.makeDestiny],
+    ];
+    const npcs = cast.map(([n, mk], i) => mk(28 + i * 51, 112));
+    const walkers = cast.map(([n, mk], i) => { const a = mk(28 + i * 51, 244); a.flip = i % 2 === 1; return a; });
+    const custs = []; for (let i = 0; i < 20; i++) custs.push(CH.makeCustomer(26 + (i % 10) * 44, i < 10 ? 116 : 250));
+    const faceGuy = CH.makeTammy(0, 0);
+    const armGuy = CH.makeDoctor(0, 0);
+    const momLie = Object.assign(CH.makeMom(64, 150), { pose: 'lying', outfit: 'gown', topColor: null });
+    const momBed = Object.assign(CH.makeMom(190, 130), { pose: 'inbed', outfit: 'gown', topColor: null, face: 'tired' });
+    const momBed2 = Object.assign(CH.makeMom(300, 130), { pose: 'inbed', outfit: 'gown', topColor: null, sleep: true });
+    const sitters = [Object.assign(CH.makeCustomer(370, 150), { pose: 'sit' }), Object.assign(CH.makeJorge(430, 150), { pose: 'sit', flip: true })];
+    const all = [...npcs, ...walkers, ...custs, momLie, momBed, momBed2, ...sitters];
+    const PAGES = 7;
+    s.update = (dt) => {
+      for (const n of all) n.update(dt);
+      for (const n of walkers) { n.walk += dt * 7; n.moving = 1; }
+      faceGuy.update(dt); armGuy.update(dt);
+    };
+    const label = (txt, x, y) => gfx.text(txt, x, y, '#2e3a3c', { align: 'center', font: 'small' });
     s.draw = (g) => {
+      const page = Math.floor(s.t / 2.6) % PAGES;
       gfx.rect(0, 0, CH.W, CH.H, '#b9c7c9');
-      for (const n of [...npcs, ...custs, ...poses]) n.draw(g);
-      CH.PROPS.hBed.draw(g, 90, 182, s.t, {});
+      for (let i = 0; i < 12; i++) gfx.vline(i * 40, 0, CH.H, '#b1c0c2');
+      if (page === 0) {
+        gfx.text('CAST - idle / walking', 4, 4, '#2e3a3c', { font: 'small' });
+        npcs.forEach((n, i) => { n.draw(g); label(cast[i][0], n.x, n.y + 3); });
+        walkers.forEach((n, i) => n.draw(g));
+        gfx.text('walk cycle', 4, 248, '#2e3a3c', { font: 'small' });
+      } else if (page === 1 || page === 2) {
+        const set = page === 1 ? [0, 1, 4, 5] : [6, 7, 8, 2];
+        gfx.text('DETAIL 2.4x', 4, 4, '#2e3a3c', { font: 'small' });
+        set.forEach((k, i) => {
+          const n = npcs[k];
+          g.save(); g.translate(60 + i * 120, 246); g.scale(2.4, 2.4);
+          CH.drawCritter(g, 0, 0, n.params({ moving: 0, walk: 0 }));
+          g.restore();
+          gfx.text(cast[k][0], 60 + i * 120, 252, '#2e3a3c', { align: 'center', font: 'small' });
+        });
+      } else if (page === 3) {
+        gfx.text('EXPRESSIONS', 4, 4, '#2e3a3c', { font: 'small' });
+        FACE_LIST.forEach((f, i) => {
+          const col = i % 9, row = Math.floor(i / 9);
+          const x = 26 + col * 52, y = 82 + row * 62;
+          CH.drawCritter(g, x, y, faceGuy.params({ face: f, sleep: f === 'sleep', arm: 'pocket', moving: 0, walk: 0, blink: false }));
+          label(f, x, y + 3);
+        });
+      } else if (page === 4) {
+        gfx.text('POSES + ARMS', 4, 4, '#2e3a3c', { font: 'small' });
+        ARMS.forEach((a, i) => {
+          const x = 27 + i * 46, y = 96;
+          CH.drawCritter(g, x, y, armGuy.params({ arm: a, moving: 0, walk: 0, face: 'normal' }));
+          label(a, x, y + 3);
+        });
+        CH.PROPS.hBed.draw(g, 160, 152, s.t, {});
+        momLie.draw(g); label('lying', 64, 158);
+        momBed.draw(g); label('inbed', 190, 158);
+        momBed2.draw(g); label('inbed sleep', 300, 158);
+        sitters.forEach((n) => n.draw(g)); label('sit', 370, 158); label('sit', 430, 158);
+        CH.drawCritter(g, 60, 246, Object.assign(npcs[4].params({ moving: 0, walk: 0 }), { talk: true, face: 'angry' }));
+        label('talk/angry', 60, 252);
+        CH.drawCritter(g, 140, 246, Object.assign(npcs[0].params({ moving: 0, walk: 0 }), { face: 'cry', emote: '?' }));
+        label('cry/emote', 140, 252);
+        CH.drawCritter(g, 220, 246, Object.assign(npcs[5].params({ moving: 0, walk: 0 }), { face: 'scared', sweat: 1 }));
+        label('sweat', 220, 252);
+        CH.drawCritter(g, 300, 246, Object.assign(npcs[8].params({ moving: 0, walk: 0 }), { sleep: true }));
+        label('sleep', 300, 252);
+        CH.drawCritter(g, 380, 246, Object.assign(npcs[6].params({ moving: 0, walk: 0 }), { face: 'love', fx: 'heart' }));
+        label('love', 380, 252);
+      } else if (page === 5) {
+        gfx.text('RANDOM CUSTOMERS', 4, 4, '#2e3a3c', { font: 'small' });
+        custs.forEach((n) => n.draw(g));
+      } else {
+        // dialogue portraits, in a box the same size the dialogue uses
+        gfx.text('PORTRAITS (32x34 dialogue box)', 4, 4, '#2e3a3c', { font: 'small' });
+        const names = ['Mom', 'Doctor', 'Nurse', 'Brenda', 'Kevin', 'Tammy', 'Jorge', 'Destiny'];
+        const fakes = ['normal', 'happy', 'angry', 'sad'];
+        names.forEach((nm, i) => {
+          const port = CH.ui.portraits[nm];
+          fakes.forEach((f, j) => {
+            const bx = 18 + i * 56, by = 26 + j * 56;
+            gfx.rrect(bx - 1, by - 1, 34, 36, 4, '#2a2233');
+            gfx.rrect(bx, by, 32, 34, 3, '#3d3350');
+            g.save(); g.beginPath(); g.rect(bx, by, 32, 34); g.clip();
+            port(g, bx + 16, by + 32, { opts: { face: f }, text: 'x', shown: 1 });
+            g.restore();
+            if (j === 3) gfx.text(nm, bx + 16, by + 37, '#2e3a3c', { align: 'center', font: 'small' });
+          });
+        });
+      }
+      gfx.text('page ' + (page + 1) + '/' + PAGES, 476, 4, '#2e3a3c', { align: 'right', font: 'small' });
+    };
+    return s;
+  };
+  // Zoomed inspector: ?test=propzoom#couch,coffeeTable  (3x, on a cabin floor)
+  CH.TESTS.propzoom = () => {
+    const s = new CH.Scene();
+    const names = (location.hash || '#couch').slice(1).split(',');
+    s.update = () => {};
+    s.draw = (g) => {
+      CH.paintCabin(g, CH.W, 222);
+      g.save(); g.scale(3, 3);
+      gfx.pushTarget(g);
+      let x = 4;
+      for (const n of names) {
+        const d = CH.PROPS[n]; if (!d) continue;
+        d.draw(g, x, 88, s.t, {});
+        x += d.w + 6;
+      }
+      CH.drawChubby(g, x + 14, 88, { face: 'normal' });
+      gfx.popTarget();
+      g.restore();
     };
     return s;
   };
   CH.TESTS.props = () => {
-    const s = new CH.WorldScene({ width: 480, floorY: 222 });
-    s.drawRoom = (g) => CH.paintCabin(g, 480, 222);
-    const names = ['bed', 'nightstand', 'poster', 'gameCases', 'tv', 'couch', 'coffeeTable', 'fireplace', 'bookshelf', 'plant', 'window', 'kitchenCounter', 'fridge', 'stove', 'table', 'chair', 'rockingChair', 'rotaryPhone', 'coatRack', 'boots', 'door', 'lamp', 'wallClock', 'moosePainting'];
-    let x = 4;
-    for (const n of names) { const d = CH.PROPS[n]; if (x + d.w > 476) break; s.addProp(n, x, n === 'poster' || n === 'wallClock' || n === 'moosePainting' || n === 'window' || n === 'rotaryPhone' ? 150 : 222); x += d.w + 4; }
-    s.player.x = 240;
+    const s = new CH.WorldScene({ width: 1720, floorY: 222 });
+    s.drawRoom = (g) => CH.paintCabin(g, 1720, 222);
+    const floorNames = ['bed', 'nightstand', 'gameCases', 'beanbag', 'tv', 'console', 'couch', 'coffeeTable', 'fireplace', 'logs', 'bookshelf', 'plant', 'kitchenCounter', 'fridge', 'stove', 'table', 'chair', 'rockingChair', 'coatRack', 'boots', 'door', 'bathroomDoor', 'lamp', 'trashBin', 'radiator', 'laundry', 'cans', 'hockeyStick', 'snowshoes'];
+    const wallNames = ['poster', 'window', 'rotaryPhone', 'wallClock', 'moosePainting', 'calendar', 'flag', 'thermostat'];
+    let x = 8;
+    for (const n of floorNames) {
+      const d = CH.PROPS[n];
+      s.addProp(n, x, 222, { st: n === 'plant' ? { variant: 0 } : {} });
+      x += d.w + 10;
+    }
+    let wx = 8;
+    for (const n of wallNames) {
+      const d = CH.PROPS[n];
+      s.addProp(n, wx, 150, { st: n === 'poster' ? { variant: 0 } : {} });
+      wx += d.w + 22;
+    }
+    s.player.x = 120;
     return s;
   };
 })(window.CH);
