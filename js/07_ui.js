@@ -101,6 +101,7 @@
     queue: [],
     toasts: [],
     objective: '', objectiveT: 0, objectiveShown: true,
+    savedFlash: 0, savedLabel: '',
     cursor: 'arrow', cursorVisible: true,
     moneyFlash: 0, showMoney: false,
     hint: '', hintT: 0,
@@ -139,6 +140,7 @@
     if (ui.moneyFlash > 0) ui.moneyFlash -= dt;
     ui.objectiveT += dt;
     if (ui.hintT > 0) ui.hintT -= dt;
+    if (ui.savedFlash > 0) ui.savedFlash -= dt;
     if (ui.muteFlashT > 0) ui.muteFlashT -= dt;
     for (const t of ui.toasts) t.t += dt;
     ui.toasts = ui.toasts.filter((t) => t.t < t.dur);
@@ -200,12 +202,72 @@
 
   const BOX = { x: 12, y: CH.H - 78, w: CH.W - 24, h: 66 };
   ui.box = BOX;
-  function choiceRects(d) {
-    const n = d.choices.length;
-    const w = 220, h = 13;
-    const x0 = CH.W - 12 - w, y0 = BOX.y - n * (h + 2) - 6;
-    return d.choices.map((c, i) => ({ x: x0, y: y0 + i * (h + 2), w, h }));
+  // ---- dialogue layout -------------------------------------------------------
+  // Where the speaker is standing on screen, so the bubble can point at them.
+  // Read-only probing of the live scene: no scene has to opt in.
+  function speakerAnchor(d) {
+    if (d.opts.at) return { x: d.opts.at[0], y: d.opts.at[1] };
+    if (d.opts.noAnchor) return null;
+    const sc = CH.game && CH.game.scene;
+    if (!sc) return null;
+    const cx = (sc.cam && sc.cam.x) || 0, cy = (sc.cam && sc.cam.y) || 0;
+    const name = d.speaker;
+    if ((name === 'Chubby' || d.opts.player) && sc.player && !sc.player.hidden) {
+      return { x: sc.player.x - cx, y: sc.player.y - cy - (sc.player.sitting ? 40 : 48) };
+    }
+    if (sc.npcs && name) {
+      for (const n of sc.npcs) {
+        if (n.name === name && !n.hidden) {
+          const lift = n.pose === 'lying' || n.pose === 'inbed' ? 26 : 42 * (n.height || 1);
+          return { x: n.x - cx, y: n.y - cy - lift };
+        }
+      }
+    }
+    return null;
   }
+
+  // One layout used by both hit-testing and drawing, so a click always lands
+  // on the option the player can see.
+  function dialogLayout(d) {
+    const clean = d.text.replace(/\{[a-z]+\}/g, '');
+    const anchor = speakerAnchor(d);
+    const L = { anchor, clean };
+    if (anchor) {
+      const maxW = 176;
+      const lines = gfx.wrap(clean, maxW);
+      let tw = 0;
+      for (const ln of lines) tw = Math.max(tw, gfx.textWidth(ln));
+      L.mode = 'bubble';
+      L.w = CH.clamp(tw + 13, 44, maxW + 13);
+      L.h = lines.length * 10 + 9;
+      L.x = CH.clamp(Math.round(anchor.x - L.w / 2), 6, CH.W - L.w - 6);
+      L.y = CH.clamp(Math.round(anchor.y - L.h - 9), 16, CH.H - L.h - 44);
+      L.lines = lines;
+      L.tx = L.x + 6;
+      L.ty = L.y + 5;
+      L.portrait = false;
+    } else {
+      const b = BOX;
+      L.mode = 'panel';
+      L.x = b.x; L.y = b.y; L.w = b.w; L.h = b.h;
+      L.portrait = !!ui.portraits[d.opts.portrait || d.speaker];
+      L.tx = b.x + (L.portrait ? 46 : 10);
+      L.ty = b.y + 11;
+      L.lines = gfx.wrap(clean, b.x + b.w - 10 - L.tx);
+    }
+    if (d.choices) {
+      const n = d.choices.length;
+      const h = 14, gap = 3;
+      let w = 120;
+      for (const c of d.choices) w = Math.max(w, gfx.textWidth(c) + 26);
+      w = Math.min(w, CH.W - 24);
+      const x0 = Math.round((CH.W - w) / 2);
+      const y0 = CH.H - 10 - n * (h + gap);
+      L.choices = d.choices.map((c, i) => ({ x: x0, y: y0 + i * (h + gap), w, h }));
+    }
+    return L;
+  }
+  function choiceRects(d) { return dialogLayout(d).choices || []; }
 
   ui.drawBox = (x, y, w, h, opts = {}) => {
     gfx.rect(x + 1, y + 1, w - 2, h - 2, opts.bg || 'rgba(16,12,22,0.92)');
@@ -251,70 +313,121 @@
       gfx.text(ui.hint, CH.W / 2, CH.H - 96, '#ddd', { align: 'center', outline: '#000' });
       g.globalAlpha = 1;
     }
+    // autosave indicator
+    if (ui.savedFlash > 0) {
+      const a = CH.clamp(ui.savedFlash / 0.4, 0, 1);
+      const label = ui.savedLabel || 'Saved';
+      const w = gfx.textWidth(label, 'small') + 20;
+      g.save(); g.globalAlpha = a;
+      gfx.rrect(CH.W - w - 8, CH.H - 20, w, 13, 4, CH.art.INK);
+      gfx.rrect(CH.W - w - 7, CH.H - 19, w - 2, 11, 3, '#2f9d86');
+      const spin = Math.sin(CH.game.t * 6) > 0 ? 1 : 0;
+      gfx.rect(CH.W - w - 1, CH.H - 16, 5, 5, '#fbf6ea');
+      gfx.rect(CH.W - w, CH.H - 15 + spin, 3, 2, '#2f9d86');
+      gfx.text(label, CH.W - w + 8, CH.H - 16, '#fbf6ea', { font: 'small' });
+      g.restore();
+    }
+
     // dialogue
     const d = ui.dialog;
     if (d) drawDialog(g, d);
   };
 
   function drawDialog(g, d) {
-    const b = BOX;
-    const appear = Math.min(1, d.t / 0.15);
-    const bh = Math.round(b.h * CH.ease.outBack(appear));
-    const by = b.y + b.h - bh;
-    ui.drawBox(b.x, by, b.w, bh, { border: d.opts.border || '#e6dcc4' });
-    if (appear < 1) return;
-    let tx = b.x + 8;
-    // portrait
-    const port = ui.portraits[d.opts.portrait || d.speaker];
-    if (port) {
-      gfx.rect(b.x + 6, b.y + 6, 28, 28, '#241c2c'); gfx.frame(b.x + 5, b.y + 5, 30, 30, '#5a4a66');
-      g.save(); g.beginPath(); g.rect(b.x + 6, b.y + 6, 28, 28); g.clip();
-      port(g, b.x + 20, b.y + 34, d);
-      g.restore();
-      tx = b.x + 42;
+    const art = CH.art;
+    const L = dialogLayout(d);
+    const appear = CH.clamp(d.t / 0.14, 0, 1);
+    const pop = CH.ease.outBack(appear);
+    const vis = L.clean.slice(0, d.shown);
+    const col = d.opts.color || '#241c2e';
+
+    if (L.mode === 'bubble') {
+      const w = Math.max(10, Math.round(L.w * pop));
+      const h = Math.max(6, Math.round(L.h * pop));
+      const x = Math.round(L.x + (L.w - w) / 2);
+      const y = Math.round(L.y + (L.h - h));
+      const kind = d.opts.kind || (d.opts.shaky ? 'shout' : 'say');
+      art.bubble(x, y, w, h, Math.round(L.anchor.x), Math.round(L.anchor.y), {
+        kind, fill: d.opts.bubbleFill || '#fbf6ea',
+      });
+      if (appear < 0.85) return;
+      // speaker tag rides the bubble's shoulder
+      if (d.speaker && d.opts.tag !== false) {
+        const sc = ui.speakerColors[d.speaker] || '#3a3040';
+        const tw = gfx.textWidth(d.speaker, 'small') + 7;
+        const tx = CH.clamp(L.x + 3, 4, CH.W - tw - 4);
+        gfx.rrect(tx, L.y - 9, tw, 10, 3, art.INK);
+        gfx.rrect(tx + 1, L.y - 8, tw - 2, 8, 2, sc);
+        gfx.text(d.speaker, tx + 4, L.y - 6, '#fbf6ea', { font: 'small' });
+      }
+      let remaining = vis.length, ly = L.ty;
+      for (const ln of L.lines) {
+        if (remaining <= 0) break;
+        const part = ln.slice(0, remaining);
+        remaining -= ln.length + 1;
+        if (d.opts.shaky) gfx.text(part, L.tx + CH.irand(-1, 1), ly + CH.irand(-1, 1), col);
+        else gfx.text(part, L.tx, ly, col);
+        ly += 10;
+      }
+      if (d.waiting && !d.choices && d.opts.auto === undefined) {
+        const bob = Math.sin(d.autoT * 6) > 0 ? 1 : 0;
+        gfx.tri(L.x + L.w - 11, L.y + L.h - 7 + bob, L.x + L.w - 5, L.y + L.h - 7 + bob, L.x + L.w - 8, L.y + L.h - 3 + bob, '#9a8fae');
+      }
+    } else {
+      const bh = Math.round(L.h * pop);
+      const by = L.y + L.h - bh;
+      art.bubble(L.x, by, L.w, bh, -100, -100, { fill: d.opts.bubbleFill || '#fbf6ea' });
+      if (appear < 0.85) return;
+      if (L.portrait) {
+        const port = ui.portraits[d.opts.portrait || d.speaker];
+        gfx.rrect(L.x + 5, L.y + 5, 34, L.h - 10, 4, '#2a2233');
+        gfx.rrect(L.x + 6, L.y + 6, 32, L.h - 12, 3, '#3d3350');
+        g.save(); g.beginPath(); g.rect(L.x + 6, L.y + 6, 32, L.h - 12); g.clip();
+        port(g, L.x + 22, L.y + L.h - 12, d);
+        g.restore();
+      }
+      if (d.speaker) {
+        const sc = ui.speakerColors[d.speaker] || '#3a3040';
+        const tw = gfx.textWidth(d.speaker, 'small') + 7;
+        gfx.rrect(L.tx - 3, L.y - 8, tw, 11, 3, CH.art.INK);
+        gfx.rrect(L.tx - 2, L.y - 7, tw - 2, 9, 2, sc);
+        gfx.text(d.speaker, L.tx + 1, L.y - 5, '#fbf6ea', { font: 'small' });
+      }
+      let remaining = vis.length, ly = L.ty;
+      for (const ln of L.lines) {
+        if (remaining <= 0) break;
+        const part = ln.slice(0, remaining);
+        remaining -= ln.length + 1;
+        if (d.opts.shaky) gfx.text(part, L.tx + CH.irand(-1, 1), ly + CH.irand(-1, 1), col);
+        else gfx.text(part, L.tx, ly, col);
+        ly += 10;
+      }
+      if (d.waiting && !d.choices && d.opts.auto === undefined) {
+        const bob = Math.sin(d.autoT * 6) > 0 ? 1 : 0;
+        gfx.tri(L.x + L.w - 14, L.y + L.h - 10 + bob, L.x + L.w - 8, L.y + L.h - 10 + bob, L.x + L.w - 11, L.y + L.h - 6 + bob, '#9a8fae');
+      }
     }
-    // speaker tag
-    if (d.speaker) {
-      const col = ui.speakerColors[d.speaker] || '#fff';
-      const w = gfx.textWidth(d.speaker) + 8;
-      gfx.rect(tx - 2, b.y - 6, w, 11, '#14101a'); gfx.frame(tx - 3, b.y - 7, w + 2, 13, col);
-      gfx.text(d.speaker, tx + 2, b.y - 4, col);
-    }
-    // text (visible portion, strip tags)
-    const vis = d.text.slice(0, d.shown).replace(/\{[a-z]+\}/g, '');
-    const maxW = b.x + b.w - 8 - tx;
-    const lines = gfx.wrap(d.text.replace(/\{[a-z]+\}/g, ''), maxW);
-    // draw char-limited lines
-    let remaining = vis.length;
-    let ly = b.y + 10;
-    for (const ln of lines) {
-      if (remaining <= 0) break;
-      const part = ln.slice(0, remaining);
-      remaining -= ln.length + 1;
-      let col = d.opts.color || '#f2ecd8';
-      if (d.opts.shaky) { gfx.text(part, tx + CH.irand(-1, 1), ly + CH.irand(-1, 1), col); }
-      else gfx.text(part, tx, ly, col);
-      ly += 10;
-    }
-    // continue indicator
-    if (d.waiting && !d.choices && d.opts.auto === undefined) {
-      const bob = Math.sin(d.autoT * 6) > 0 ? 1 : 0;
-      gfx.text('▼', b.x + b.w - 12, b.y + b.h - 11 + bob, '#e6dcc4');
-    }
-    // choices
-    if (d.waiting && d.choices) {
-      const rects = choiceRects(d);
-      rects.forEach((r, i) => {
+
+    // choices: always a column at the foot of the screen, wherever the bubble is
+    if (d.waiting && d.choices && L.choices) {
+      L.choices.forEach((r, i) => {
         const sel = i === d.choiceIdx;
-        gfx.rect(r.x, r.y, r.w, r.h, sel ? '#f2e6c8' : 'rgba(16,12,22,0.92)');
-        gfx.frame(r.x, r.y, r.w, r.h, sel ? '#fff' : '#8a8090');
-        gfx.text((sel ? '▶ ' : '  ') + d.choices[i], r.x + 4, r.y + 3, sel ? '#1a1420' : '#e8e0d0');
+        const slide = sel ? 2 : 0;
+        gfx.rrect(r.x - 1, r.y - 1, r.w + 2, r.h + 2, 5, CH.art.INK);
+        gfx.rrect(r.x, r.y, r.w, r.h, 4, sel ? '#f5d76b' : '#f3eee2');
+        if (sel) gfx.rrect(r.x, r.y, r.w, 3, 2, '#fbeaa8');
+        gfx.text(d.choices[i], r.x + 9 + slide, r.y + 3, sel ? '#221a2c' : '#4a4256');
+        if (sel) {
+          const bob = Math.sin(CH.game.t * 9) > 0 ? 1 : 0;
+          gfx.tri(r.x + 3 + bob, r.y + 4, r.x + 3 + bob, r.y + 10, r.x + 7 + bob, r.y + 7, '#221a2c');
+        }
       });
       if (d.timerMax) {
-        const r0 = rects[0];
-        const w = Math.round((r0.w) * CH.clamp(d.timer / d.timerMax, 0, 1));
-        const col = d.timer < 3 ? (Math.sin(d.timer * 20) > 0 ? '#ff4040' : '#ffa0a0') : P.amber;
-        gfx.rect(r0.x, r0.y - 6, r0.w, 4, '#222'); gfx.rect(r0.x, r0.y - 6, w, 4, col);
+        const r0 = L.choices[0];
+        const w = Math.round(r0.w * CH.clamp(d.timer / d.timerMax, 0, 1));
+        const c = d.timer < 3 ? (Math.sin(d.timer * 20) > 0 ? '#ff4040' : '#ffa0a0') : P.amber;
+        gfx.rrect(r0.x, r0.y - 8, r0.w, 5, 2, '#2a2233');
+        gfx.rrect(r0.x, r0.y - 8, w, 5, 2, c);
       }
     }
   }

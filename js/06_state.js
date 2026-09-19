@@ -39,21 +39,70 @@
   });
   const S = (CH.state = defaults());
   CH.resetState = () => { Object.assign(S, defaults()); };
-  CH.save = () => {
-    try { localStorage.setItem(SAVE_KEY, JSON.stringify(S)); return true; } catch (e) { return false; }
-  };
-  CH.hasSave = () => { try { return !!localStorage.getItem(SAVE_KEY); } catch (e) { return false; } };
-  CH.load = () => {
+
+  // ---- save slots ------------------------------------------------------------
+  // Slot 0 is the autosave the game writes on its own; 1-3 are the player's.
+  // Every read is wrapped: private windows and blocked site data throw here.
+  CH.SLOTS = [0, 1, 2, 3];
+  CH.slotKey = (n) => (n ? SAVE_KEY + '_s' + n : SAVE_KEY);
+  const readSlot = (n) => {
     try {
-      const raw = localStorage.getItem(SAVE_KEY);
-      if (!raw) return false;
-      const d = JSON.parse(raw);
-      Object.assign(S, defaults(), d);
-      S.stats = Object.assign(defaults().stats, d.stats || {});
+      const raw = localStorage.getItem(CH.slotKey(n));
+      return raw ? JSON.parse(raw) : null;
+    } catch (e) { return null; }
+  };
+  CH.saveTo = (n) => {
+    try {
+      const snap = Object.assign({}, S, { savedAt: Date.now(), slot: n });
+      localStorage.setItem(CH.slotKey(n), JSON.stringify(snap));
+      CH.lastSaveT = (CH.game && CH.game.t) || 0;
       return true;
     } catch (e) { return false; }
   };
-  CH.clearSave = () => { try { localStorage.removeItem(SAVE_KEY); } catch (e) {} };
+  CH.loadFrom = (n) => {
+    const d = readSlot(n);
+    if (!d) return false;
+    Object.assign(S, defaults(), d);
+    S.stats = Object.assign(defaults().stats, d.stats || {});
+    return true;
+  };
+  CH.clearSlot = (n) => { try { localStorage.removeItem(CH.slotKey(n)); } catch (e) {} };
+  // Summary for the save/load menu: null when the slot is empty.
+  CH.slotInfo = (n) => {
+    const d = readSlot(n);
+    if (!d) return null;
+    const job = d.job ? (CH.JOB_INFO && CH.JOB_INFO[d.job] ? CH.JOB_INFO[d.job].title : d.job) : 'Unemployed';
+    return {
+      slot: n, day: d.day || 1, hour: d.hour || 7, money: d.money || 0,
+      job, chapter: d.chapter || 'intro', outfit: d.outfit || 'hoodie',
+      billLeft: Math.max(0, (d.bill || 0) - (d.billPaid || 0)),
+      momHome: !!d.momHome, savedAt: d.savedAt || 0,
+    };
+  };
+  CH.anySave = () => CH.SLOTS.some((n) => !!readSlot(n));
+  // Most recent slot, for Continue on the title screen.
+  CH.newestSlot = () => {
+    let best = null, bt = -1;
+    for (const n of CH.SLOTS) {
+      const d = readSlot(n);
+      if (d && (d.savedAt || 0) > bt) { bt = d.savedAt || 0; best = n; }
+    }
+    return best;
+  };
+
+  // Autosave: called at natural breakpoints (waking, arriving, shift end).
+  CH.autosave = (reason) => {
+    if (S.noAutosave) return false;
+    const ok = CH.saveTo(0);
+    if (ok && CH.ui) { CH.ui.savedFlash = 1.6; CH.ui.savedLabel = reason || 'Autosaved'; }
+    return ok;
+  };
+
+  // Back-compat: the rest of the game still calls save/load/hasSave/clearSave.
+  CH.save = () => CH.saveTo(0);
+  CH.hasSave = () => CH.anySave();
+  CH.load = () => { const n = CH.newestSlot(); return n === null ? false : CH.loadFrom(n); };
+  CH.clearSave = () => { CH.clearSlot(0); };
   CH.flag = (k, v) => { if (v === undefined) return !!S.flags[k]; S.flags[k] = v; return v; };
   CH.has = (up) => !!S.upgrades[up];
   CH.addMoney = (n, silent) => {

@@ -435,7 +435,7 @@
       A.sfx('notify');
       yield fx.showCard('NEW OBJECTIVE', 'GET A JOB.', 3.5, '#f5c33b');
       S.chapter = 'jobsearch'; S.day = 2; S.hour = 8; S.money = Math.round((S.money) * 100) / 100; S.momHealth = 20;
-      CH.save();
+      CH.autosave('Autosaved');
       if (CH.startJobSearch) CH.startJobSearch(); else CH.game.set(new CH.CabinScene({ mode: 'home', momPresent: false, playerX: 60 }));
     }
     *laterVisit() {

@@ -116,7 +116,7 @@
   // ---- emergency sequence in the cabin ------------------------------------------------------
   CH.beginEmergency = (cabin) => {
     cabin.mode = 'emergency';
-    S.chapter = 'emergency'; CH.save();
+    S.chapter = 'emergency'; CH.autosave('Chapter saved');
     cabin.run(emergencyCo(cabin));
   };
 
@@ -254,7 +254,7 @@
     yield 0.5;
     A.sfx('door');
     yield fx.fadeOut(1.5);
-    S.chapter = 'hospital'; CH.save();
+    S.chapter = 'hospital'; CH.autosave('Chapter saved');
     cabin.sirenLights = 0;
     CH.game.set(new CH.AmbulanceScene());
   }

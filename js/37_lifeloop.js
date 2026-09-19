@@ -8,7 +8,7 @@
   // ---- after being hired ---------------------------------------------------------------------------
   CH.startCareer = () => {
     S.chapter = 'career'; S.hour = 12.5; S.groceries = 2;
-    CH.save();
+    CH.autosave('Autosaved');
     const tr = new CH.TravelScene({ dest: 'home', direction: -1, playerX: 2480 });
     tr.enter = function () { A.play('town', 2); fx.setFade(1); this.run((function* () { tr.locked = true; yield fx.fadeIn(1.2); tr.player.flip = true; yield ui.say('Chubby', "I have a job. {p}I have a JOB. {pp}A janitor job at a burger place that starts at 8 AM. {p}I have never been awake at 8 AM on purpose.", { face: 'happy' }); yield ui.say('Chubby', "Okay. Home. Text Mom. Sleep. {p}Tomorrow I mop.", { face: 'focused' }); ui.setObjective('Walk home  ←'); tr.locked = false; })()); };
     tr.props.find((p) => p.id === 'cabinExt').interact = function* () { tr.locked = true; A.sfx('door'); yield fx.fadeOut(1); CH.homeEvening(); };
@@ -105,7 +105,7 @@
     // occasional texts
     if (Math.random() < 0.5) CH.sendText('Mom', CH.pick(["Good morning sweetheart. Did you sleep? Don't lie.", "The nurse says I'm 'stable'. I said I've never been stable. She laughed.", "Bring me a Big Don. Kidding. Half kidding.", "Proud of you. That's all. ♥", "Someone's mom in the next bed has a son who is a DENTIST. I told her mine mops floors and I'm prouder.", "How's the couch doing without you", "Eat vegetables. A pickle counts. Barely."]));
     if (S.day % 4 === 0) CH.sendMail({ from: 'billing@stmoosephs.ca', subject: 'Statement reminder', text: `Dear Guarantor,\n\nAmount owing: ${CH.fmtMoney(S.bill - S.billPaid)}.\n\nPayment plans available! :)\n\n- Billing` });
-    CH.save();
+    CH.autosave('Autosaved');
     CH.startCareerDay();
   };
   CH.startCareerDay = () => {
@@ -238,7 +238,7 @@
   };
 
   // ---- ENDING: the bill is paid ----------------------------------------------------------------------------------------
-  CH.onDebtPaid = () => { if (S.debtPaidOff) return; S.debtPaidOff = true; CH.flag('debtPaid', true); CH.save(); ui.toast("THE BILL IS PAID. Mom can come home!", '#f5c33b', 5); A.sfx('fanfare'); CH.sendText('Mom', "The nurse just told me. {p}Chubby. {p}Chubby, what did you DO. Come get me. Come get me right now. ♥♥♥"); CH.pendingEnding = true; };
+  CH.onDebtPaid = () => { if (S.debtPaidOff) return; S.debtPaidOff = true; CH.flag('debtPaid', true); CH.autosave('Autosaved'); ui.toast("THE BILL IS PAID. Mom can come home!", '#f5c33b', 5); A.sfx('fanfare'); CH.sendText('Mom', "The nurse just told me. {p}Chubby. {p}Chubby, what did you DO. Come get me. Come get me right now. ♥♥♥"); CH.pendingEnding = true; };
   // hook: when the player next goes home or visits, run the ending
   const origHome = CH.homeEvening;
   CH.homeEvening = (opts) => { if ((CH.pendingEnding || S.debtPaidOff) && !S.momHome) { CH.pendingEnding = false; CH.endingSequence(); return; } origHome(opts); };
@@ -262,7 +262,7 @@
       yield ui.say('Mom', "...Yes. {pp}Yes. Let's.", { face: 'happy' });
       yield fx.fadeOut(1.5);
       // cabin: mom home
-      S.momHome = true; S.chapter = 'career'; S.hour = 8; CH.save();
+      S.momHome = true; S.chapter = 'career'; S.hour = 8; CH.autosave('Autosaved');
       const cabin = new CH.CabinScene({ mode: 'home', momPresent: true, playerX: 600 });
       cabin.tvMode = 'off'; cabin.fire.st.lit = true; cabin.pancakes.st.eaten = false; cabin.stove.st.steam = true; cabin.bgDirty = true;
       cabin.mom.x = 640; cabin.mom.flip = true; cabin.mom.face = 'happy';
@@ -280,7 +280,7 @@
       yield ui.say('Mom', "I'm ALWAYS Man Egg.", { face: 'happy' });
       yield fx.fadeOut(2);
       yield fx.showCard('CHUBBY THE PORCUPINE', 'Thanks for playing. The tower is still there, if you want it.', 5, '#f5c33b', { sub2: `Days: ${S.day}  -  Shifts: ${S.shiftsWorked}  -  Earned: ${CH.fmtMoney(S.stats.earned)}  -  Pancakes: ${S.stats.pancakes}` });
-      S.hour = 9; CH.save();
+      S.hour = 9; CH.autosave('Autosaved');
       CH.homeEvening({ msg: "Mom's home. {p}The bill is paid. {pp}I'm still going to work tomorrow. {p}Turns out I like it. Don't tell Brenda." });
     })());
   };

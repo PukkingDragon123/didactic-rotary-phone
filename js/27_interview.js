@@ -127,7 +127,7 @@
       yield 0.8;
       S.job = 'janitor'; S.jobLevel = 0; S.chapter = 'career'; S.outfit = 'hoodie'; S.hour = 11;
       CH.sendText('Mom', "How did it go?? The nurse says I can't text so I'm texting. ♥");
-      CH.save();
+      CH.autosave('Autosaved');
       A.stop(1);
       yield fx.fadeOut(1.5);
       yield fx.showCard('HIRED', "Janitor  -  Donald's Burgers  -  $15.50/hr", 3.5, '#f5c33b');

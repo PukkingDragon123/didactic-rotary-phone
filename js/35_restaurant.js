@@ -182,7 +182,7 @@
       S.stats.hours += 8; S.energy = Math.max(0, S.energy - 45); S.hunger = Math.min(100, S.hunger + 40);
       S.jobShifts = S.jobShifts || {}; S.jobShifts[this.job] = (S.jobShifts[this.job] || 0) + 1;
       S.lastShift = res;
-      CH.save();
+      CH.autosave('Shift saved');
       const done = new CH.Signal();
       CH.game.push(new ShiftSummaryScene(res, () => done.resolve()));
       yield done;
@@ -216,7 +216,7 @@
       S.job = next; S.jobLevel = this.jobIdx + 1; S.reputation += 2;
       CH.addMoney(Math.round(info.wage * 4)); ui.toast('Promotion bonus: ' + CH.fmtMoney(Math.round(info.wage * 4)), '#f5c33b', 3);
       CH.sendText('Mom', CH.pick(["PROMOTED?? My baby!! I told the nurse. I told THREE nurses.", "The nurse says I'm not allowed to be this excited. I don't care. PROMOTED!!", "I'm so proud of you, Chubby. So proud. ♥ Eat something."]));
-      CH.save();
+      CH.autosave('Shift saved');
       yield fx.showCard('PROMOTED!', info.title + '  -  ' + CH.fmtMoney(info.wage) + '/hr', 3.5, '#f5c33b');
       A.play('restaurant', 1);
     }

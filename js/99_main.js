@@ -10,6 +10,14 @@
     let dt = (now - last) / 1000; last = now;
     if (dt > 1 / 30) dt = 1 / 30; // one clamped step per frame; input flags live through draw
     if (dt < 0.001) dt = 0.001;
+    // pause: P anywhere, Esc only in the walk-around world (other scenes use
+    // Esc for their own back action)
+    const inp2 = CH.input;
+    if (!CH.ui.busy() && CH.openPause) {
+      const sc = CH.game.scene;
+      const inWorld = CH.WorldScene && sc instanceof CH.WorldScene && !sc.locked;
+      if (inp2.hit('pause') || (inWorld && inp2.hit('cancel'))) { inp2.eat(); CH.openPause(); }
+    }
     CH.game.update(dt);
     // draw
     g.setTransform(1, 0, 0, 1, 0, 0);

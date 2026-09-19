@@ -56,7 +56,7 @@
       ui.toast('Purchased: ' + r.name, '#f5c33b', 2.5);
       const f = this.viewFloor;
       if (CH.floorBought(f) >= 5 && S.towerFloor === f && f < 10) { S.towerFloor = f + 1; this.elevating = true; this.elevT = 0; A.sfx('unlock'); A.sfx('elevator'); ui.toast(`Elevator unlocked: Floor ${f + 1} - ${CH.TOWER[f].name}!`, '#8bd06a', 4); this.run((function* (self) { yield 1.2; self.viewFloor = f + 1; })(this)); }
-      CH.save();
+      CH.autosave('Progress saved');
       this.sel = null;
     }
     draw(g) {

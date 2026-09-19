@@ -126,7 +126,27 @@
       // screen glass reflection
       g.globalAlpha = 0.06; gfx.rect(SX + 4, SY + 6, 10, SH - 12, '#fff'); g.globalAlpha = 1;
       g.restore();
-      if (this.mode !== 'locked') gfx.text('I / Esc: put phone away', W / 2, H - 6, '#777', { align: 'center', font: 'small' });
+      // EXIT: a physical-looking button on the bezel, always in the same place,
+      // so putting the phone away never depends on knowing a hotkey.
+      if (this.mode !== 'locked') this.drawExitButton(g);
+    }
+    exitRect() { return { x: PX + PW + 14, y: PY + 24, w: 76, h: 20 }; }
+    drawExitButton(g) {
+      const r = this.exitRect();
+      const hot = inp.mouseIn(r);
+      if (hot) ui.cursor = 'hand';
+      const lift = hot ? 1 : 0;
+      gfx.rrect(r.x - 1, r.y - 1 - lift, r.w + 2, r.h + 2, 6, '#150f1c');
+      gfx.rrect(r.x, r.y - lift, r.w, r.h, 5, hot ? '#e8584c' : '#c8352b');
+      gfx.rrect(r.x + 2, r.y + 1 - lift, r.w - 4, 4, 2, hot ? '#ff9a88' : '#e8756a');
+      const cx = r.x + 13, cy = r.y + 10 - lift;
+      gfx.line(cx - 4, cy - 4, cx + 4, cy + 4, '#fff');
+      gfx.line(cx - 3, cy - 4, cx + 5, cy + 4, '#fff');
+      gfx.line(cx + 4, cy - 4, cx - 4, cy + 4, '#fff');
+      gfx.line(cx + 5, cy - 4, cx - 3, cy + 4, '#fff');
+      gfx.text('PUT AWAY', r.x + 24, r.y + 7 - lift, '#fff');
+      gfx.text('or press I / Esc', r.x + r.w / 2, r.y + r.h + 4, '#8a8090', { align: 'center', font: 'small' });
+      if (inp.clicked(r)) { this.close(); inp.eat(); }
     }
     drawScreen(g) {
       const d = PD();
@@ -166,8 +186,12 @@
       gfx.rect(SX, ny, SW, NAV_H, home ? 'rgba(0,0,0,0.25)' : '#e6e9f0');
       const navc = home ? '#fff' : '#555';
       // back, home, apps
-      const rb = { x: SX + 20, y: ny + 1, w: 16, h: 8 }, rh = { x: SX + SW / 2 - 8, y: ny + 1, w: 16, h: 8 }, rc = { x: SX + SW - 36, y: ny + 1, w: 16, h: 8 };
-      gfx.text('◀', rb.x + 5, ny + 2, navc, { font: 'small' }); gfx.rect(rh.x + 4, ny + 3, 8, 4, navc); gfx.text('▼', rc.x + 5, ny + 2, navc, { font: 'small' });
+      const rb = { x: SX + 8, y: ny, w: 30, h: NAV_H }, rh = { x: SX + SW / 2 - 15, y: ny, w: 30, h: NAV_H }, rc = { x: SX + SW - 38, y: ny, w: 30, h: NAV_H };
+      for (const [r, glyph] of [[rb, 'BACK'], [rh, 'HOME'], [rc, 'CLOSE']]) {
+        const hot = inp.mouseIn(r);
+        if (hot) gfx.rrect(r.x, r.y + 1, r.w, r.h - 2, 3, home ? 'rgba(255,255,255,0.22)' : '#d5dae6');
+        gfx.text(glyph, r.x + r.w / 2, ny + 2, hot ? (home ? '#fff' : '#222') : navc, { align: 'center', font: 'small' });
+      }
       if (inp.mouseIn(rb) || inp.mouseIn(rh) || inp.mouseIn(rc)) ui.cursor = 'hand';
       if (inp.clicked(rb)) { this.back(); inp.eat(); }
       if (inp.clicked(rh)) { this.home(); inp.eat(); }
@@ -760,7 +784,7 @@
     }
     app_settings(g, cw, ch, st, a) {
       this.header('Settings', '#777'); let yy = 18;
-      const rows = [['Sound', CH.audio.muted ? 'Off' : 'On', () => { CH.audio.toggleMute(); }], ['Wallpaper', 'Blue Hedgehog', () => ui.toast('It stays.', '#fff', 2)], ['Storage', '127.9 GB of 128 GB used', () => ui.toast('It is all speedruns.', '#fff', 2)], ['Screen time', '14h 22m today', () => ui.toast('...', '#fff', 2)], ['About', 'MoosePhone 12 mini', () => {}], ['Save game', 'Tap to save', () => { CH.save(); A.sfx('good'); ui.toast('Game saved.', '#8bd06a', 2); }]];
+      const rows = [['Sound', CH.audio.muted ? 'Off' : 'On', () => { CH.audio.toggleMute(); }], ['Wallpaper', 'Blue Hedgehog', () => ui.toast('It stays.', '#fff', 2)], ['Storage', '127.9 GB of 128 GB used', () => ui.toast('It is all speedruns.', '#fff', 2)], ['Screen time', '14h 22m today', () => ui.toast('...', '#fff', 2)], ['About', 'MoosePhone 12 mini', () => {}], ['Save game', 'Tap to save', () => { CH.autosave('Chapter saved'); A.sfx('good'); ui.toast('Game saved.', '#8bd06a', 2); }]];
       for (const [k, v, fn] of rows) { this.row(yy, 16, () => { gfx.text(k, 8, yy + 2, '#1a1a2a', { font: 'small' }); gfx.text(v, cw - 8, yy + 2, '#666', { align: 'right', font: 'small' }); }, fn); yy += 16; }
       a.contentH = yy;
     }
@@ -872,7 +896,7 @@
     yield ui.say('Chubby', "Wait. WAIT. {p}'INTERVIEW - Donald's Burgers - TOMORROW 10 AM'.", { face: 'shock' });
     yield ui.say('Chubby', "Somebody wants to talk to me. {p}In person. {p}About a job. {pp}...I need to sleep. I need to sleep so much. I need to be a person by 10 AM.", { face: 'worried' });
     ui.setObjective('Go to bed. Interview tomorrow at 10 AM!');
-    S.chapter = 'interview'; CH.save();
+    S.chapter = 'interview'; CH.autosave('Chapter saved');
     cabin.locked = false;
   }
   function* sleepCo(cabin) {
