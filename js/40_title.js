@@ -11,6 +11,9 @@
   // Same shapes the real platformer uses, just on a loop that never dies.
   function attractScreen(g, sx, sy, sw, sh, t) {
     const scroll = (t * 26) % sw;
+    // everything here is drawn on a scrolling loop that runs past the edges,
+    // so it has to be clipped to the tube or it spills onto the living room
+    gfx.clip(sx, sy, sw, sh);
     gfx.rect(sx, sy, sw, sh, '#2a6fd0');
     // parallax hills
     for (let L = 0; L < 2; L++) {
@@ -78,6 +81,7 @@
     g.save(); g.globalAlpha = 0.1; gfx.rect(sx + 1, sy + 1, 5, sh - 2, '#fff'); g.restore();
     // HUD
     gfx.text('RINGS ' + (Math.floor(t * 3) % 40), sx + 2, sy + 2, '#fff', { font: 'small' });
+    gfx.unclip();
   }
   CH.attractScreen = attractScreen;
 
