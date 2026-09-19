@@ -20,40 +20,39 @@
       g.drawImage(pane, c[0], c[1], c[2], c[3], x, y, c[2] * k, c[3] * k);
       g.restore();
     };
-    const HEAD = [16, 8, 28, 22];
+    const HEAD = [15, 6, 30, 27];
     s.update = (dt) => { t += dt; };
     s.draw = (g) => {
       gfx.rect(0, 0, CH.W, CH.H, '#6b6270');
       for (let i = 0; i < 5; i++) gfx.vline(60 + i * 90, 0, CH.H, '#7a7180');
-      // left: 1x pixels blown up 4x - what the player really sees
-      trueSize(g, 2, 10, 7, { face: 'normal', arm: 'pocket' }, HEAD);
-      trueSize(g, 202, 10, 7, { face: 'happy', arm: 'pocket' }, HEAD);
-      trueSize(g, 2, 10 + 22 * 7 + 4, 3, { face: 'angry', arm: 'pocket' });
-      trueSize(g, 62, 10 + 22 * 7 + 4, 3, { face: 'shock', arm: 'pocket' });
-      gfx.text('TRUE 1X, ZOOMED 7X', 4, 4, '#fff', { font: 'small' });
-      // right: drawn at 4x, where the shading is judged
-      g.save(); g.scale(4, 4);
-      CH.drawChubby(g, 105, 57, { face: 'grin', arm: 'wave' });
+      // 1x pixels blown up 6x: the only honest way to judge the glasses
+      trueSize(g, 2, 12, 5, { face: 'normal', arm: 'pocket' }, HEAD);
+      trueSize(g, 158, 12, 5, { face: 'angry', arm: 'pocket', outfit: 'suit' }, HEAD);
+      gfx.text('TRUE 1X, ZOOMED 6X', 4, 4, '#fff', { font: 'small' });
+      // drawn at 3x, where the shading is judged
+      g.save(); g.scale(3, 3);
+      CH.drawChubby(g, 137, 48, { face: 'grin', arm: 'wave' });
       g.restore();
-      // the same sprite at the size players actually see, on a strip of floor
-      gfx.rect(0, 232, CH.W, 20, '#4d4657');
+      // the size players actually see, on a strip of floor
+      gfx.rect(0, 190, CH.W, 20, '#4d4657');
       const poses = [
         { face: 'normal' }, { face: 'happy' }, { face: 'shock' },
         { face: 'angry' }, { face: 'sleep', sleep: true }, { face: 'normal', glasses: false },
         { face: 'grin', outfit: 'suit' }, { face: 'normal', outfit: 'uniform' },
+        { face: 'cry' }, { face: 'smug', outfit: 'janitor' },
       ];
-      poses.forEach((q, i) => CH.drawChubby(g, 24 + i * 34, 246, Object.assign({ arm: 'pocket' }, q)));
+      poses.forEach((q, i) => CH.drawChubby(g, 22 + i * 30, 206, Object.assign({ arm: 'pocket' }, q)));
+      gfx.text('1X (6th has glasses:false)', 4, 214, '#fff', { font: 'small' });
       // dialogue portrait, in a box the size the dialogue uses
       ['normal', 'happy', 'sad', 'angry'].forEach((f, i) => {
-        const bx = 316 + i * 40, by = 196;
+        const bx = 316 + i * 40, by = 224;
         gfx.rrect(bx - 1, by - 1, 34, 36, 4, '#2a2233');
         gfx.rrect(bx, by, 32, 34, 3, '#3d3350');
         g.save(); g.beginPath(); g.rect(bx, by, 32, 34); g.clip();
         CH.ui.portraits.Chubby(g, bx + 16, by + 32, { opts: { face: f }, text: 'x', shown: 1 });
         g.restore();
       });
-      gfx.text('1X (6th: glasses:false)', 4, 238, '#fff', { font: 'small' });
-      gfx.text('portrait', 316, 236, '#fff', { font: 'small' });
+      gfx.text('portrait', 316, 264, '#fff', { font: 'small' });
     };
     return s;
   };
@@ -72,16 +71,27 @@
       // outfits
       outfits.forEach((o, i) => {
         const x = 30 + i * 46;
-        CH.drawChubby(g, x, 200, { outfit: o, arm: i === 1 ? 'phone' : i === 3 ? 'mop' : 'idle', face: 'normal' });
-        gfx.text(o, x, 205, '#e8e0c8', { align: 'center', font: 'small' });
+        CH.drawChubby(g, x, 196, { outfit: o, arm: i === 1 ? 'phone' : i === 3 ? 'mop' : 'idle', face: 'normal' });
+        gfx.text(o, x, 201, '#e8e0c8', { align: 'center', font: 'small' });
       });
       // walk cycle + squash/stretch + poses
-      for (let i = 0; i < 4; i++) CH.drawChubby(g, 250 + i * 40, 200, { walk: (i / 4) * Math.PI * 2, moving: 1, quillTilt: 0.8, jig: Math.sin(i) * 3 });
-      CH.drawChubby(g, 410, 200, { sx: 1.3, sy: 0.72, face: 'shock' });
-      CH.drawChubby(g, 450, 200, { sx: 0.82, sy: 1.22, face: 'determined', arm: 'both_up' });
-      gfx.text('walk cycle / squash / stretch', 250, 205, '#e8e0c8', { font: 'small' });
-      gfx.text('Hello, I am Chubby! 0123456789 $12.50', 4, 252, '#fff');
-      gfx.text('SMALL: ABCDEFGHIJKLMNOPQRSTUVWXYZ 0123456789', 4, 263, '#fff', { font: 'small' });
+      for (let i = 0; i < 4; i++) CH.drawChubby(g, 250 + i * 40, 196, { walk: (i / 4) * Math.PI * 2, moving: 1, quillTilt: 0.8, jig: Math.sin(i) * 3 });
+      CH.drawChubby(g, 410, 196, { sx: 1.3, sy: 0.72, face: 'shock' });
+      CH.drawChubby(g, 450, 196, { sx: 0.82, sy: 1.22, face: 'determined', arm: 'both_up' });
+      gfx.text('walk cycle / squash / stretch', 250, 201, '#e8e0c8', { font: 'small' });
+      // hats and the arm keywords other scenes ask for by name
+      const hats = ['visor', 'hairnet', 'crown', 'toque'];
+      hats.forEach((h, i) => {
+        const x = 24 + i * 40;
+        CH.drawChubby(g, x, 258, { hat: h, face: 'happy', arm: 'pocket' });
+        gfx.text(h, x, 263, '#e8e0c8', { align: 'center', font: 'small' });
+      });
+      const arms = ['controller', 'cover', 'belly', 'hold', 'cheer', 'wave', 'reach', 'carry'];
+      arms.forEach((a, i) => {
+        const x = 200 + i * 36;
+        CH.drawChubby(g, x, 258, { arm: a, face: 'normal', sitting: a === 'controller' });
+        gfx.text(a, x, 263, '#e8e0c8', { align: 'center', font: 'small' });
+      });
     };
     return s;
   };

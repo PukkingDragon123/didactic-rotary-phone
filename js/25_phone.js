@@ -5,10 +5,10 @@
   const gfx = CH.gfx, ui = CH.ui, fx = CH.fx, A = CH.audio, inp = CH.input, S = CH.state;
   const W = CH.W, H = CH.H;
   const PW = 152, PH = 262, PX = Math.round(W / 2 - PW / 2), PY = 4; // phone body
-  const SX = PX + 7, SY = PY + 12, SW = PW - 14, SH = PH - 34; // screen (short enough to leave a real bezel below)
+  const SX = PX + 7, SY = PY + 14, SW = PW - 14, SH = PH - 32; // screen (short enough to leave a real bezel below)
   const STATUS_H = 9, NAV_H = 10;
   // physical round home button, centred on the bezel below the screen
-  const HOME_R = 10, HOME_CX = PX + Math.round(PW / 2), HOME_CY = PY + PH - 11;
+  const HOME_R = 8, HOME_CX = PX + Math.round(PW / 2), HOME_CY = PY + PH - 9;
 
   // ---- phone data (persisted in state) --------------------------------------------------------
   const PD = () => { if (!S.phone) S.phone = { mail: [], texts: {}, notifs: [], history: [], drafts: {}, resumeFixed: false, applications: {}, scam: false, unreadMail: 0, unreadTexts: 0, bankTx: [['Blue Volt Energy x12', -38.88], ['Pancake mix (for Mom)', -4.99], ['Blue Hedgehog Kart DLC', -7.99], ['Moose Hollow Hydro', -84.2], ['Birthday money from Mom', 20]] }; return S.phone; };
@@ -105,13 +105,13 @@
       if (this.app) this.app.scroll = Math.max(0, Math.min(this.app.scroll, Math.max(0, (this.app.contentH || 0) - (SH - STATUS_H - NAV_H) + 4)));
       // loading always finishes on its own - it can never trap the player
       if (this.loading) { const L = this.loading; L.t += dt; if (L.t >= L.dur) { this.loading = null; A.sfx('blip'); if (L.then) L.then(); } }
-      if (this.homePress > 0) this.homePress = Math.max(0, this.homePress - dt * 3);
+      if (this.homePress > 0) this.homePress = Math.max(0, this.homePress - dt * 2);
       CH.tickPhone(dt);
       this.t2 = (this.t2 || 0) + dt;
     }
     // did the user click (not drag) at local coords rect?
-    clicked(r) { if (this.loading) return false; return inp.mpressed && this.hovering && CH.pointIn(this.local.x, this.local.y + (this.app ? this.app.scroll : 0) - (r.noScroll ? (this.app ? this.app.scroll : 0) : 0), r) && !(this.dragging && this.dragging.moved); }
-    hover(r) { if (this.loading) return false; return this.hovering && CH.pointIn(this.local.x, this.local.y + (this.app ? this.app.scroll : 0) - (r.noScroll ? (this.app ? this.app.scroll : 0) : 0), r); }
+    clicked(r) { return inp.mpressed && this.hovering && CH.pointIn(this.local.x, this.local.y + (this.app ? this.app.scroll : 0) - (r.noScroll ? (this.app ? this.app.scroll : 0) : 0), r) && !(this.dragging && this.dragging.moved); }
+    hover(r) { return this.hovering && CH.pointIn(this.local.x, this.local.y + (this.app ? this.app.scroll : 0) - (r.noScroll ? (this.app ? this.app.scroll : 0) : 0), r); }
     // ---- draw ----
     draw(g) {
       const k = CH.ease.outBack(this.slide);
@@ -176,12 +176,12 @@
       gfx.circle(HOME_CX, fy, HOME_R - 3, face);
       gfx.ellipse(HOME_CX, fy + (down ? 0 : -1), HOME_R - 3.5, HOME_R - 4.5, down ? '#ded7c8' : '#fffaf0');
       // specular highlight on the bevel
-      if (!down) { gfx.px(HOME_CX - 2, fy - 6, '#fff'); gfx.rect(HOME_CX - 5, fy - 5, 4, 1, '#fff'); gfx.px(HOME_CX - 6, fy - 4, '#fff'); }
-      else gfx.rect(HOME_CX + 1, fy + 4, 3, 1, 'rgba(255,255,255,0.5)');
+      if (!down) { gfx.px(HOME_CX - 1, fy - 5, '#fff'); gfx.rect(HOME_CX - 4, fy - 4, 3, 1, '#fff'); gfx.px(HOME_CX - 5, fy - 3, '#fff'); }
+      else { gfx.rect(HOME_CX + 1, fy + 3, 3, 1, 'rgba(255,255,255,0.45)'); gfx.ellipse(HOME_CX, fy - 4, HOME_R - 4, 1.6, 'rgba(20,10,30,0.4)'); }
       // rounded-square glyph
-      gfx.rrect(HOME_CX - 3, fy - 3, 7, 7, 2, hot && !down ? '#c8352b' : '#4a4458');
-      gfx.rrect(HOME_CX - 2, fy - 2, 5, 5, 1, face);
-      if (live && inp.clicked(r)) { this.homePress = 0.3; A.sfx('tap'); this.close(); inp.eat(); }
+      gfx.rrect(HOME_CX - 3, fy - 3, 6, 6, 2, hot && !down ? '#c8352b' : '#4a4458');
+      gfx.rrect(HOME_CX - 2, fy - 2, 4, 4, 1, face);
+      if (live && inp.clicked(r)) { this.homePress = 0.45; A.sfx('tap'); this.close(); inp.eat(); }
     }
     // ---- LOADING: the phone is a MoosePhone 12 mini and it is TIRED ----------
     beginLoad(o) {
@@ -209,10 +209,10 @@
       const L = this.loading, p = Math.min(1, L.t / L.dur), pct = this.loadPct(L);
       const nr = L.nr && p > 0.46 && p < 0.7;                 // NOT RESPONDING window
       const wob = nr ? (Math.floor(L.t * 22) % 2 ? 1 : -1) : 0;
-      gfx.rect(0, 0, cw, ch, '#dfe3ec');
+      gfx.rect(0, 0, cw, ch, 'rgba(223,227,236,0.92)');
       for (let i = 0; i < ch; i += 4) gfx.hline(0, i, cw, 'rgba(255,255,255,0.4)');
       const bands = L.style === 'bands';
-      const pw = cw - 16, ph = bands ? 98 : 60;
+      const pw = cw - 16, ph = bands ? 106 : 60;
       const px = 8 + wob, py = Math.max(6, Math.floor((ch - ph) / 2));
       gfx.rrect(px - 1, py - 1, pw + 2, ph + 2, 5, CH.art.INK);
       gfx.rrect(px, py, pw, ph, 4, '#f3eee2');
@@ -291,10 +291,10 @@
       ctx.restore();
       // logo + rotating burger flanking the pitch
       this.bigD(x + 5, y + 21, 2);
-      this.drawBurger(x + w - 15, y + 34, t, 1);
-      const tx = x + w / 2 + 2;
+      this.drawBurger(x + w - 13, y + 33, t, 0.85);
+      const tx = x + w / 2 - 3;
       gfx.text("DONALD'S BURGERS", tx, y + 19, AD.fg, { align: 'center', font: 'small' });
-      gfx.text(AD.sub + '!', tx, y + 26, blink ? '#fff' : '#ffe9a0', { align: 'center', font: 'small' });
+      gfx.text(AD.sub, tx, y + 26, blink ? '#fff' : '#ffe9a0', { align: 'center', font: 'small' });
       gfx.text('$15.50/HR - START NOW', tx, y + 33, '#fff', { align: 'center', font: 'small' });
       if (h >= 48) {
         const bw = 74, bx = x + w / 2 - bw / 2, by = y + h - 13;
@@ -359,8 +359,7 @@
       const cx = SX, cy = SY + STATUS_H, cw = SW, ch = SH - STATUS_H - NAV_H;
       gfx.clip(cx, cy, cw, ch);
       g.save(); g.translate(cx, cy);
-      if (this.loading) this.drawLoading(g, cw, ch);
-      else if (home) this.drawHome(g, cw, ch);
+      if (home) this.drawHome(g, cw, ch);
       else {
         g.save(); g.translate(0, -this.app.scroll);
         this.drawApp(g, cw, ch);
@@ -368,6 +367,7 @@
         // scrollbar
         if ((this.app.contentH || 0) > ch) { const sbH = Math.max(8, ch * ch / this.app.contentH); const sbY = (this.app.scroll / (this.app.contentH - ch)) * (ch - sbH); gfx.rect(cw - 2, sbY, 2, sbH, 'rgba(0,0,0,0.3)'); }
       }
+      if (this.loading) this.drawLoading(g, cw, ch);
       g.restore();
       gfx.unclip();
       // keyboard

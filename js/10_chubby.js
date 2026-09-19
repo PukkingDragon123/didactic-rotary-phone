@@ -39,7 +39,7 @@
     lensLo: '#a9c4ca',                   // glass in the lower half of the lens
     tape: '#ece2c6', tapeLo: '#c9bb9a',  // the repair on the bridge
     toothLo: '#ddcdb4',
-    brow: '#4a2a12',                     // reads over the fur at actual size
+    brow: '#2f1a0a',                     // reads over the fur at actual size
   };
   CH.CHUBBY_COL = C;
 
@@ -255,24 +255,24 @@
       // ---- head --------------------------------------------------------------
       if (hood) {
         // hood shell: sits behind and above, opening toward the face
-        E(headX - 2.2, headY + 0.9, hr + 2.3, hr + 1.7, mat.dd);
-        E(headX - 2.6, headY, hr + 1.5, hr + 0.9, mat.base);
-        E(headX - 3.8, headY - 4, hr * 0.6, hr * 0.28, mat.l);
+        E(headX - 2.2, headY + 0.9, hr + 2.3, hr + 2.1, mat.dd);
+        E(headX - 2.6, headY, hr + 1.5, hr + 1.3, mat.base);
+        E(headX - 3.8, headY - 4.4, hr * 0.6, hr * 0.28, mat.l);
         // the opening, a shade darker than the shell
-        E(headX + 1, headY + 0.5, hr * 1.02, hr * 0.99, mat.dd);
+        E(headX + 1, headY + 0.5, hr * 1.02, hr * 1.07, mat.dd);
       }
       // face ball
-      E(headX + 0.8, headY + 0.9, hr * 0.96, hr * 0.94, M.fur.d);
-      E(headX + 0.8, headY, hr * 0.94, hr * 0.9, M.fur.base);
-      E(headX - 1.4, headY - 4.6, hr * 0.5, hr * 0.26, M.fur.l);
+      E(headX + 0.8, headY + 0.9, hr * 0.96, hr * 1, M.fur.d);
+      E(headX + 0.8, headY, hr * 0.94, hr * 0.99, M.fur.base);
+      E(headX - 1.4, headY - 5.2, hr * 0.5, hr * 0.26, M.fur.l);
       // muzzle: a distinct lighter mass, not a wash over the whole face
       E(headX + 5, headY + 4.7, 5.5, 3.8, M.fur.dd);
       E(headX + 5, headY + 4.2, 5, 3.4, M.muzzle.base);
       E(headX + 4.4, headY + 3.2, 3.6, 1.6, M.muzzle.l);
       E(headX + 5, headY + 5.8, 4, 1.4, M.muzzle.d);
       if (!hood) {
-        E(headX - 5.2, headY - 6.6, 2.5, 2.6, M.fur.d);
-        E(headX - 5.2, headY - 6.6, 1.4, 1.5, C.blush);
+        E(headX - 5.4, headY - 7.2, 2.5, 2.6, M.fur.d);
+        E(headX - 5.4, headY - 7.2, 1.4, 1.5, C.blush);
       }
 
       // ---- headwear ----------------------------------------------------------
@@ -301,18 +301,18 @@
       const blink = p.blink && fk.eye !== 'shut' && fk.eye !== 'cross';
       const eyeShape = sleep ? 'shut' : blink ? 'shut' : fk.eye;
       const lx = CH.clamp(p.lookX || 0, -1, 1), ly = CH.clamp(p.lookY || 0, -1, 1);
-      const ey = headY - 1.6;
+      const ey = headY - 1.1;
       const eL = headX - 2.4, eR = headX + 6;      // lens / eye centres
-      const LRX = 4.3, LRY = 3.85;                 // frame outer
-      const GRX = 2.95, GRY = 2.6;                 // glass inside the frame
+      const LRX = 4.25, LRY = 4.05;                // frame outer
+      const GRX = 2.95, GRY = 2.75;                // glass inside the frame
 
       // brows ride above the frames
       if (eyeShape !== 'heart') {
         const [bi, bo, bt] = fk.brow;
         const raise = p.browRaise || 0;
         for (const [cx, inner] of [[eL, 1], [eR, -1]]) {
-          const y0 = ey - 4.6 + (inner > 0 ? bo : bi) * 0.7 - raise;
-          const y1 = ey - 4.6 + (inner > 0 ? bi : bo) * 0.7 - raise;
+          const y0 = ey - 4.9 + (inner > 0 ? bo : bi) * 0.7 - raise;
+          const y1 = ey - 4.9 + (inner > 0 ? bi : bo) * 0.7 - raise;
           for (let k = 0; k < bt; k++) L(cx - 2.2, y0 + k, cx + 2, y1 + k, C.brow);
         }
       }
@@ -360,7 +360,7 @@
             const half = eyeShape === 'half' || eyeShape === 'bags' || eyeShape === 'droop' || eyeShape === 'squint';
             // magnified by the lenses: the eye nearly fills the glass
             const rx = wide ? 2.5 : narrow ? 2.6 : 2.4;
-            const ry = wide ? 2.45 : narrow ? 1.4 : half ? 1.8 : 2.2;
+            const ry = wide ? 2.6 : narrow ? 1.45 : half ? 1.9 : 2.35;
             E(cx, ey, rx, ry, C.eyeW);
             E(cx, ey - ry * 0.5, rx * 0.88, ry * 0.32, gfx.mix(C.eyeW, '#9a8fae', 0.4));
             const pr = wide ? 1.35 : 1.55;
@@ -399,12 +399,12 @@
       }
 
       // nose
-      E(headX + 5.7, headY + 3.2, 1.8, 1.4, C.nose);
-      E(headX + 5.3, headY + 2.6, 1, 0.6, '#a28a98');
+      E(headX + 6.4, headY + 4, 1.7, 1.1, C.nose);
+      E(headX + 6, headY + 3.5, 0.9, 0.5, '#a28a98');
       for (const dy0 of [0, 1.6]) P(headX + 8.6, headY + 4.2 + dy0, M.muzzle.d);
 
       const m = p.mouth || fk.mouth;
-      const my = headY + 6.6, mx = headX + 3.6;
+      const my = headY + 7.5, mx = headX + 3.4;
       const ink = C.nose;
       if (m === 'smile') { L(mx - 2.6, my - 0.8, mx, my + 0.8, ink); L(mx, my + 0.8, mx + 2.6, my - 0.8, ink); }
       else if (m === 'grin') {
@@ -431,7 +431,7 @@
       // rabbit teeth: they hang over the lip whatever the mouth is doing
       if (p.teeth !== false) {
         const tx = mx + 0.3, ty = my - 1.3;
-        R(tx - 2.3, ty - 0.4, tx + 2.3, ty + 3.4, ink);
+        R(tx - 2.2, ty - 0.2, tx + 2.2, ty + 3.3, ink);
         R(tx - 1.95, ty, tx - 0.5, ty + 3, C.teeth);
         R(tx + 0.5, ty, tx + 1.95, ty + 3, C.teeth);
         R(tx - 1.95, ty + 2.5, tx - 0.5, ty + 3, C.toothLo);
