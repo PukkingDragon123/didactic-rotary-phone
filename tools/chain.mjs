@@ -91,7 +91,9 @@ async function step() {
   if (Math.abs(d) < 10) { await page.keyboard.press('e'); await page.waitForTimeout(400); return s; }
   const key = d > 0 ? 'ArrowRight' : 'ArrowLeft';
   await page.keyboard.down(key);
-  await page.waitForTimeout(Math.min(450, Math.abs(d) * 11));
+  // long crossings (the restaurant is 1380 wide) need long bursts, or the
+  // round trip per step eats the whole budget
+  await page.waitForTimeout(Math.min(Math.abs(d) > 200 ? 1100 : 450, Math.abs(d) * 11));
   await page.keyboard.up(key);
   return s;
 }
@@ -139,7 +141,7 @@ await driveUntil((s) => s.job === 'janitor', 'being hired', 180000, '6_hired');
 await driveUntil((s) => s.scene === 'restaurant', 'the restaurant', 180000, '7_restaurant');
 await driveUntil((s) => /Clean up messes|Clock out/i.test(s.obj), 'the mop', 120000, '8_mop');
 await driveUntil((s) => /Clock out/i.test(s.obj) || s.scene !== 'restaurant', 'the end of the shift', 300000, '9_shiftend');
-await driveUntil((s) => s.scene === 'cabin' || s.scene === 'travel', 'the way home', 180000, '10_home');
+await driveUntil((s) => s.scene === 'cabin' || s.scene === 'travel', 'the way home', 300000, '10_home');
 if ((await state()).scene === 'travel') {
   await page.evaluate(() => {
     const sc = CH.game.scene;
