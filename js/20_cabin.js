@@ -116,6 +116,12 @@
     }
     // ---- TV -----------------------------------------------------------------------
     drawTV(g, x, y, w, h, t) {
+      // the screen modes scroll and overdraw, so keep them inside the tube
+      gfx.clip(x, y, w, h);
+      this.drawTVInner(g, x, y, w, h, t);
+      gfx.unclip();
+    }
+    drawTVInner(g, x, y, w, h, t) {
       const m = this.tvMode;
       if (m === 'off') TVS.off(g, x, y, w, h, t);
       else if (m === 'static') TVS.static(g, x, y, w, h, t);
