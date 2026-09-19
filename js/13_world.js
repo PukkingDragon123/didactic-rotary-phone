@@ -30,12 +30,14 @@
       const def = CH.PROPS[name];
       if (!def) { console.warn('no prop', name); return null; }
       const p = { name, def, x, y: y === undefined ? this.floorY : y, w: opts.w || def.w, h: opts.h || def.h, st: opts.st || {}, interact: opts.interact || null, hint: opts.hint || null, layer: opts.layer || 'back', anim: opts.anim !== undefined ? opts.anim : ANIMATED.has(name), range: opts.range, id: opts.id || name, hidden: false, once: opts.once, used: false, offsetX: opts.offsetX || 0, promptY: opts.promptY };
+      for (const k in opts) if (!(k in p)) p[k] = opts[k];
       this.props.push(p);
       if (!p.anim && p.layer === 'back') this.bgDirty = true;
       return p;
     }
     addCustom(draw, x, y, w, h, opts = {}) {
       const p = { name: opts.id || 'custom', def: { draw, w, h }, x, y: y === undefined ? this.floorY : y, w, h, st: opts.st || {}, interact: opts.interact || null, hint: opts.hint || null, layer: opts.layer || 'back', anim: opts.anim !== undefined ? opts.anim : true, range: opts.range, id: opts.id || 'custom', hidden: false, offsetX: 0 };
+      for (const k in opts) if (!(k in p)) p[k] = opts[k];
       this.props.push(p);
       if (!p.anim) this.bgDirty = true;
       return p;
@@ -50,10 +52,10 @@
       const g = this.bg.getContext('2d');
       g.imageSmoothingEnabled = false;
       g.clearRect(0, 0, this.width, CH.H);
-      gfx.target(g);
+      gfx.pushTarget(g);
       this.drawRoom(g);
       for (const p of this.props) if (!p.anim && p.layer === 'back' && !p.hidden) p.def.draw(g, p.x, p.y, 0, p.st);
-      gfx.target(null);
+      gfx.popTarget();
       this.bgDirty = false;
     }
     // ---- cutscene helpers ---------------------------------------------------------

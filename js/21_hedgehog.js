@@ -153,13 +153,13 @@
   function tileImg(kind) {
     if (TILE_IMGS[kind]) return TILE_IMGS[kind];
     const c = gfx.makeCanvas(T, T), cx = c.getContext('2d');
-    gfx.target(cx);
+    gfx.pushTarget(cx);
     if (kind === 'dirt') { gfx.rect(0, 0, T, T, '#a86a3a'); const rng = new CH.Rng(9); for (let i = 0; i < 10; i++) gfx.rect(rng.int(0, 15), rng.int(0, 15), 2, 1, rng.chance(0.5) ? '#8a5028' : '#c28048'); }
     else if (kind === 'grass') { gfx.rect(0, 0, T, T, '#a86a3a'); gfx.rect(0, 0, T, 5, '#3ec26a'); gfx.rect(0, 0, T, 2, '#7ee08a'); for (let i = 0; i < T; i += 2) gfx.rect(i, 4 + (i % 4 === 0 ? 1 : 0), 1, 1, '#8a5028'); gfx.rect(3, -1, 1, 2, '#7ee08a'); gfx.rect(9, -1, 1, 2, '#7ee08a'); gfx.rect(13, 0, 1, 1, '#7ee08a'); const rng = new CH.Rng(3); for (let i = 0; i < 6; i++) gfx.rect(rng.int(0, 15), rng.int(7, 15), 2, 1, '#8a5028'); }
     else if (kind === 'plat') { gfx.rect(0, 0, T, T, '#a86a3a'); gfx.rect(0, 0, T, 5, '#3ec26a'); gfx.rect(0, 0, T, 2, '#7ee08a'); gfx.rect(0, 12, T, 4, '#6a4020'); for (let i = 1; i < T; i += 4) gfx.rect(i, 13, 2, 2, '#8a5028'); }
     else if (kind === 'edgeL') { gfx.rect(0, 0, T, T, '#a86a3a'); gfx.rect(0, 0, 3, T, '#6a4020'); }
     else if (kind === 'edgeR') { gfx.rect(0, 0, T, T, '#a86a3a'); gfx.rect(13, 0, 3, T, '#6a4020'); }
-    gfx.target(null);
+    gfx.popTarget();
     TILE_IMGS[kind] = c;
     return c;
   }
@@ -233,6 +233,8 @@
       this.cam.x = CH.lerp(this.cam.x, tx, Math.min(1, dt * 8)); this.cam.y = CH.lerp(this.cam.y, ty, Math.min(1, dt * 5));
       // crash trigger safety net
       if (this.crashArmed && !this.crashed && this.playT > 170) this.triggerCrash();
+      if (this.opts.timeCap && this.playT > this.opts.timeCap && !this.capped) { this.capped = true; this.frozen = true; if (this.opts.onFinish) this.opts.onFinish(this); }
+      if (this.opts.canQuit && inp.hit('cancel') && !this.capped) { this.capped = true; this.frozen = true; inp.eat(); if (this.opts.onFinish) this.opts.onFinish(this); }
     }
     updatePlayer(dt) {
       const p = this.p;
@@ -465,7 +467,7 @@
       A.sfx('coin');
       yield 1.5;
       if (this.crashArmed && !this.crashed) this.triggerCrash();
-      else if (this.opts.onFinish) this.opts.onFinish(this);
+      else if (this.opts.onFinish && !this.capped) { this.capped = true; this.opts.onFinish(this); }
     }
     triggerCrash() {
       this.crashed = true;
@@ -592,7 +594,7 @@
       gfx.text('© 1991 SEGO', W / 2, H - 20, '#aaa', { align: 'center', font: 'small' });
     }
     // render to an offscreen canvas (used by TV zoom & TV preview)
-    render(ctx) { gfx.target(ctx); this.draw(ctx); gfx.target(null); }
+    render(ctx) { gfx.pushTarget(ctx); this.draw(ctx); gfx.popTarget(); }
   }
   CH.HedgehogScene = HedgehogScene;
 
@@ -634,7 +636,7 @@
   CH.TVZoomScene = TVZoomScene;
 
   // helper on cabin: draw into an arbitrary ctx
-  CH.CabinScene.prototype.drawTo = function (ctx) { gfx.target(ctx); this.draw(ctx); gfx.target(null); };
+  CH.CabinScene.prototype.drawTo = function (ctx) { gfx.pushTarget(ctx); this.draw(ctx); gfx.popTarget(); };
 
   // Entry: start the game-in-game from the cabin
   CH.startHedgehog = (cabin) => {

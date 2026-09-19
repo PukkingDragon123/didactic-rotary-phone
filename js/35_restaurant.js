@@ -9,13 +9,18 @@
   // ---- restaurant props ----------------------------------------------------------------------
   const def = (n, w, h, d) => { CH.PROPS[n] = { name: n, w, h, draw: d }; };
   def('glassDoor', 30, 66, (g, x, y, t, st) => { gfx.rect(x - 2, y - 68, 34, 68, '#5a5a66'); gfx.rect(x, y - 66, 30, 66, '#9fdcff'); g.globalAlpha = 0.3; gfx.rect(x + 2, y - 64, 8, 62, '#fff'); g.globalAlpha = 1; gfx.rect(x + 14, y - 66, 2, 66, '#5a5a66'); gfx.rect(x + 4, y - 36, 8, 2, '#333'); gfx.rect(x + 18, y - 36, 8, 2, '#333'); gfx.rect(x + 2, y - 60, 26, 8, '#c8352b'); gfx.text('OPEN', x + 15, y - 59, '#fff', { align: 'center', font: 'small' }); });
-  def('booth', 90, 40, (g, x, y, t, st) => {
+  def('booth', 90, 44, (g, x, y, t, st) => {
     const dirty = st && st.dirty;
-    gfx.rect(x, y - 36, 14, 36, '#c8352b'); gfx.rect(x + 2, y - 34, 10, 20, '#e04a3e'); gfx.rect(x + 76, y - 36, 14, 36, '#c8352b'); gfx.rect(x + 78, y - 34, 10, 20, '#e04a3e');
-    gfx.rect(x + 14, y - 14, 14, 14, '#c8352b'); gfx.rect(x + 62, y - 14, 14, 14, '#c8352b');
-    gfx.rect(x + 26, y - 20, 38, 4, '#f5c33b'); gfx.rect(x + 26, y - 20, 38, 1, '#ffe080'); gfx.rect(x + 42, y - 16, 6, 16, '#8a8a94');
-    if (dirty) { gfx.rect(x + 30, y - 24, 12, 4, '#e0c090'); gfx.rect(x + 46, y - 26, 6, 6, '#f4f4f8'); gfx.px(x + 44, y - 21, '#c8352b'); gfx.px(x + 56, y - 22, '#f5c33b'); gfx.px(x + 34, y - 21, '#f5c33b'); for (let i = 0; i < 3; i++) gfx.px(x + 30 + i * 8, y - 28 - Math.round(((t * 0.8 + i * 0.3) % 1) * 5), '#8a8a4a'); }
-    else { gfx.rect(x + 54, y - 24, 4, 4, '#c8352b'); gfx.rect(x + 32, y - 23, 6, 3, '#f4f4f8'); }
+    // high-backed benches
+    for (const bx of [x, x + 74]) { gfx.rect(bx, y - 44, 16, 44, '#a02a20'); gfx.rect(bx + 2, y - 42, 12, 26, '#c8352b'); gfx.rect(bx + 2, y - 30, 12, 1, '#8f2419'); gfx.rect(bx + 2, y - 16, 12, 8, '#e04a3e'); gfx.rect(bx, y - 2, 16, 2, '#5a1a10'); }
+    gfx.rect(x + 16, y - 18, 10, 10, '#c8352b'); gfx.rect(x + 64, y - 18, 10, 10, '#c8352b'); // seat cushions
+    // table with pedestal
+    gfx.rect(x + 43, y - 22, 4, 22, '#5a5a66'); gfx.rect(x + 36, y - 2, 18, 2, '#5a5a66');
+    gfx.rect(x + 24, y - 26, 42, 5, '#f5c33b'); gfx.rect(x + 24, y - 26, 42, 1, '#ffe080'); gfx.rect(x + 24, y - 21, 42, 1, '#c8a030');
+    // condiments & table number
+    gfx.rect(x + 28, y - 31, 3, 5, '#c8352b'); gfx.rect(x + 32, y - 30, 3, 4, '#f5c33b'); gfx.rect(x + 58, y - 32, 5, 6, '#f4f4f8'); gfx.rect(x + 59, y - 31, 3, 1, '#c8352b');
+    if (dirty) { CH.FOOD.tray(g, x + 45, y - 27); gfx.rect(x + 36, y - 33, 10, 4, '#e0c090'); CH.FOOD.cup(g, x + 52, y - 28, 0.2, 'S'); gfx.px(x + 40, y - 27, '#c8352b'); gfx.px(x + 48, y - 27, '#f5c33b'); gfx.px(x + 44, y - 20, '#f0d080'); for (let i = 0; i < 3; i++) gfx.px(x + 38 + i * 6, y - 38 - Math.round(((t * 0.8 + i * 0.3) % 1) * 5), '#8a8a4a'); }
+    else { gfx.rect(x + 38, y - 29, 8, 3, '#f4f4f8'); gfx.hline(x + 39, y - 28, 6, '#ddd'); }
   });
   def('counter', 190, 40, (g, x, y, t, st) => {
     gfx.rect(x, y - 40, 190, 40, '#c8352b'); gfx.rect(x, y - 42, 190, 4, '#f5c33b'); gfx.rect(x, y - 42, 190, 1, '#ffe080'); for (let i = 0; i < 190; i += 20) gfx.rect(x + i, y - 30, 10, 26, '#b02a20');
@@ -334,6 +339,7 @@
     }
     *interactKiosk() {
       A.sfx('tap');
+      if (this.stationTask && this.jobIdx >= 9 && !this.afterShift) { const c = yield ui.choose('Chubby', CH.JOB_INFO[this.job].title + ' duty is waiting upstairs.', ['Do the job (elevator up)', 'Open the Career Tower']); if (c === 0) { yield* this.runTask(this.stationTask); return; } if (c < 0) return; }
       if (!CH.flag('kioskTut')) { CH.flag('kioskTut', true); yield ui.say('Chubby', "The Career Tower kiosk. {p}A giant office building on a screen. Every floor is a career level. Every room is an upgrade. {p}Five upgrades per floor and the elevator goes up. {pp}Corporate made a video game out of my job. {p}...Okay. I respect that."); }
       const done = new CH.Signal(); CH.game.push(new CH.TowerScene(() => done.resolve())); yield done;
     }

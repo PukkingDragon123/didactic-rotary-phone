@@ -81,7 +81,7 @@
     constructor(x, y, w, h, paint) {
       this.x = x; this.y = y; this.w = w; this.h = h;
       this.c = gfx.makeCanvas(w, h); this.ctx = this.c.getContext('2d');
-      gfx.target(this.ctx); paint(this.ctx, w, h); gfx.target(null);
+      gfx.pushTarget(this.ctx); paint(this.ctx, w, h); gfx.popTarget();
       this.total = this.count(); this.left = this.total; this.sampleT = 0;
     }
     count() { const d = this.ctx.getImageData(0, 0, this.w, this.h).data; let n = 0; for (let i = 3; i < d.length; i += 4) n += d[i]; return n; }

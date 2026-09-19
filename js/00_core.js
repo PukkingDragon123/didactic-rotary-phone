@@ -184,10 +184,13 @@ window.CH = window.CH || {};
       return s;
     },
     replace(scene) { const s = this.stack.pop(); if (s) s.exit(); this.stack.push(scene); scene.enter(); },
+    globalCos: [],
+    runGlobal(gen) { const co = new CH.Co(gen); this.globalCos.push(co); return co; },
     update(dt) {
       if (this.hitstop > 0) { this.hitstop -= dt; return; }
       dt *= this.slow;
       this.t += dt; this.frame++;
+      if (this.globalCos.length) { for (const c of this.globalCos) c.update(dt); this.globalCos = this.globalCos.filter((c) => !c.done); }
       // update top scene; overlay scenes let the one beneath keep drawing but not updating
       const s = this.scene;
       if (s) { s.t += dt; s.update(dt); s.updateCos(dt); }

@@ -7,7 +7,7 @@
 
   // ---- after being hired ---------------------------------------------------------------------------
   CH.startCareer = () => {
-    S.chapter = 'career'; S.hour = 11.5; S.groceries = 2;
+    S.chapter = 'career'; S.hour = 12.5; S.groceries = 2;
     CH.save();
     const tr = new CH.TravelScene({ dest: 'home', direction: -1, playerX: 2480 });
     tr.enter = function () { A.play('town', 2); fx.setFade(1); this.run((function* () { tr.locked = true; yield fx.fadeIn(1.2); tr.player.flip = true; yield ui.say('Chubby', "I have a job. {p}I have a JOB. {pp}A janitor job at a burger place that starts at 8 AM. {p}I have never been awake at 8 AM on purpose.", { face: 'happy' }); yield ui.say('Chubby', "Okay. Home. Text Mom. Sleep. {p}Tomorrow I mop.", { face: 'focused' }); ui.setObjective('Walk home  ←'); tr.locked = false; })()); };
@@ -58,7 +58,20 @@
       if (c === 2 || c < 0) return;
       cabin.locked = true; yield cabin.walkTo(880); cabin.player.sitting = true; cabin.player.y = cabin.floorY - 9; cabin.couchSeat = true; A.sfx('couch');
       if (c === 1) { yield ui.say('Chubby', "Just sitting. {pp}The fire's going. {p}It's quiet. {pp}Okay. Okay.", { face: 'normal' }); S.energy = Math.min(100, S.energy + 8); }
-      else { cabin.tvMode = 'attract'; A.sfx('tvOn'); yield 1; yield ui.say('Chubby', "Twenty minutes. Just twenty.", { face: 'happy' }); const hh = new CH.HedgehogScene({ skipTitle: true, crash: false, onFinish: () => {} }); hh.opts.onCrash = null; const done = new CH.Signal(); hh.opts.onFinish = () => done.resolve(); hh.playCap = 60; CH.game.push(new CH.TVZoomScene(cabin, hh, 1, () => { CH.game.pop(); CH.game.push(hh); }, 1.2)); const start = performance.now(); while (!done.done && performance.now() - start < 75000) yield 0.5; if (!done.done) { hh.frozen = true; } CH.game.set(new CH.TVZoomScene(cabin, hh, -1, () => { CH.game.set(cabin); }, 1.0)); yield 1.2; S.energy = Math.min(100, S.energy + 20); yield ui.say('Chubby', done.done ? "Beat Man Egg. Again. {p}He never learns. {pp}Okay. Bed." : "Okay. That's enough. {p}Twenty minutes. Forty. Whatever.", { face: 'happy' }); cabin.tvMode = 'off'; }
+      else {
+        cabin.tvMode = 'attract'; A.sfx('tvOn'); yield 1; yield ui.say('Chubby', "Twenty minutes. Just twenty. {p}(Esc to stop playing)", { face: 'happy' });
+        const hh = new CH.HedgehogScene({ skipTitle: true, crash: false, hint: false, timeCap: 90, canQuit: true });
+        cabin.tvMode = 'game'; CH.hedgehogPreview = (g2, x, y, w, h) => { const c = CH.hedgehogPreview.canvas || (CH.hedgehogPreview.canvas = gfx.makeCanvas(W, H)); hh.render(c.getContext('2d')); g2.drawImage(c, x, y, w, h); };
+        hh.opts.onFinish = () => {
+          const won = hh.phase === 'victory';
+          CH.game.set(new CH.TVZoomScene(cabin, hh, -1, () => {
+            CH.game.set(cabin); cabin.tvMode = 'off'; S.energy = Math.min(100, S.energy + 20);
+            cabin.run((function* () { yield 0.3; yield ui.say('Chubby', won ? "Beat Man Egg. Again. {p}He never learns. {pp}Okay. Bed." : "Okay. That's enough. {p}Twenty minutes. Forty. Whatever.", { face: 'happy' }); cabin.couchSeat = false; cabin.player.sitting = false; cabin.player.y = cabin.floorY; cabin.locked = false; })());
+          }, 1.0));
+        };
+        CH.game.push(new CH.TVZoomScene(cabin, hh, 1, () => { CH.game.pop(); CH.game.push(hh); }, 1.2));
+        return;
+      }
       cabin.couchSeat = false; cabin.player.sitting = false; cabin.player.y = cabin.floorY; cabin.locked = false;
     };
     cabin.onTV = cabin.onCouch;
@@ -192,7 +205,7 @@
     { id: 'gift_photos', name: 'Framed family photo', price: 30, desc: 'For her bedside table.', apply: () => { S.homeItems['gift_photos'] = { name: 'a framed photo of us', given: false }; } },
     { id: 'meds', name: "Mom's medication copay", price: 120, desc: 'Covers a week of the good pills. +health.', repeat: true, apply: () => { S.momHealth = Math.min(100, S.momHealth + 6); } },
     { id: 'physio', name: 'Physiotherapy sessions', price: 320, desc: 'Weekly physio. Mom recovers faster every day.', apply: () => { S.homeItems.physio = true; S.momHealth = Math.min(100, S.momHealth + 8); } },
-    { id: 'ramp', name: 'Cabin wheelchair ramp', price: 650, desc: 'Needed before Mom can come home.', apply: () => { S.homeItems.ramp = true; } },
+    { id: 'ramp', name: 'Cabin wheelchair ramp', price: 650, desc: 'For when Mom comes home. Big +health.', apply: () => { S.homeItems.ramp = true; S.momHealth = Math.min(100, S.momHealth + 15); } },
     { id: 'tv', name: 'New 55" TV', price: 420, desc: 'Blue Hedgehog has never looked so blue.', apply: () => { S.homeItems.tv = true; } },
     { id: 'couch', name: 'New Couch', price: 380, desc: 'Does not sag. Yet.', apply: () => { S.homeItems.couch = true; } },
     { id: 'heater', name: 'Space Heater', price: 90, desc: '21 degrees, Mom. TWENTY-ONE.', apply: () => { S.homeItems.heater = true; } },
@@ -226,12 +239,13 @@
   CH.onDebtPaid = () => { if (S.debtPaidOff) return; S.debtPaidOff = true; CH.flag('debtPaid', true); CH.save(); ui.toast("THE BILL IS PAID. Mom can come home!", '#f5c33b', 5); A.sfx('fanfare'); CH.sendText('Mom', "The nurse just told me. {p}Chubby. {p}Chubby, what did you DO. Come get me. Come get me right now. ♥♥♥"); CH.pendingEnding = true; };
   // hook: when the player next goes home or visits, run the ending
   const origHome = CH.homeEvening;
-  CH.homeEvening = (opts) => { if (CH.pendingEnding && !S.momHome) { CH.pendingEnding = false; CH.endingSequence(); return; } origHome(opts); };
+  CH.homeEvening = (opts) => { if ((CH.pendingEnding || S.debtPaidOff) && !S.momHome) { CH.pendingEnding = false; CH.endingSequence(); return; } origHome(opts); };
   const origHosp = CH.goToHospital;
-  CH.goToHospital = () => { if (CH.pendingEnding && !S.momHome) { CH.pendingEnding = false; CH.endingSequence(); return; } origHosp(); };
+  CH.goToHospital = () => { if ((CH.pendingEnding || S.debtPaidOff) && !S.momHome) { CH.pendingEnding = false; CH.endingSequence(); return; } origHosp(); };
   CH.endingSequence = () => {
     const s = new CH.Scene(); s.draw = (g) => gfx.rect(0, 0, W, H, '#000');
-    s.enter = () => s.run((function* () {
+    CH.game.set(s);
+    CH.game.runGlobal((function* () {
       A.stop(0.5); fx.setFade(1);
       yield fx.showCard('SOME WEEKS LATER', '', 2.5, '#e8e0c8');
       // hospital room: discharge
@@ -267,7 +281,6 @@
       S.hour = 9; CH.save();
       CH.homeEvening({ msg: "Mom's home. {p}The bill is paid. {pp}I'm still going to work tomorrow. {p}Turns out I like it. Don't tell Brenda." });
     })());
-    CH.game.set(s);
   };
 
   CH.SCENES.career = () => { CH.load(); S.chapter = 'career'; S.job = S.job || 'janitor'; CH.flag('hasPhone', true); S.money = Math.max(S.money, 200); const s = new CH.Scene(); s.enter = () => CH.startCareerDay(); return s; };

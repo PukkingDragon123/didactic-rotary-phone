@@ -14,12 +14,12 @@
       this.stations = [{ id: 'register', name: 'REGISTER', x: 60, y: 110, demand: 0.2, rate: 0.05 }, { id: 'grill', name: 'GRILL', x: 150, y: 110, demand: 0.3, rate: 0.06 }, { id: 'fries', name: 'FRIES', x: 240, y: 110, demand: 0.2, rate: 0.055 }, { id: 'assembly', name: 'ASSEMBLY', x: 330, y: 110, demand: 0.3, rate: 0.06 }, { id: 'bagging', name: 'BAGGING', x: 420, y: 110, demand: 0.1, rate: 0.045 }];
       for (const s of this.stations) s.rate *= 0.8 + d * 0.25;
       this.crew = [
-        { name: 'Kevin', mk: CH.makeKevin, skills: { grill: 3, fries: 2, assembly: 2, register: 1, bagging: 1 }, station: null, x: 40, y: 230, away: 0 },
-        { name: 'Tammy', mk: CH.makeTammy, skills: { register: 3, bagging: 2, assembly: 1, grill: 1, fries: 1 }, station: null, x: 120, y: 230, away: 0 },
-        { name: 'Jorge', mk: CH.makeJorge, skills: { fries: 3, grill: 2, bagging: 2, register: 1, assembly: 1 }, station: null, x: 200, y: 230, away: 0 },
-        { name: 'Destiny', mk: CH.makeDestiny, skills: { bagging: 3, register: 2, assembly: 2, grill: 1, fries: 1 }, station: null, x: 280, y: 230, away: 0 },
+        { name: 'Kevin', mk: CH.makeKevin, skills: { grill: 3, fries: 2, assembly: 2, register: 1, bagging: 1 }, station: null, x: 60, y: 250, away: 0 },
+        { name: 'Tammy', mk: CH.makeTammy, skills: { register: 3, bagging: 2, assembly: 1, grill: 1, fries: 1 }, station: null, x: 140, y: 250, away: 0 },
+        { name: 'Jorge', mk: CH.makeJorge, skills: { fries: 3, grill: 2, bagging: 2, register: 1, assembly: 1 }, station: null, x: 220, y: 250, away: 0 },
+        { name: 'Destiny', mk: CH.makeDestiny, skills: { bagging: 3, register: 2, assembly: 2, grill: 1, fries: 1 }, station: null, x: 300, y: 250, away: 0 },
       ];
-      if (has('crew2')) this.crew.push({ name: 'New Kevin', mk: CH.makeKevin, skills: { grill: 2, fries: 2, assembly: 2, register: 2, bagging: 2 }, station: null, x: 360, y: 230, away: 0 });
+      if (has('crew2')) this.crew.push({ name: 'New Kevin', mk: CH.makeKevin, skills: { grill: 2, fries: 2, assembly: 2, register: 2, bagging: 2 }, station: null, x: 380, y: 250, away: 0 });
       for (const c of this.crew) { c.npc = c.mk(0, 0); c.home = { x: c.x, y: c.y }; }
       this.held = null; this.incidents = []; this.incT = 8; this.complaints = 0; this.good = 0;
     }
@@ -56,7 +56,7 @@
         if (s.id === 'grill') { gfx.rect(s.x - 20, s.y + 20, 40, 14, '#222'); } if (s.id === 'fries') { gfx.rect(s.x - 20, s.y + 20, 40, 14, '#e8c040'); } if (s.id === 'register') { gfx.rect(s.x - 16, s.y + 20, 32, 14, '#3a3a44'); }
       }
       // crew pool
-      gfx.rect(0, 200, W, H - 200, '#a89878'); gfx.text('CREW (drag onto a station)  -  ★ = skill', 8, 204, '#3a2a1a', { font: 'small' });
+      gfx.rect(0, 196, W, H - 196, '#a89878'); gfx.text('CREW (drag onto a station)  -  ★ = skill', 8, 199, '#3a2a1a', { font: 'small' });
       for (const c of this.crew) {
         if (c.away > 0) { g.globalAlpha = 0.4; }
         c.npc.x = c.x; c.npc.y = c.y; c.npc.draw(g);
@@ -154,7 +154,7 @@
     progress() { return this.tastes / this.maxTastes; }
     closeness() { let e = 0; for (let i = 0; i < 4; i++) e += Math.abs(this.v[i] - this.target[i]); return 1 - e / 2; }
     step(dt) {
-      for (let i = 0; i < 4; i++) { const r = { x: 60 + i * 100 - 12, y: 60, w: 24, h: 120 }; if (inp.mpressed && inp.mouseIn(r)) this.held = i; }
+      for (let i = 0; i < 4; i++) { const r = { x: 50 + i * 72 - 14, y: 54, w: 28, h: 132 }; if (inp.mpressed && inp.mouseIn(r)) this.held = i; }
       if (this.held >= 0) { this.v[this.held] = CH.clamp(1 - (inp.my - 60) / 120, 0, 1); if (!inp.mdown) this.held = -1; }
     }
     taste() {
@@ -168,15 +168,15 @@
     draw(g) {
       gfx.rect(0, 0, W, H, '#2a2a34'); gfx.rect(0, 14, W, H - 14, '#3a3a48'); for (let x = 0; x < W; x += 40) gfx.rect(x, 14, 1, H, '#44445a');
       gfx.text('CORPORATE TEST KITCHEN  -  FLOOR 7', W / 2, 20, '#f5c33b', { align: 'center', font: 'small' });
-      for (let i = 0; i < 4; i++) { const x = 60 + i * 100; gfx.rect(x - 4, 60, 8, 120, '#111'); const col = ['#d13c3c', '#f4f1ea', '#f5c33b', '#7b4fb0'][i]; const ky = 60 + Math.round((1 - this.v[i]) * 120); gfx.rect(x - 4, ky, 8, 180 - ky, col); gfx.rrect(x - 14, ky - 6, 28, 12, 3, this.held === i ? '#fff' : '#ccc'); gfx.text(this.names[i], x, 190, '#fff', { align: 'center', font: 'small' }); gfx.text(Math.round(this.v[i] * 100) + '%', x, 198, col, { align: 'center', font: 'small' }); if (inp.mouseIn({ x: x - 14, y: 54, w: 28, h: 132 })) ui.cursor = 'hand'; }
+      for (let i = 0; i < 4; i++) { const x = 50 + i * 72; gfx.rect(x - 4, 60, 8, 120, '#111'); const col = ['#d13c3c', '#f4f1ea', '#f5c33b', '#7b4fb0'][i]; const ky = 60 + Math.round((1 - this.v[i]) * 120); gfx.rect(x - 4, ky, 8, 180 - ky, col); gfx.rrect(x - 14, ky - 6, 28, 12, 3, this.held === i ? '#fff' : '#ccc'); gfx.text(this.names[i], x, 190, '#fff', { align: 'center', font: 'small' }); gfx.text(Math.round(this.v[i] * 100) + '%', x, 198, col, { align: 'center', font: 'small' }); if (inp.mouseIn({ x: x - 14, y: 54, w: 28, h: 132 })) ui.cursor = 'hand'; }
       // bowl
       gfx.ellipse(W / 2, 236, 60, 14, '#aab'); const mix = gfx.mix(gfx.mix('#d13c3c', '#f4f1ea', this.v[1] / (this.v[0] + this.v[1] + 0.01)), '#f5c33b', this.v[2] * 0.5); gfx.ellipse(W / 2, 233, 52, 10, gfx.mix(mix, '#7b4fb0', this.v[3] * 0.3));
       // notes panel
-      gfx.rect(300, 40, 170, 150, '#f8f4e8'); gfx.rect(300, 40, 170, 8, '#c8352b'); gfx.text('TASTING NOTES', 385, 41, '#fff', { align: 'center', font: 'small' });
-      this.notes.forEach((n, i) => { const lines = gfx.wrap(n, 160, 'small'); lines.forEach((l, k) => gfx.text(l, 304, 52 + i * 16 + k * 7, i === 0 ? '#555' : n.includes('✓') ? '#3a9a5a' : '#222', { font: 'small' })); });
-      gfx.text(`Taste tests left: ${this.maxTastes - this.tastes}`, 304, 176, '#888', { font: 'small' });
-      if (ui.button(g, { x: 310, y: 200, w: 70, h: 16 }, 'TASTE', { color: '#3b6fd6', font: 'main' })) this.taste();
-      if (ui.button(g, { x: 390, y: 200, w: 70, h: 16 }, 'SHIP IT', { color: '#4f9d3a', font: 'main' })) this.ship();
+      gfx.rect(316, 40, 156, 150, '#f8f4e8'); gfx.rect(316, 40, 156, 8, '#c8352b'); gfx.text('TASTING NOTES', 394, 41, '#fff', { align: 'center', font: 'small' });
+      this.notes.forEach((n, i) => { const lines = gfx.wrap(n, 146, 'small'); lines.forEach((l, k) => gfx.text(l, 320, 52 + i * 16 + k * 7, i === 0 ? '#555' : n.includes('✓') ? '#3a9a5a' : '#222', { font: 'small' })); });
+      gfx.text(`Taste tests left: ${this.maxTastes - this.tastes}`, 320, 176, '#888', { font: 'small' });
+      if (ui.button(g, { x: 320, y: 200, w: 70, h: 16 }, 'TASTE', { color: '#3b6fd6', font: 'main' })) this.taste();
+      if (ui.button(g, { x: 398, y: 200, w: 70, h: 16 }, 'SHIP IT', { color: '#4f9d3a', font: 'main' })) this.ship();
       this.particles.draw(g);
       this.drawHud(g);
     }

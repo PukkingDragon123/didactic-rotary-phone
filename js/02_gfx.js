@@ -21,8 +21,11 @@
   resize();
 
   const gfx = (CH.gfx = {});
-  gfx.cur = g; // current target context (switch with gfx.target)
+  gfx.cur = g; // current target context (switch with gfx.target / pushTarget)
+  gfx._targets = [];
   gfx.target = (ctx) => { gfx.cur = ctx || g; };
+  gfx.pushTarget = (ctx) => { gfx._targets.push(gfx.cur); gfx.cur = ctx || g; };
+  gfx.popTarget = () => { gfx.cur = gfx._targets.length ? gfx._targets.pop() : g; };
 
   gfx.makeCanvas = (w, h) => {
     const c = document.createElement('canvas');

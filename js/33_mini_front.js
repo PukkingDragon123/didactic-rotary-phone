@@ -189,7 +189,7 @@
       }
       // menu picker
       gfx.rect(258, 176, 212, 88, '#3a3a44');
-      MENU.forEach((m, i) => { const col = i % 4, row = Math.floor(i / 4); const r = { x: 262 + col * 52, y: 180 + row * 21, w: 48, h: 18 }; const cnt = this.picked.filter((e) => e === m).length; if (ui.button(g, r, m.name.replace('Nuggets', 'Nug').replace('Moose ', ''), { color: cnt ? '#7b4fb0' : '#3b5a8f' }) && this.phase === 'order') { this.picked.push(m); } });
+      MENU.forEach((m, i) => { const col = i % 4, row = Math.floor(i / 4); const r = { x: 262 + col * 52, y: 180 + row * 21, w: 48, h: 18 }; const cnt = this.picked.filter((e) => e === m).length; if (ui.button(g, r, m.name.replace('Nuggets', 'Nug').replace('Moose ', '').toUpperCase(), { color: cnt ? '#7b4fb0' : '#3b5a8f', font: 'small' }) && this.phase === 'order') { this.picked.push(m); } });
       if (this.phase === 'order' && this.picked.length) { gfx.text('picked: ' + this.picked.map((p) => p.name).join(', ').slice(0, 44), 16, 234, '#f5c33b', { font: 'small' }); if (ui.button(g, { x: 200, y: 232, w: 44, h: 10 }, 'clear', { color: '#8a3a3a' })) this.picked = []; }
       gfx.text(`Cars ${this.served}/${this.total}`, W - 20, 18, '#fff', { align: 'right', font: 'small', outline: '#000' });
       // bag in hand when handing out
