@@ -44,109 +44,242 @@
 
   // ---- sprite painters ----------------------------------------------------------------
   const HC = { b: '#3b6fd6', B: '#2749a3', t: '#f2c9a0', r: '#d13c3c', R: '#8f1d1d', w: '#fff', k: '#111', g: '#3ec26a' };
+  const HM = {
+    body: CH.art.mat('#3b6fd6', { dark: -38, darker: -66, light: 34 }),
+    skin: CH.art.mat('#f2c9a0', { dark: -34, light: 18 }),
+    shoe: CH.art.mat('#d84a3a', { dark: -36, light: 30 }),
+    egg: CH.art.mat('#eadfc4', { dark: -30, light: 16 }),
+    pod: CH.art.mat('#7a7a8c', { dark: -34, light: 30 }),
+    bug: CH.art.mat('#d13c3c', { dark: -40, light: 26 }),
+  };
+  const INK = CH.art.INK;
+
+  // ---- BLUE HEDGEHOG ---------------------------------------------------------
+  // The rival mascot Chubby has poured his life into. Outlined and shaded like
+  // the rest of the cast so the game inside the game does not look cheaper.
   function drawHedgehog(g, x, y, p) {
-    // x,y = feet center; p: {flip, state:'idle'|'run'|'ball'|'hurt'|'skid'|'victory', frame, speed, squashX, squashY}
-    const dir = p.flip ? -1 : 1, sx = p.sx || 1, sy = p.sy || 1;
-    const X = (v) => Math.round(v * sx) * dir, Y = (v) => Math.round(v * sy);
-    const ox = Math.round(x), oy = Math.round(y);
-    const E = (cx, cy, rx, ry, c) => gfx.ellipse(ox + X(cx), oy + Y(cy), Math.max(0.6, rx * sx), Math.max(0.6, ry * sy), c);
-    const R = (x0, y0, x1, y1, c) => { const ax = ox + X(x0), bx = ox + X(x1), ay = oy + Y(y0), by = oy + Y(y1); gfx.rect(Math.min(ax, bx), Math.min(ay, by), Math.abs(bx - ax) + 1, Math.abs(by - ay) + 1, c); };
-    const TRI = (ax, ay, bx, by, cx, cy, c) => gfx.tri(ox + X(ax), oy + Y(ay), ox + X(bx), oy + Y(by), ox + X(cx), oy + Y(cy), c);
-    if (p.state === 'ball') {
-      const rot = p.rot || 0;
-      E(0, -10, 8, 8, HC.B); E(0.5, -10.5, 6.5, 6.5, HC.b);
-      for (let i = 0; i < 6; i++) { const a = rot + (i / 6) * Math.PI * 2; TRI(Math.cos(a) * 6, -10 + Math.sin(a) * 6, Math.cos(a + 0.35) * 6, -10 + Math.sin(a + 0.35) * 6, Math.cos(a + 0.17) * 11, -10 + Math.sin(a + 0.17) * 11, HC.b); }
-      E(1, -8, 3, 2.5, HC.t);
-      R(-2, -6, 0, -4, HC.r); R(3, -13, 5, -11, HC.r); // shoes peeking
-      return;
-    }
-    const bob = p.state === 'run' ? Math.abs(Math.sin((p.frame || 0) * Math.PI)) * 1.5 : 0;
-    // quills (back)
-    const qt = p.state === 'run' ? 1 : 0;
-    TRI(-4, -14 - bob, -4, -9 - bob, -13 - qt * 2, -14 - bob, HC.b); TRI(-3, -18 - bob, -5, -13 - bob, -13 - qt * 2, -20 - bob, HC.b); TRI(-1, -22 - bob, -5, -18 - bob, -10 - qt * 2, -26 - bob, HC.b);
-    // legs
-    const legCol = HC.b;
-    if (p.state === 'run') {
-      const f = (p.frame || 0);
-      if ((p.speed || 0) > 170) { // wheel legs
-        for (let i = 0; i < 3; i++) { const a = f * Math.PI * 2 + (i / 3) * Math.PI * 2; E(Math.cos(a) * 4, -4 + Math.sin(a) * 3, 3, 2, HC.r); }
-      } else {
-        const l = Math.sin(f * Math.PI * 2) * 4, r = -l;
-        R(-1 + l * 0.5, -6, 0 + l * 0.5, -3, legCol); R(1 + r * 0.5, -6, 2 + r * 0.5, -3, legCol);
-        E(l - 1, -1.5 - Math.max(0, l) * 0.4, 3.5, 1.8, HC.r); E(r + 3, -1.5 - Math.max(0, r) * 0.4, 3.5, 1.8, HC.r);
-        R(l - 3, -2, l + 1, -2, HC.w); R(r + 1, -2, r + 5, -2, HC.w);
+    // x,y = feet centre; p: {flip, state:'idle'|'run'|'ball'|'hurt'|'skid'|'victory', frame, speed, sx, sy, eye}
+    p = p || {};
+    const sx = p.sx || 1, sy = p.sy || 1;
+    const state = p.state || 'idle';
+    const f = p.frame || 0;
+    const t = (CH.game && CH.game.t) || 0;
+    const BW = 52, BH = 48, AX = 26, AY = 42;
+
+    if (!p.noShadow) CH.art.shadow(Math.round(x), Math.round(y) + 1, 7 * sx, 0.28);
+
+    CH.art.blit(x, y, BW, BH, AX, AY, () => {
+      const X = (v) => AX + v * sx;
+      const Y = (v) => AY + v * sy;
+      const E = (cx, cy, rx, ry, c) => gfx.ellipse(X(cx), Y(cy), Math.max(0.6, rx * sx), Math.max(0.6, ry * sy), c);
+      const R = (x0, y0, x1, y1, c) => {
+        const ax = X(x0), bx = X(x1), ay = Y(y0), by = Y(y1);
+        gfx.rect(Math.min(ax, bx), Math.min(ay, by), Math.abs(bx - ax) + 1, Math.abs(by - ay) + 1, c);
+      };
+      const T = (ax, ay, bx, by, cx, cy, c) => gfx.tri(X(ax), Y(ay), X(bx), Y(by), X(cx), Y(cy), c);
+      const B = HM.body, SK = HM.skin, SH = HM.shoe;
+
+      if (state === 'ball') {
+        const rot = p.rot || 0;
+        for (let i = 0; i < 8; i++) {
+          const a = rot + (i / 8) * Math.PI * 2;
+          T(Math.cos(a) * 6.5, -10 + Math.sin(a) * 6.5,
+            Math.cos(a + 0.38) * 6.5, -10 + Math.sin(a + 0.38) * 6.5,
+            Math.cos(a + 0.19) * 12, -10 + Math.sin(a + 0.19) * 12, B.d);
+        }
+        E(0, -10, 8.5, 8.5, B.d);
+        E(0, -10.6, 7.6, 7.6, B.base);
+        E(-2, -13, 3.6, 2.2, B.l);
+        E(1.5, -8, 3.4, 2.8, SK.base);
+        for (let i = 0; i < 3; i++) {
+          const a = rot * 1.6 + i * 2.1;
+          E(Math.cos(a) * 4, -10 + Math.sin(a) * 4, 1.6, 1.2, SH.base);
+        }
+        return;
       }
-    } else if (p.state === 'skid') {
-      R(-3, -6, -2, -3, legCol); R(3, -6, 4, -3, legCol); E(-3, -1.5, 3.5, 1.8, HC.r); E(4, -1.5, 3.5, 1.8, HC.r);
-    } else {
-      R(-2, -6, -1, -3, legCol); R(2, -6, 3, -3, legCol);
-      E(-2, -1.5, 3.5, 1.8, HC.r); E(3, -1.5, 3.5, 1.8, HC.r); R(-4, -2, 0, -2, HC.w); R(1, -2, 5, -2, HC.w);
-    }
-    // body
-    E(0, -11 - bob, 6, 6, HC.b);
-    E(1, -9 - bob, 3.5, 3.5, HC.t); // belly
-    // arms/gloves
-    if (p.state === 'victory') { E(-6, -20 - bob, 2, 2, HC.w); E(6, -20 - bob, 2, 2, HC.w); R(-5, -17 - bob, -4, -13 - bob, HC.b); R(5, -17 - bob, 6, -13 - bob, HC.b); }
-    else if (p.state === 'run') { const f = (p.frame || 0); E(4 + Math.sin(f * Math.PI * 2) * 3, -9 - bob, 2, 2, HC.w); }
-    else { E(4, -8 - bob, 2, 2, HC.w); E(-5, -8 - bob, 2, 2, HC.w); }
-    // head
-    E(2, -19 - bob, 7, 6.5, HC.b);
-    E(5, -17 - bob, 4.5, 3.5, HC.t); // muzzle
-    R(9, -18 - bob, 10, -18 - bob, HC.k); // nose
-    // eye (big, connected)
-    E(4, -21 - bob, 3, 3, HC.w);
-    if (p.state === 'hurt') { R(3, -22 - bob, 5, -20 - bob, HC.k); R(5, -18 - bob, 7, -17 - bob, HC.k); }
-    else { R(5, -22 - bob, 6, -20 - bob, p.eye || HC.g); R(6, -22 - bob, 6, -21 - bob, HC.k); R(2, -23 - bob, 3, -22 - bob, HC.k); }
-    // mouth
-    if (p.state === 'victory') R(5, -14 - bob, 8, -14 - bob, HC.k); else if (p.state === 'hurt') R(6, -14 - bob, 7, -13 - bob, HC.k);
-    // ear
-    TRI(-1, -24 - bob, 2, -24 - bob, 0, -28 - bob, HC.b);
+
+      const bob = state === 'run' ? Math.abs(Math.sin(f * Math.PI)) * 1.6 : Math.sin(t * 3) * 0.5;
+      const qt = state === 'run' ? 1.6 : state === 'skid' ? -1 : 0;
+
+      // back quills: three big blades, swept by speed
+      for (const [a0, b0, ln, wd] of [[-4, -13, 12, 5.4], [-4.5, -18, 13, 4.8], [-3.5, -23, 11, 4]]) {
+        const tipX = a0 - ln - qt * 2.5, tipY = b0 - bob - 3 + qt * 0.8;
+        T(a0, b0 - bob + wd / 2, a0, b0 - bob - wd / 2, tipX, tipY, B.dd);
+        T(a0 - 0.5, b0 - bob + wd / 2 - 1, a0 - 0.5, b0 - bob - wd / 2 + 0.5, tipX + 1, tipY, B.base);
+      }
+
+      // legs and shoes
+      if (state === 'run' && (p.speed || 0) > 170) {
+        for (let i = 0; i < 3; i++) {
+          const a = f * Math.PI * 2 + (i / 3) * Math.PI * 2;
+          E(Math.cos(a) * 4.5, -4 + Math.sin(a) * 3, 3.6, 2.2, SH.base);
+        }
+        E(0, -4, 5.5, 3.6, 'rgba(216,74,58,0.35)');
+      } else if (state === 'run') {
+        const l = Math.sin(f * Math.PI * 2) * 4.5, r = -l;
+        R(-1 + l * 0.5, -7, 0 + l * 0.5, -3, B.d);
+        R(1 + r * 0.5, -7, 2 + r * 0.5, -3, B.d);
+        E(l - 1, -1.8 - Math.max(0, l) * 0.4, 4, 2.2, SH.base);
+        E(r + 3, -1.8 - Math.max(0, r) * 0.4, 4, 2.2, SH.d);
+        R(l - 4, -2.4, l + 2, -2.4, HC.w);
+      } else if (state === 'skid') {
+        R(-4, -7, -3, -3, B.d); R(3, -7, 4, -3, B.d);
+        E(-4, -1.8, 4.2, 2.2, SH.base); E(4.5, -1.8, 4.2, 2.2, SH.d);
+        for (let i = 0; i < 3; i++) E(-8 - i * 3, -2, 1.6, 1, 'rgba(255,255,255,0.5)');
+      } else {
+        R(-2.5, -7, -1.5, -3, B.d); R(2, -7, 3, -3, B.d);
+        E(-2.5, -1.8, 4, 2.2, SH.d); E(3, -1.8, 4, 2.2, SH.base);
+        R(-5, -2.4, -0.5, -2.4, HC.w); R(1, -2.4, 5.5, -2.4, HC.w);
+      }
+
+      // body
+      E(0, -11 - bob, 6.4, 6.4, B.d);
+      E(0, -11.6 - bob, 5.9, 5.9, B.base);
+      E(1.4, -9.6 - bob, 3.8, 3.4, SK.base);
+      E(-2, -14 - bob, 2.6, 1.6, B.l);
+
+      // arms and gloves
+      const glove = (gx, gy) => { E(gx, gy, 2.4, 2.4, '#d8d2c4'); E(gx - 0.3, gy - 0.5, 1.8, 1.8, HC.w); };
+      if (state === 'victory') {
+        R(-5.5, -18 - bob, -4.5, -13 - bob, B.d); R(5, -18 - bob, 6, -13 - bob, B.d);
+        glove(-6, -20 - bob); glove(6.5, -20 - bob);
+      } else if (state === 'run') {
+        const sw = Math.sin(f * Math.PI * 2) * 3.5;
+        R(4, -11 - bob, 5.5, -9 - bob, B.d);
+        glove(5.5 + sw, -9.5 - bob);
+      } else {
+        glove(5, -8.5 - bob); glove(-5.5, -8.5 - bob);
+      }
+
+      // head
+      E(2, -19.5 - bob, 7.6, 7, B.d);
+      E(2, -20 - bob, 7, 6.5, B.base);
+      E(-0.5, -24 - bob, 3, 1.8, B.l);
+      // ear
+      T(-1.5, -25 - bob, 2, -25.5 - bob, 0, -29 - bob, B.d);
+      T(-0.8, -25 - bob, 1.4, -25.3 - bob, 0.2, -28 - bob, B.base);
+      // muzzle and nose
+      E(6, -17.5 - bob, 5, 4, SK.base);
+      E(5.4, -18.6 - bob, 3.4, 1.8, SK.l);
+      E(9.6, -18.6 - bob, 1.8, 1.5, HC.k);
+
+      // eye: the big connected mascot eye
+      if (state === 'hurt') {
+        gfx.line(X(2.4), Y(-22 - bob), X(6.4), Y(-18 - bob), HC.k);
+        gfx.line(X(6.4), Y(-22 - bob), X(2.4), Y(-18 - bob), HC.k);
+      } else {
+        E(4.4, -20.4 - bob, 3.6, 3.9, HC.w);
+        E(4.4, -21.8 - bob, 3.2, 1.4, '#d8d8e4');
+        const look = state === 'run' ? 0.9 : 0;
+        E(5.6 + look, -20.2 - bob, 1.9, 2.1, p.eye || HC.g);
+        E(5.9 + look, -20.2 - bob, 1.1, 1.4, HC.k);
+        gfx.px(X(5 + look), Y(-21.6 - bob), HC.w);
+        // brow, which is where all the attitude lives
+        const brow = state === 'run' || state === 'skid' ? -1 : 0;
+        gfx.line(X(1.6), Y(-24.4 - bob + brow), X(6.6), Y(-25 - bob), B.dd);
+        gfx.line(X(1.6), Y(-23.6 - bob + brow), X(6.6), Y(-24.2 - bob), B.dd);
+      }
+
+      // mouth
+      if (state === 'victory') { gfx.line(X(4.5), Y(-14.6 - bob), X(8), Y(-15.4 - bob), HC.k); E(6.2, -14.4 - bob, 1.6, 1, HC.k); }
+      else if (state === 'hurt') E(6.5, -14.2 - bob, 1.4, 1.4, HC.k);
+      else if (state === 'run') gfx.line(X(5), Y(-14.6 - bob), X(8.2), Y(-15.2 - bob), HC.k);
+      else gfx.line(X(5), Y(-14.4 - bob), X(7.8), Y(-14.4 - bob), HC.k);
+    }, { flip: p.flip });
   }
   CH.drawHedgehog = drawHedgehog;
 
+  // ---- LADYBUG ----------------------------------------------------------------
   function drawLadybug(g, x, y, p) {
-    // x,y: feet center
-    const dir = p.flip ? -1 : 1;
-    const X = (v) => Math.round(v) * dir;
-    const ox = Math.round(x), oy = Math.round(y);
-    const E = (cx, cy, rx, ry, c) => gfx.ellipse(ox + X(cx), oy + cy, rx, ry, c);
-    const R = (x0, y0, x1, y1, c) => { const ax = ox + X(x0), bx = ox + X(x1); gfx.rect(Math.min(ax, bx), oy + Math.min(y0, y1), Math.abs(bx - ax) + 1, Math.abs(y1 - y0) + 1, c); };
+    p = p || {};
     const f = p.frame || 0;
-    // legs
-    for (let i = 0; i < 3; i++) { const l = Math.sin(f * Math.PI * 2 + i * 2) * 1.5; R(-4 + i * 3, -2, -4 + i * 3 + Math.round(l), 0, '#222'); }
-    E(0, -5, 7, 4.5, '#8f1d1d'); E(0, -5.5, 6, 4, '#d13c3c');
-    R(0, -9, 0, -2, '#111'); // wing seam
-    for (const [dx, dy] of [[-4, -6], [-2, -4], [3, -7], [4, -4], [1, -8]]) R(dx, dy, dx, dy, '#111');
-    E(7, -4, 2.5, 2.5, '#111'); R(8, -5, 8, -5, '#fff'); // head + eye
-    R(8, -8, 9, -7, '#111'); R(6, -8, 6, -7, '#111'); // antennae
-    if (p.kicked) { R(6, -5, 7, -5, '#fff'); }
+    CH.art.shadow(Math.round(x), Math.round(y) + 1, 5, 0.25);
+    CH.art.blit(x, y, 28, 22, 14, 18, () => {
+      const X = (v) => 14 + v, Y = (v) => 18 + v;
+      const E = (cx, cy, rx, ry, c) => gfx.ellipse(X(cx), Y(cy), rx, ry, c);
+      const R = (x0, y0, x1, y1, c) => gfx.rect(X(Math.min(x0, x1)), Y(Math.min(y0, y1)), Math.abs(x1 - x0) + 1, Math.abs(y1 - y0) + 1, c);
+      for (let i = 0; i < 3; i++) {
+        const l = Math.sin(f * Math.PI * 2 + i * 2) * 1.6;
+        R(-4 + i * 3, -2, -4 + i * 3 + Math.round(l), 0, '#2a2028');
+      }
+      E(0, -5, 7.4, 5, HM.bug.d);
+      E(0, -5.8, 6.8, 4.4, HM.bug.base);
+      E(-2.5, -7.4, 3, 1.6, HM.bug.l);
+      R(0, -10, 0, -2, '#3a1414');
+      for (const [dx, dy, r] of [[-4, -6, 1.4], [-2, -4, 1], [3, -7, 1.2], [4, -4, 1], [1, -8.5, 0.9]]) E(dx, dy, r, r * 0.9, '#2a1018');
+      E(7, -4.4, 2.8, 2.8, '#2a2028');
+      E(7.6, -5, 1.2, 1.2, p.kicked ? '#fff' : '#f4f4f8');
+      gfx.px(X(8), Y(-5), '#2a2028');
+      gfx.line(X(8), Y(-7.5), X(9.5), Y(-9.5), '#2a2028');
+      gfx.line(X(6), Y(-7.5), X(5.5), Y(-9.8), '#2a2028');
+      E(9.5, -10, 1, 1, '#2a2028'); E(5.5, -10.2, 1, 1, '#2a2028');
+      if (p.kicked) { gfx.line(X(5.5), Y(-5.5), X(8.5), Y(-3.5), '#fff'); gfx.line(X(8.5), Y(-5.5), X(5.5), Y(-3.5), '#fff'); }
+    }, { flip: p.flip });
   }
+
+  // ---- MAN EGG -----------------------------------------------------------------
   function drawManEgg(g, x, y, p) {
-    // x,y: center of pod
-    const ox = Math.round(x), oy = Math.round(y), t = p.t || 0;
+    p = p || {};
+    const t = p.t || 0;
     const hurt = p.flash;
-    // propeller
-    const pw = Math.abs(Math.sin(t * 25)) * 16 + 2; gfx.rect(ox - pw / 2, oy - 34, pw, 2, hurt ? '#fff' : '#ccc'); gfx.rect(ox - 1, oy - 32, 2, 4, '#888');
-    // pod
-    gfx.ellipse(ox, oy + 10, 16, 8, hurt ? '#fff' : '#5a5a66'); gfx.ellipse(ox, oy + 8, 15, 6, hurt ? '#fff' : '#7a7a88'); gfx.rect(ox - 15, oy + 10, 30, 6, hurt ? '#fff' : '#5a5a66');
-    gfx.rect(ox - 12, oy + 5, 4, 2, '#f2c94c'); gfx.rect(ox + 8, oy + 5, 4, 2, '#d13c3c'); // buttons
+    const ox = Math.round(x), oy = Math.round(y);
+    // propeller spins outside the ink line so it reads as motion, not a plank
+    const pw = Math.abs(Math.sin(t * 25)) * 18 + 3;
+    gfx.rect(ox - pw / 2, oy - 36, pw, 2, hurt ? '#fff' : '#c8c8d4');
+    gfx.rect(ox - pw / 2, oy - 35, pw, 1, '#8a8a98');
     // jets
-    for (let i = -1; i <= 1; i += 2) { const fl = 3 + Math.sin(t * 30 + i) * 2; gfx.tri(ox + i * 9 - 3, oy + 16, ox + i * 9 + 3, oy + 16, ox + i * 9, oy + 16 + fl * 2, '#e8752c'); gfx.tri(ox + i * 9 - 1, oy + 16, ox + i * 9 + 1, oy + 16, ox + i * 9, oy + 16 + fl, '#f5c33b'); }
-    // egg body
-    gfx.ellipse(ox, oy - 8, 11, 15, hurt ? '#fff' : '#e8dcc0'); gfx.ellipse(ox - 3, oy - 12, 4, 6, hurt ? '#fff' : '#f4ecd8');
-    // tiny arms
-    gfx.rect(ox - 15, oy - 6, 5, 2, '#e8dcc0'); gfx.rect(ox + 10, oy - 6, 5, 2, '#e8dcc0'); gfx.ellipse(ox - 16, oy - 5, 2, 2, '#fff'); gfx.ellipse(ox + 16, oy - 5, 2, 2, '#fff');
-    // face
-    gfx.rect(ox - 6, oy - 16, 4, 3, '#fff'); gfx.rect(ox + 2, oy - 16, 4, 3, '#fff'); gfx.rect(ox - 4, oy - 15, 1, 2, '#111'); gfx.rect(ox + 3, oy - 15, 1, 2, '#111');
-    gfx.rect(ox - 7, oy - 18, 5, 1, '#5a3a1a'); gfx.rect(ox + 2, oy - 18, 5, 1, '#5a3a1a'); // brows
-    // glorious mustache
-    gfx.rect(ox - 9, oy - 10, 18, 2, '#5a3a1a'); gfx.rect(ox - 11, oy - 11, 3, 2, '#5a3a1a'); gfx.rect(ox + 8, oy - 11, 3, 2, '#5a3a1a'); gfx.rect(ox - 1, oy - 11, 2, 1, '#5a3a1a');
-    // mouth
-    if (p.laugh) gfx.rect(ox - 3, oy - 7, 6, 2, '#5a1a1a'); else gfx.rect(ox - 2, oy - 7, 4, 1, '#5a1a1a');
-    // little hat / goggles
-    gfx.rect(ox - 8, oy - 22, 16, 2, '#333'); gfx.ellipse(ox - 4, oy - 22, 3, 2, '#3b6fd6'); gfx.ellipse(ox + 4, oy - 22, 3, 2, '#3b6fd6');
+    for (let i = -1; i <= 1; i += 2) {
+      const fl = 3 + Math.sin(t * 30 + i) * 2;
+      gfx.tri(ox + i * 10 - 3.5, oy + 17, ox + i * 10 + 3.5, oy + 17, ox + i * 10, oy + 17 + fl * 2.2, '#e8752c');
+      gfx.tri(ox + i * 10 - 1.5, oy + 17, ox + i * 10 + 1.5, oy + 17, ox + i * 10, oy + 17 + fl, '#ffe27a');
+    }
+    CH.art.blit(ox, oy, 60, 64, 30, 30, () => {
+      const X = (v) => 30 + v, Y = (v) => 30 + v;
+      const E = (cx, cy, rx, ry, c) => gfx.ellipse(X(cx), Y(cy), rx, ry, c);
+      const R = (x0, y0, x1, y1, c) => gfx.rect(X(Math.min(x0, x1)), Y(Math.min(y0, y1)), Math.abs(x1 - x0) + 1, Math.abs(y1 - y0) + 1, c);
+      const P = HM.pod, EG = HM.egg;
+      const f = (c) => (hurt ? '#fff' : c);
+      // mast
+      R(-1, -32, 1, -20, f('#6a6a78'));
+      // egg body
+      E(0, -8, 11.5, 15, f(EG.d));
+      E(0, -8.6, 10.8, 14.2, f(EG.base));
+      E(-4, -14, 4.4, 5.6, f(EG.l));
+      // tiny arms
+      R(-16, -7, -10, -4, f(EG.d)); R(10, -7, 16, -4, f(EG.d));
+      E(-16.5, -5.5, 2.4, 2.4, f('#f4f4f8')); E(16.5, -5.5, 2.4, 2.4, f('#f4f4f8'));
+      // goggles pushed up on the dome
+      R(-9, -23, 9, -20, f('#33303c'));
+      E(-4.5, -22, 3.4, 2.6, f('#4a86e8')); E(4.5, -22, 3.4, 2.6, f('#4a86e8'));
+      gfx.px(X(-5.6), Y(-23), '#bfe0ff'); gfx.px(X(3.4), Y(-23), '#bfe0ff');
+      // eyes
+      E(-4, -15.5, 3, 2.6, f('#fdfaf2')); E(4, -15.5, 3, 2.6, f('#fdfaf2'));
+      const lk = Math.sin(t * 0.8) * 0.8;
+      E(-4 + lk, -15.2, 1.2, 1.4, '#1a1420'); E(4 + lk, -15.2, 1.2, 1.4, '#1a1420');
+      gfx.px(X(-3 + lk), Y(-16), '#fff'); gfx.px(X(5 + lk), Y(-16), '#fff');
+      // furious brows
+      gfx.line(X(-8), Y(-19.5), X(-1.5), Y(-17.5), '#5a3a1a');
+      gfx.line(X(-8), Y(-18.5), X(-1.5), Y(-16.5), '#5a3a1a');
+      gfx.line(X(8), Y(-19.5), X(1.5), Y(-17.5), '#5a3a1a');
+      gfx.line(X(8), Y(-18.5), X(1.5), Y(-16.5), '#5a3a1a');
+      // the mustache
+      E(0, -10, 10, 2.6, '#6a4420');
+      E(-6, -10.6, 5, 2.4, '#5a3a1a'); E(6, -10.6, 5, 2.4, '#5a3a1a');
+      E(-11, -11.6, 2.6, 1.6, '#5a3a1a'); E(11, -11.6, 2.6, 1.6, '#5a3a1a');
+      // mouth
+      if (p.laugh) { E(0, -6.4, 3.4, 2.4, '#5a1a1a'); E(0, -5.8, 2.2, 1.4, '#c85a6a'); }
+      else R(-2.5, -7, 2.5, -6, '#5a1a1a');
+      // pod
+      E(0, 10, 16.5, 8.5, f(P.d));
+      E(0, 8.5, 15.5, 7, f(P.base));
+      E(-5, 5, 6, 2.4, f(P.l));
+      R(-15.5, 10, 15.5, 16, f(P.d));
+      E(-11, 5.5, 2.2, 1.4, '#f2c94c'); E(11, 5.5, 2.2, 1.4, '#d13c3c');
+      for (let i = -1; i < 2; i++) R(i * 6 - 1, 12, i * 6 + 1, 14, f('#4a4a58'));
+    }, { outline: INK });
   }
   CH.drawManEgg = drawManEgg;
+
 
   // ---- tile drawing --------------------------------------------------------------------
   const TILE_IMGS = {};
