@@ -21,6 +21,10 @@
     CH.game.update(dt);
     // draw
     g.setTransform(1, 0, 0, 1, 0, 0);
+    // A scene that forgets to restore alpha would otherwise fade every frame
+    // drawn after it, menus included.
+    g.globalAlpha = 1;
+    g.globalCompositeOperation = 'source-over';
     gfx.rect(0, 0, CH.W, CH.H, '#000');
     g.save();
     g.translate(CH.shake.x, CH.shake.y);
