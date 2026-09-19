@@ -701,6 +701,12 @@
     }
     drawHud(g) {
       const col = '#f5c33b', sh = '#7a4a10';
+      // a soft plate behind the readout: over bright sky the shadowed text alone
+      // was not enough to read against the dithered vignette
+      g.save(); g.globalAlpha = 0.42;
+      gfx.rrect(4, 3, 86, 34, 4, '#10131f');
+      g.restore();
+      gfx.rrect(4, 3, 86, 2, 1, 'rgba(245,195,59,0.5)');
       gfx.text('RINGS', 10, 8, col, { shadow: sh }); gfx.text(String(this.rings_n), 52, 8, this.rings_n === 0 && Math.sin(this.t * 8) > 0 ? '#d13c3c' : '#fff', { shadow: sh });
       gfx.text('TIME', 10, 18, col, { shadow: sh }); gfx.text(Math.floor(this.time / 60) + ':' + CH.pad2(Math.floor(this.time % 60)), 52, 18, '#fff', { shadow: sh });
       gfx.text('SCORE', 10, 28, col, { shadow: sh }); gfx.text(String(this.score), 52, 28, '#fff', { shadow: sh });
