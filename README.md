@@ -57,6 +57,15 @@ that points at them, and pages itself when a line runs long.
 
 ## What's inside
 
+- **The dream**: the game opens inside Chubby's head, where he is fast. A
+  flat-out run through a dream world of ladybugs and egg minions, a fall down a
+  shaft when the floor gives way, and a boss fight against **Man Egg** in his
+  laboratory. Man Egg cannot be hurt. He has a robotic arm that hammers the
+  floor and scythes at head height, and he charges - but he only commits as far
+  as the spot you were standing in, so the only way to crack his shell is to
+  lurk beside a wall, let him commit, and step aside. Three bonks and the egg
+  bursts. Then the alarm goes off.
+
 - **The cabin**: a single-floor log cabin with 50+ pokeable things: alarm clock,
   pancakes, fireplace, family photos, the rotary phone, Mom's rocking chair, the
   forest through frosted windows.
