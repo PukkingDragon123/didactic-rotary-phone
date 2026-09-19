@@ -291,22 +291,70 @@
       this.build();
     }
     drawRoom(g) {
-      gfx.rect(0, 0, W, 30, '#c8ccd4'); for (let x = 0; x < W; x += 30) gfx.vline(x, 0, 30, '#b0b4bc'); gfx.hline(0, 30, W, '#9aa0aa');
-      gfx.rect(0, 31, W, this.floorY - 31, '#e2ece8'); gfx.rect(0, this.floorY - 60, W, 3, '#8fb8d8');
-      gfx.rect(0, this.floorY - 8, W, 8, '#9db4b8');
-      gfx.rect(0, this.floorY, W, H - this.floorY, '#b9c7c9');
-      for (let y = this.floorY; y < H; y += 12) for (let x = -((y / 12) & 1) * 12; x < W; x += 24) gfx.rect(x, y, 12, 12, '#c4d0d2');
-      for (let y = this.floorY; y < H; y += 12) gfx.hline(0, y, W, '#a6b4b6'); for (let x = 0; x < W; x += 12) gfx.vline(x, this.floorY, H - this.floorY, '#a6b4b6');
-      // window with night city
-      const wx = 330, wy = 70; gfx.rect(wx, wy, 90, 60, '#1a2140');
-      for (let i = 0; i < 14; i++) { const bx = wx + 4 + i * 6, bh = 10 + ((i * 7) % 25); gfx.rect(bx, wy + 60 - bh - 6, 5, bh + 6, '#2a3a5a'); for (let k = 0; k < bh / 4; k++) if ((i + k) % 3) gfx.px(bx + 1 + (k % 2) * 2, wy + 60 - bh - 4 + k * 4, '#f5e6b0'); }
-      gfx.rect(wx, wy + 54, 90, 6, '#3a4a6a');
-      for (let i = 0; i < 20; i++) gfx.px(wx + (i * 37) % 90, wy + (i * 13) % 30, i % 3 ? '#fff' : '#9fdcff');
-      gfx.rect(wx - 2, wy - 2, 94, 2, '#fff'); gfx.rect(wx - 2, wy + 60, 94, 3, '#fff'); gfx.rect(wx - 2, wy, 2, 60, '#fff'); gfx.rect(wx + 90, wy, 2, 60, '#fff'); gfx.rect(wx + 44, wy, 2, 60, '#fff');
-      // whiteboard
-      gfx.rect(40, 70, 60, 40, '#fff'); gfx.frame(40, 70, 60, 40, '#8a8a94'); gfx.text('RN: GOSLING', 44, 74, '#3b6fd6', { font: 'small' }); gfx.text('DR: BEAVERTON', 44, 82, '#3b6fd6', { font: 'small' }); gfx.text('GOAL: REST', 44, 90, '#c8352b', { font: 'small' }); gfx.text('PAIN: 3/10', 44, 98, '#333', { font: 'small' });
-      // get-well card drawn by... nobody yet
+      const F = this.floorY;
+      // ceiling
+      gfx.rect(0, 0, W, 30, '#c2c8d2');
+      for (let x = 0; x < W; x += 30) gfx.vline(x, 0, 30, '#adb4c0');
+      gfx.hline(0, 30, W, '#8f97a4');
+      gfx.rect(0, 26, W, 4, '#b3bac6');
+      // wall: a warm wash near the lamp, cooler away from it
+      gfx.rect(0, 31, W, F - 31, '#e4ece9');
+      for (let x = 0; x < W; x += 4) {
+        const k = Math.max(0, 1 - Math.abs(x - 210) / 260);
+        if (k > 0.05) { g.globalAlpha = k * 0.35; gfx.rect(x, 31, 4, F - 31, '#f2e2c8'); g.globalAlpha = 1; }
+      }
+      // handrail and lower panel
+      gfx.rect(0, F - 62, W, 3, '#7fb0cf');
+      gfx.rect(0, F - 62, W, 1, '#a8d0e8');
+      gfx.rect(0, F - 26, W, 18, '#d6dedd');
+      gfx.rect(0, F - 26, W, 1, '#eef4f2');
+      gfx.rect(0, F - 9, W, 9, '#93aab0');
+      gfx.rect(0, F - 9, W, 1, '#b0c6ca');
+      // floor: speckled vinyl with a soft reflection of the lamp
+      gfx.rect(0, F, W, H - F, '#b7c5c7');
+      for (let y = F; y < H; y += 12) for (let x = -((y / 12) & 1) * 12; x < W; x += 24) gfx.rect(x, y, 12, 12, '#c3d0d1');
+      for (let y = F; y < H; y += 12) gfx.hline(0, y, W, '#a3b1b3');
+      for (let x = 0; x < W; x += 12) gfx.vline(x, F, H - F, '#a3b1b3');
+      for (let i = 0; i < 120; i++) {
+        const sx2 = (i * 53) % W, sy2 = F + ((i * 29) % (H - F));
+        gfx.px(sx2, sy2, i % 3 ? '#aab8ba' : '#ccd8d9');
+      }
+      g.globalAlpha = 0.16;
+      gfx.ellipse(212, F + 22, 90, 16, '#f4dcb0');
+      g.globalAlpha = 1;
+      // window onto the night city
+      const wx = 330, wy = 66;
+      gfx.rect(wx - 4, wy - 4, 98, 70, '#eef3f2');
+      gfx.rect(wx - 3, wy - 3, 96, 68, '#cfdad8');
+      gfx.rect(wx, wy, 90, 62, '#161d38');
+      for (let i = 0; i < 14; i++) {
+        const bx = wx + 3 + i * 6.3, bh = 10 + ((i * 7) % 26);
+        gfx.rect(bx, wy + 62 - bh - 6, 5, bh + 6, '#232f52');
+        gfx.rect(bx, wy + 62 - bh - 6, 5, 1, '#2e3c66');
+        for (let k = 0; k < bh / 5; k++) if ((i + k) % 3) gfx.px(bx + 1 + (k % 2) * 2, wy + 62 - bh - 2 + k * 5, k % 4 ? '#f2d48a' : '#9fdcff');
+      }
+      gfx.rect(wx, wy + 54, 90, 8, '#2b3a5e');
+      for (let i = 0; i < 26; i++) gfx.px(wx + (i * 37) % 90, wy + (i * 13) % 34, i % 4 ? '#93a6d0' : '#fff');
+      // snow drifting past the glass
+      for (let i = 0; i < 16; i++) {
+        const k = ((this.t * 6 + i * 21) % 70);
+        gfx.px(wx + 4 + (i * 11) % 82, wy + k, 'rgba(255,255,255,0.7)');
+      }
+      gfx.rect(wx + 43, wy, 3, 62, '#e6ecea');
+      gfx.rect(wx, wy + 30, 90, 2, '#e6ecea');
+      // reflection of the room in the dark glass
+      g.globalAlpha = 0.1; gfx.rect(wx + 4, wy + 4, 26, 54, '#fff'); g.globalAlpha = 1;
+      // whiteboard, written by somebody who has done this a thousand times
+      gfx.rect(38, 68, 64, 44, '#c8cfd4');
+      gfx.rect(40, 70, 60, 40, '#fbfdfc');
+      gfx.rect(40, 70, 60, 1, '#fff');
+      gfx.text('RN: GOSLING', 44, 74, '#3b6fd6', { font: 'small' });
+      gfx.text('DR: BEAVERTON', 44, 82, '#3b6fd6', { font: 'small' });
+      gfx.text('GOAL: REST', 44, 90, '#c8352b', { font: 'small' });
+      gfx.text('PAIN: 3/10', 44, 98, '#3a4048', { font: 'small' });
+      gfx.rect(94, 104, 5, 2, '#c8352b');
     }
+
     build() {
       const F = this.floorY;
       this.addProp('fluor', 60, 34); this.addProp('fluor', 200, 34); this.addProp('fluor', 380, 34, { st: { flicker: true } });
