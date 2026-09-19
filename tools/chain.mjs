@@ -37,14 +37,16 @@ const propX = (hint) => page.evaluate((h) => {
   return p ? Math.round(p.x + p.w / 2) : null;
 }, hint);
 
+// Order matters: the clock-out objective also contains the words "front door",
+// and the restaurant has no prop by that name.
 const GOALS = [
+  [/Clock out/i, 'Exit'],
   [/Change into/i, 'Wardrobe'],
   [/smartphone|phone from/i, 'Smartphone'],
   [/Go to bed|sleep \(bed\)|then sleep/i, 'Bed'],
   [/Eat \(fridge\)|eat, then leave/i, ['Fridge', 'Front door']],
   [/front door|Leave through/i, 'Front door'],
   [/Grab the mop/i, 'Supply closet'],
-  [/Clock out/i, 'Exit'],
   [/Walk into town|Donald's Burgers/i, "Donald's Burgers"],
   [/Walk home/i, 'Home'],
 ];
@@ -82,8 +84,11 @@ async function step() {
     break;
   }
   if (target === null) {
-    // nothing named: nudge forward and try to interact
-    await page.keyboard.down('ArrowRight'); await page.waitForTimeout(260); await page.keyboard.up('ArrowRight');
+    // nothing named in this scene: drift away from whichever wall we are on,
+    // pressing to interact, rather than grinding against it
+    const w = await page.evaluate(() => (CH.game.scene && CH.game.scene.width) || 480);
+    const key = s.px > w - 60 ? 'ArrowLeft' : 'ArrowRight';
+    await page.keyboard.down(key); await page.waitForTimeout(300); await page.keyboard.up(key);
     await page.keyboard.press('e'); await page.waitForTimeout(180);
     return s;
   }
