@@ -217,6 +217,8 @@
     }, { flip: p.flip });
   }
 
+  CH.drawLadybug = drawLadybug;
+
   // ---- MAN EGG -----------------------------------------------------------------
   function drawManEgg(g, x, y, p) {
     p = p || {};

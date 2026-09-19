@@ -1,59 +1,28 @@
 // ============================================================================
-// HOSPITAL: ambulance ride, anxious waiting, the doctor, Mom's room, the bill
+// HOSPITAL: arrival (smash cut), anxious waiting, the doctor, Mom's room, the bill
 // ============================================================================
 (function (CH) {
   const gfx = CH.gfx, ui = CH.ui, fx = CH.fx, A = CH.audio, inp = CH.input, S = CH.state, P = CH.PAL;
   const W = CH.W, H = CH.H;
 
-  // ---- Ambulance cinematic -----------------------------------------------------------------
+  // ---- Arrival: a smash cut, not a ride ----------------------------------------------------
+  // The ambulance drive used to be a cinematic here. It got cut: the story moves
+  // faster if the siren is still ringing when the waiting room lands on you.
+  // Shared by the emergency chapter and by the AmbulanceScene stub below.
+  function* cutToHospital() {
+    fx.letterboxTarget = 0;
+    A.sfx('siren');
+    yield fx.showCard("ST. MOOSEPH'S GENERAL", 'Emergency Department  -  9:47 PM', 1.5, '#d8e6e6');
+    CH.game.set(new HospitalScene());
+  }
+  CH.cutToHospital = cutToHospital;
+
+  // Kept only so old saves, CH.resumeChapter and ?scene=ambulance still resolve to
+  // something: it is a stub that smash-cuts straight to the waiting room.
   class AmbulanceScene extends CH.Scene {
-    constructor() { super(); this.name = 'ambulance'; this.x = 0; this.snow = []; for (let i = 0; i < 80; i++) this.snow.push([Math.random() * W, Math.random() * H, 0.5 + Math.random()]); }
-    enter() { fx.setFade(1); fx.letterboxTarget = 1; this.run(this.co()); }
-    *co() {
-      yield fx.fadeIn(1.2);
-      for (let i = 0; i < 5; i++) { A.sfx('siren'); yield 1.0; }
-      yield fx.showCard("ST. MOOSEPH'S GENERAL", 'Emergency Department  -  9:47 PM', 3, '#d8e6e6');
-      yield fx.fadeOut(1.0);
-      fx.letterboxTarget = 0;
-      CH.game.set(new HospitalScene());
-    }
-    update(dt) { this.x += dt * 160; for (const s of this.snow) { s[1] += dt * 40 * s[2]; s[0] -= dt * 60 * s[2]; if (s[1] > H) { s[1] = -2; s[0] = Math.random() * W; } if (s[0] < 0) s[0] += W; } }
-    draw(g) {
-      gfx.vgrad(0, 0, W, H, ['#070a18', '#0d1230', '#161c40', '#202a55']);
-      // stars
-      for (let i = 0; i < 30; i++) gfx.px((i * 53) % W, (i * 29) % 100, i % 4 ? '#8899bb' : '#fff');
-      // far treeline
-      for (let i = 0; i < 40; i++) { const tx = CH.wrap(i * 40 - this.x * 0.2, W + 60) - 30; const th = 40 + (i % 3) * 12; gfx.tri(tx - 12, 190, tx + 12, 190, tx, 190 - th, '#0b1424'); }
-      gfx.rect(0, 190, W, 20, '#0b1424');
-      // near trees
-      for (let i = 0; i < 20; i++) { const tx = CH.wrap(i * 90 - this.x * 0.6, W + 100) - 50; const th = 70 + (i % 4) * 15; for (let k = 0; k < 3; k++) gfx.tri(tx - 18 + k * 3, 205 - k * 18, tx + 18 - k * 3, 205 - k * 18, tx, 205 - th, k % 2 ? '#122a1e' : '#0f2418'); gfx.rect(tx - 2, 200, 4, 10, '#0a0806'); }
-      // snowy ground + road
-      gfx.rect(0, 206, W, H - 206, '#c8d4dc'); gfx.rect(0, 218, W, 40, '#2a2a34'); gfx.rect(0, 218, W, 1, '#4a4a58');
-      for (let i = 0; i < 12; i++) { const dx = CH.wrap(i * 50 - this.x * 1.0, W + 50) - 25; gfx.rect(dx, 237, 24, 2, '#f5c33b'); }
-      gfx.rect(0, 258, W, 12, '#c8d4dc');
-      // ambulance
-      const bx = 180, by = 236 + Math.round(Math.sin(this.t * 14) * 1);
-      gfx.rrect(bx, by - 44, 80, 34, 3, '#e8eef2'); gfx.rrect(bx + 80, by - 34, 28, 24, 3, '#e8eef2'); gfx.rect(bx + 84, by - 30, 18, 12, '#8fb8d8');
-      gfx.rect(bx, by - 26, 108, 6, '#c8352b'); gfx.rect(bx + 6, by - 40, 30, 10, '#8fb8d8'); gfx.rect(bx + 42, by - 40, 30, 10, '#8fb8d8');
-      gfx.text('AMBULANCE', bx + 40, by - 19, '#c8352b', { align: 'center', font: 'small' });
-      // wheels
-      for (const wx of [bx + 16, bx + 90]) { gfx.circle(wx, by - 6, 7, '#111'); gfx.circle(wx, by - 6, 3, '#888'); const a = this.t * 20; gfx.px(wx + Math.round(Math.cos(a) * 2), by - 6 + Math.round(Math.sin(a) * 2), '#fff'); }
-      // lights
-      const ph = Math.sin(this.t * 12) > 0;
-      gfx.rect(bx + 20, by - 48, 10, 4, ph ? '#ff4040' : '#801010'); gfx.rect(bx + 50, by - 48, 10, 4, ph ? '#2040ff' : '#101080');
-      g.globalAlpha = 0.25; gfx.rect(0, 0, W, H, ph ? '#ff3030' : '#3060ff'); g.globalAlpha = 1;
-      // light cone ahead
-      g.globalAlpha = 0.15; gfx.tri(bx + 108, by - 30, W, by - 80, W, by + 10, '#fff8c0'); g.globalAlpha = 1;
-      // snow
-      for (const s of this.snow) gfx.px(s[0], s[1], s[2] > 1 ? '#fff' : '#aab');
-      // inside: Chubby pressed against the back window, clipped to the glass so
-      // he reads as riding in the van rather than standing on its roof
-      gfx.rect(bx + 44, by - 39, 26, 8, '#28425e');
-      gfx.clip(bx + 44, by - 39, 26, 8);
-      CH.drawChubby(g, bx + 58, by - 19, { outfit: 'hoodie', face: 'worried', noShadow: true, sx: 0.42, sy: 0.42, arm: 'pocket', blush: false });
-      gfx.unclip();
-      g.save(); g.globalAlpha = 0.2; gfx.rect(bx + 44, by - 39, 26, 3, '#cfe6ff'); g.restore();
-    }
+    constructor() { super(); this.name = 'ambulance'; }
+    enter() { fx.setFade(1); this.run(cutToHospital()); }
+    draw(g) { gfx.rect(0, 0, W, H, '#07040c'); }
   }
   CH.AmbulanceScene = AmbulanceScene;
 
@@ -121,8 +90,8 @@
     // ---- flows -----------------------------------------------------------------------------------
     *waitFlow() {
       this.locked = true; this.hud = true; S.hour = 21.8;
-      yield fx.fadeIn(1.5);
-      yield 0.6;
+      yield fx.fadeIn(0.5);
+      yield 0.5;
       yield ui.say('Chubby', 'They took her in there an hour ago. {pp}Nobody has come out.', { face: 'worried', slow: true });
       yield ui.say('Chubby', "I should— I don't know what I should do. {p}Wait. I should wait.", { face: 'worried' });
       ui.setObjective('Wait for news about Mom');

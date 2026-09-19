@@ -5,15 +5,55 @@
   CH.TESTS.chubby1 = () => {
     const s = new CH.Scene();
     let t = 0;
+    // A real 1x render, magnified with nearest-neighbour: this is the only
+    // honest way to judge whether the glasses hold together at actual size.
+    const pane = gfx.makeCanvas(60, 60);
+    const pc = pane.getContext('2d');
+    // crop: [sx, sy, sw, sh] inside the 60x60 pane, feet at (30, 52)
+    const trueSize = (g, x, y, k, p, crop) => {
+      const c = crop || [0, 0, 60, 60];
+      pc.clearRect(0, 0, 60, 60);
+      gfx.pushTarget(pc);
+      CH.drawChubby(pc, 30, 52, Object.assign({ noShadow: true }, p));
+      gfx.popTarget();
+      g.save(); g.imageSmoothingEnabled = false;
+      g.drawImage(pane, c[0], c[1], c[2], c[3], x, y, c[2] * k, c[3] * k);
+      g.restore();
+    };
+    const HEAD = [16, 8, 28, 22];
     s.update = (dt) => { t += dt; };
     s.draw = (g) => {
       gfx.rect(0, 0, CH.W, CH.H, '#6b6270');
       for (let i = 0; i < 5; i++) gfx.vline(60 + i * 90, 0, CH.H, '#7a7180');
+      // left: 1x pixels blown up 4x - what the player really sees
+      trueSize(g, 2, 10, 7, { face: 'normal', arm: 'pocket' }, HEAD);
+      trueSize(g, 202, 10, 7, { face: 'happy', arm: 'pocket' }, HEAD);
+      trueSize(g, 2, 10 + 22 * 7 + 4, 3, { face: 'angry', arm: 'pocket' });
+      trueSize(g, 62, 10 + 22 * 7 + 4, 3, { face: 'shock', arm: 'pocket' });
+      gfx.text('TRUE 1X, ZOOMED 7X', 4, 4, '#fff', { font: 'small' });
+      // right: drawn at 4x, where the shading is judged
       g.save(); g.scale(4, 4);
-      CH.drawChubby(g, 30, 62, { face: 'normal', arm: 'idle' });
-      CH.drawChubby(g, 90, 62, { face: 'grin', arm: 'wave', flip: true });
+      CH.drawChubby(g, 105, 57, { face: 'grin', arm: 'wave' });
       g.restore();
-      gfx.text('ONE SPRITE AT 4X', 4, 8, '#fff', { font: 'small' });
+      // the same sprite at the size players actually see, on a strip of floor
+      gfx.rect(0, 232, CH.W, 20, '#4d4657');
+      const poses = [
+        { face: 'normal' }, { face: 'happy' }, { face: 'shock' },
+        { face: 'angry' }, { face: 'sleep', sleep: true }, { face: 'normal', glasses: false },
+        { face: 'grin', outfit: 'suit' }, { face: 'normal', outfit: 'uniform' },
+      ];
+      poses.forEach((q, i) => CH.drawChubby(g, 24 + i * 34, 246, Object.assign({ arm: 'pocket' }, q)));
+      // dialogue portrait, in a box the size the dialogue uses
+      ['normal', 'happy', 'sad', 'angry'].forEach((f, i) => {
+        const bx = 316 + i * 40, by = 196;
+        gfx.rrect(bx - 1, by - 1, 34, 36, 4, '#2a2233');
+        gfx.rrect(bx, by, 32, 34, 3, '#3d3350');
+        g.save(); g.beginPath(); g.rect(bx, by, 32, 34); g.clip();
+        CH.ui.portraits.Chubby(g, bx + 16, by + 32, { opts: { face: f }, text: 'x', shown: 1 });
+        g.restore();
+      });
+      gfx.text('1X (6th: glasses:false)', 4, 238, '#fff', { font: 'small' });
+      gfx.text('portrait', 316, 236, '#fff', { font: 'small' });
     };
     return s;
   };

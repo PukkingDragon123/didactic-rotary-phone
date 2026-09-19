@@ -275,13 +275,115 @@
     p1.walkTo(290); p2.walkTo(310);
     const ex = cabin.walkTo(330, 1.0);
     while (!ex.done) { gurney.x = p2.x - 40; yield 1 / 60; }
-    yield 0.5;
+    yield 0.4;
     A.sfx('door');
-    yield fx.fadeOut(1.5);
+    // smash cut: doors bang shut, black, title card, waiting room. No ride.
+    A.sfx('thud'); CH.doShake(4, 0.25);
+    yield fx.fadeOut(0.35);
     S.chapter = 'hospital'; CH.autosave('Chapter saved');
     cabin.sirenLights = 0;
-    CH.game.set(new CH.AmbulanceScene());
+    if (CH.cutToHospital) yield* CH.cutToHospital();
+    else CH.game.set(new CH.AmbulanceScene());
   }
+
+  // ---- THE CRASH ------------------------------------------------------------------------
+  // Overrides the plain sound-and-cut version from 21_hedgehog.js (same name, same
+  // signature, same hand-off). The bang is played as a cartoon: freeze-frame, a
+  // starburst slammed over the TV picture, the kitchen throwing its dishes at the
+  // screen — and then nothing at all, which is the part that is not funny.
+  const CRASH = { x: 352, y: 92 };  // up and to the right: the kitchen, past the edge of the TV
+
+  function crashParticles(parts) {
+    const china = ['#f4f1ea', '#e8e0d0', '#fff', '#3b6fd6'];
+    const steel = ['#c8c8d0', '#9aa0ac', '#eef2f6'];
+    // plates and cups, tumbling out of the kitchen toward the camera
+    for (let i = 0; i < 26; i++) {
+      const a = Math.PI * (0.55 + Math.random() * 0.75);      // left-and-down fan
+      const sp = CH.rand(90, 230);
+      parts.add({
+        x: CRASH.x + CH.rand(-10, 10), y: CRASH.y + CH.rand(-8, 8),
+        vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - CH.rand(20, 90),
+        life: CH.rand(1.4, 2.4), grav: 250, drag: 0.995, floorY: H - CH.rand(4, 26),
+        shape: 'rect', w: CH.irand(3, 7), h: CH.irand(2, 4), color: CH.pick(china),
+      });
+    }
+    // cutlery: thin bright slivers that spin further
+    for (let i = 0; i < 12; i++) {
+      const a = Math.PI * (0.5 + Math.random() * 0.9);
+      const sp = CH.rand(140, 300);
+      parts.add({
+        x: CRASH.x, y: CRASH.y,
+        vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - CH.rand(40, 140),
+        life: CH.rand(1.2, 2.2), grav: 230, drag: 0.996, floorY: H - CH.rand(2, 20),
+        shape: 'rect', w: CH.irand(4, 9), h: 1, color: CH.pick(steel),
+      });
+    }
+    // dust and crumbs of the impact itself
+    parts.burst(CRASH.x, CRASH.y, 30, { color: ['#fff', '#d8d0c0', '#8a5a3a'], speed: 190, life: 0.6, grav: 260, size: 1, fade: true });
+  }
+
+  CH.crashSequence = (game, cabin) => {
+    game.frozen = true;
+    const parts = new CH.Particles();
+    const s = new CH.Scene();
+    s.name = 'crash';
+    s.bang = -1;    // seconds since the bang, -1 = not yet
+    s.update = (dt) => { if (s.bang >= 0) s.bang += dt; parts.update(dt); };
+    s.draw = (g) => {
+      game.render(g);
+      const e = s.bang;
+      if (e < 0) return;
+      // radiating impact lines, wide at first then gone
+      if (e < 0.5) {
+        const k = e / 0.5;
+        g.save(); g.globalAlpha = (1 - k) * 0.9;
+        CH.art.impactLines(CRASH.x, CRASH.y, 14, 34 + k * 130, 92 + k * 300, { thick: 5 - k * 3, rot: 0.2, color: '#150f1c' });
+        g.restore();
+      }
+      // shock ring punching outward
+      if (e < 0.45) CH.art.shockRing(CRASH.x, CRASH.y, 24 + e * 380, { alpha: (1 - e / 0.45) * 0.7 });
+      if (e < 0.2) CH.art.speedLines(CRASH.x - 30, CRASH.y, 9, 180, { spread: 90, jitter: true, thick: 2, color: 'rgba(255,255,255,0.5)' });
+      parts.draw(g);
+      // the word itself: pops in on outBack, holds, then drops off the frame
+      const LIFE = 1.15;
+      if (e < LIFE) {
+        const k = e / LIFE;
+        const fall = k > 0.76 ? (k - 0.76) / 0.24 : 0;
+        const jit = e < 0.22 ? (1 - e / 0.22) * 3 : 0;
+        CH.art.comicBurst(
+          CRASH.x - 66 + CH.rand(-jit, jit), CRASH.y + 34 + CH.rand(-jit, jit) + fall * fall * 150,
+          'KRASH!',
+          { t: Math.min(1, e / 0.36), r: 92, spikes: 17, rot: 0.12, scale: 2.6, fill: '#ffd84a', textColor: '#c8352b', outline: '#fff', alpha: 1 - fall * 0.9 }
+        );
+      }
+    };
+    s.run((function* () {
+      A.stop(0.1);
+      yield 0.35;                       // the last quiet second of the old life
+      // BANG: everything at once, then the frame stops dead
+      A.sfx('crash'); A.sfx('explode'); A.sfx('thud'); A.sfx('boss'); A.sfx('glass');
+      s.bang = 0;
+      crashParticles(parts);
+      fx.doFlash(0.85, '#fff');
+      CH.doShake(16, 0.9);
+      CH.hitstop(0.22);                 // freeze-frame on the starburst
+      yield 0.06;
+      A.sfx('glass'); A.sfx('kick'); CH.doShake(8, 0.4);
+      yield 0.14;
+      A.sfx('glass'); A.sfx('snap');
+      yield 0.22;
+      A.sfx('thud'); CH.doShake(6, 0.35);   // something heavier than a plate lands
+      parts.burst(CRASH.x - 12, CRASH.y + 20, 14, { color: ['#f4f1ea', '#e8e0d0', '#c8c8d0'], speed: 120, life: 1.2, grav: 240, size: 2 });
+      yield 0.40;
+      A.sfx('glass'); A.sfx('tick');        // one last bowl, spinning down on the tiles
+      yield 0.55;
+      A.sfx('tick');
+      // ...and then nothing. Hold the silence; let it get uncomfortable.
+      yield 1.25;
+      CH.game.set(new CH.TVZoomScene(cabin, game, -1, () => { cabin.mode = 'emergency'; CH.game.set(cabin); if (CH.beginEmergency) CH.beginEmergency(cabin); }, 1.3));
+    })());
+    CH.game.set(s);
+  };
 
   // siren light overlay on the cabin
   const origDraw = CH.CabinScene.prototype.draw;

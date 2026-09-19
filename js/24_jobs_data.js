@@ -49,6 +49,9 @@
       qs: [{ q: 'Can you skate?', a: ['Yes, competitively', 'Yes', 'A little', 'I fell once and have not recovered emotionally'], good: 0 }, { q: 'Favourite team?', a: ['Mallards', 'Leafs', 'Whoever is winning', 'Blue Hedgehog Kart team'], good: 0 }],
       delay: 12, response: { type: 'reject', from: 'arena@moosehollow.on.ca', subject: 'Zamboni Operator', text: "Chubby,\n\nYour dad was a Mallard. We remember him. Good man. Great slapshot.\n\nYou cannot skate. He told us that too. Sorry bud.\n\n- Rick at the Arena" } },
     { id: 'donalds', site: 'indeedly', title: 'Janitor / Crew Member', company: "Donald's Burgers", loc: 'Moose Hollow, ON', pay: '$15.50/hr', type: 'Full-time', posted: 'Just now', hot: true,
+      // --- presentation only: this listing is a loud, desperate fast-food ad ---
+      ad: true, adHeadline: 'NOW HIRING', adSub: 'NO EXPERIENCE NEEDED', adCta: 'APPLY TODAY', adKicker: 'KEVIN QUIT. THE FLOOR IS STICKY.',
+      brand: { bg: '#c8352b', bg2: '#a82a22', fg: '#f5d76b', ink: '#8f2419', accent: '#ffffff' },
       desc: "Donald's Burgers is hiring IMMEDIATELY. No experience needed. Must have a pulse. Must like burgers (or tolerate them). Must be willing to touch a mop. Kevin quit.",
       reqs: ['A pulse', 'Willingness to mop', 'Can start tomorrow', 'Tolerance for Brenda'],
       qs: [{ q: 'Do you have a pulse?', a: ['Yes', 'Mostly', 'Let me check', 'I have a heart. It beats for burgers.'], good: 0 }, { q: 'Can you start tomorrow?', a: ['Yes', 'Yes!!', 'YES.', 'What is tomorrow'], good: 0 }, { q: 'Experience with mops?', a: ['Professional', 'Some', 'None, but I am willing', 'I once mopped up a spilled Blue Volt with a sock'], good: 2 }],
@@ -65,6 +68,8 @@
       delay: 5, response: { type: 'reject', from: 'winner@globalmoneyz.biz.ru', subject: 'CONGRATULATION YOU ARE HIRED!!!', text: "CONGRATULATION CHUBBY,\n\nYou are HIRE. Please send $200 starter kit fee to unlock $5000/wk. Also your mother's maiden name for VERIFY.\n\nYou did not send money. Position REVOKED. Also you are now on list.\n\n- GlobalMoney Solutionz" } },
   ];
   CH.jobById = (id) => CH.JOB_LISTINGS.find((j) => j.id === id);
+  // Presentation-only defaults for the Donald's ad unit (colours, copy, timings).
+  CH.DONALDS_AD = { headline: 'NOW HIRING', sub: 'NO EXPERIENCE NEEDED', cta: 'APPLY TODAY', kicker: 'KEVIN QUIT. THE FLOOR IS STICKY.', bg: '#c8352b', bg2: '#a82a22', fg: '#f5d76b', ink: '#8f2419', accent: '#ffffff' };
 
   CH.COVER_LETTERS = [
     { title: 'Professional', text: 'Dear Hiring Manager, I am writing to express my strong interest in this position. I am a hard-working, detail-oriented individual who is eager to contribute to your team.', score: 2 },

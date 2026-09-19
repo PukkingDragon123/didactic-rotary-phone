@@ -5,8 +5,10 @@
   const gfx = CH.gfx, ui = CH.ui, fx = CH.fx, A = CH.audio, inp = CH.input, S = CH.state;
   const W = CH.W, H = CH.H;
   const PW = 152, PH = 262, PX = Math.round(W / 2 - PW / 2), PY = 4; // phone body
-  const SX = PX + 7, SY = PY + 14, SW = PW - 14, SH = PH - 28; // screen
+  const SX = PX + 7, SY = PY + 12, SW = PW - 14, SH = PH - 34; // screen (short enough to leave a real bezel below)
   const STATUS_H = 9, NAV_H = 10;
+  // physical round home button, centred on the bezel below the screen
+  const HOME_R = 10, HOME_CX = PX + Math.round(PW / 2), HOME_CY = PY + PH - 11;
 
   // ---- phone data (persisted in state) --------------------------------------------------------
   const PD = () => { if (!S.phone) S.phone = { mail: [], texts: {}, notifs: [], history: [], drafts: {}, resumeFixed: false, applications: {}, scam: false, unreadMail: 0, unreadTexts: 0, bankTx: [['Blue Volt Energy x12', -38.88], ['Pancake mix (for Mom)', -4.99], ['Blue Hedgehog Kart DLC', -7.99], ['Moose Hollow Hydro', -84.2], ['Birthday money from Mom', 20]] }; return S.phone; };
@@ -60,6 +62,8 @@
       this.keyboardShown = false;
       this.local = { x: 0, y: 0 };
       this.captcha = null;
+      this.loading = null;   // the phone is old; everything takes a moment
+      this.homePress = 0;    // physical home button depression
     }
     enter() { A.sfx('swipe'); this.slide = 0; ui.cursorVisible = true; if (S.chapter === 'jobsearch') A.play('phone', 1); CH.phonePending = false; }
     exit() { inp.captureText = false; }
@@ -99,12 +103,15 @@
         else this.dragging = null;
       }
       if (this.app) this.app.scroll = Math.max(0, Math.min(this.app.scroll, Math.max(0, (this.app.contentH || 0) - (SH - STATUS_H - NAV_H) + 4)));
+      // loading always finishes on its own - it can never trap the player
+      if (this.loading) { const L = this.loading; L.t += dt; if (L.t >= L.dur) { this.loading = null; A.sfx('blip'); if (L.then) L.then(); } }
+      if (this.homePress > 0) this.homePress = Math.max(0, this.homePress - dt * 3);
       CH.tickPhone(dt);
       this.t2 = (this.t2 || 0) + dt;
     }
     // did the user click (not drag) at local coords rect?
-    clicked(r) { return inp.mpressed && this.hovering && CH.pointIn(this.local.x, this.local.y + (this.app ? this.app.scroll : 0) - (r.noScroll ? (this.app ? this.app.scroll : 0) : 0), r) && !(this.dragging && this.dragging.moved); }
-    hover(r) { return this.hovering && CH.pointIn(this.local.x, this.local.y + (this.app ? this.app.scroll : 0) - (r.noScroll ? (this.app ? this.app.scroll : 0) : 0), r); }
+    clicked(r) { if (this.loading) return false; return inp.mpressed && this.hovering && CH.pointIn(this.local.x, this.local.y + (this.app ? this.app.scroll : 0) - (r.noScroll ? (this.app ? this.app.scroll : 0) : 0), r) && !(this.dragging && this.dragging.moved); }
+    hover(r) { if (this.loading) return false; return this.hovering && CH.pointIn(this.local.x, this.local.y + (this.app ? this.app.scroll : 0) - (r.noScroll ? (this.app ? this.app.scroll : 0) : 0), r); }
     // ---- draw ----
     draw(g) {
       const k = CH.ease.outBack(this.slide);
@@ -125,6 +132,7 @@
       gfx.unclip();
       // screen glass reflection
       g.globalAlpha = 0.06; gfx.rect(SX + 4, SY + 6, 10, SH - 12, '#fff'); g.globalAlpha = 1;
+      this.drawHomeButton(g);
       g.restore();
       // EXIT: a physical-looking button on the bezel, always in the same place,
       // so putting the phone away never depends on knowing a hotkey.
@@ -148,6 +156,188 @@
       gfx.text('or press I / Esc', r.x + r.w / 2, r.y + r.h + 4, '#8a8090', { align: 'center', font: 'small' });
       if (inp.clicked(r)) { this.close(); inp.eat(); }
     }
+    // ---- the physical round home button -------------------------------------
+    homeBtnRect() { return { x: HOME_CX - HOME_R, y: HOME_CY - HOME_R, w: HOME_R * 2, h: HOME_R * 2 }; }
+    drawHomeButton(g) {
+      const r = this.homeBtnRect();
+      const live = this.slide >= 1 && !this.closing;
+      const hot = live && inp.mouseIn(r);
+      if (hot) ui.cursor = 'hand';
+      const down = this.homePress > 0 ? 1 : 0;
+      // recessed well in the bezel
+      gfx.circle(HOME_CX, HOME_CY, HOME_R, '#07070c');
+      gfx.circle(HOME_CX, HOME_CY, HOME_R - 1, '#15151e');
+      gfx.ellipseOutline(HOME_CX, HOME_CY, HOME_R - 1, HOME_R - 1, down ? '#2a2a36' : '#44445a');
+      // the key itself: cream face, lifted off the well, depressed when pressed
+      const fy = HOME_CY + down;
+      if (!down) gfx.circle(HOME_CX, fy + 2, HOME_R - 2, '#05050a');
+      gfx.circle(HOME_CX, fy, HOME_R - 2, CH.art.INK);
+      const face = down ? '#cfc8b8' : hot ? '#fffaf0' : '#f3eee2';
+      gfx.circle(HOME_CX, fy, HOME_R - 3, face);
+      gfx.ellipse(HOME_CX, fy + (down ? 0 : -1), HOME_R - 3.5, HOME_R - 4.5, down ? '#ded7c8' : '#fffaf0');
+      // specular highlight on the bevel
+      if (!down) { gfx.px(HOME_CX - 2, fy - 6, '#fff'); gfx.rect(HOME_CX - 5, fy - 5, 4, 1, '#fff'); gfx.px(HOME_CX - 6, fy - 4, '#fff'); }
+      else gfx.rect(HOME_CX + 1, fy + 4, 3, 1, 'rgba(255,255,255,0.5)');
+      // rounded-square glyph
+      gfx.rrect(HOME_CX - 3, fy - 3, 7, 7, 2, hot && !down ? '#c8352b' : '#4a4458');
+      gfx.rrect(HOME_CX - 2, fy - 2, 5, 5, 1, face);
+      if (live && inp.clicked(r)) { this.homePress = 0.3; A.sfx('tap'); this.close(); inp.eat(); }
+    }
+    // ---- LOADING: the phone is a MoosePhone 12 mini and it is TIRED ----------
+    beginLoad(o) {
+      this.loading = { t: 0, dur: o.dur || 1.2, label: (o.label || 'LOADING').toUpperCase(), sub: (o.sub || '').toUpperCase(), style: o.style || 'bar', seed: Math.random() * 6.28, art: o.art || null, nr: o.nr !== false, then: o.then || null };
+      A.sfx('swipe');
+      return this.loading;
+    }
+    // A progress curve with plateaus, ending in a long sit at 99%.
+    loadPct(L) {
+      const STEPS = [0, 0, 3, 3, 3, 12, 12, 26, 26, 26, 41, 53, 53, 68, 68, 74, 88, 93, 97, 99, 99, 99, 99, 99];
+      const p = Math.min(0.999, L.t / L.dur);
+      return STEPS[Math.floor(p * STEPS.length)];
+    }
+    drawLoadSpinner(g, cx, cy, L) {
+      // stutters: the step index jitters instead of advancing evenly
+      const step = Math.floor(L.t * 7 + Math.sin(L.t * 3.1 + L.seed) * 1.6);
+      for (let i = 0; i < 8; i++) {
+        const a = i * Math.PI / 4 - Math.PI / 2;
+        const k = ((i - step) % 8 + 8) % 8;
+        const col = k === 0 ? '#c8352b' : k === 1 ? '#e8752c' : k === 2 ? '#5a5468' : k < 5 ? '#8a8496' : '#bdb7c6';
+        gfx.circle(cx + Math.round(Math.cos(a) * 8), cy + Math.round(Math.sin(a) * 8), k < 2 ? 2.4 : 2, col);
+      }
+    }
+    drawLoading(g, cw, ch) {
+      const L = this.loading, p = Math.min(1, L.t / L.dur), pct = this.loadPct(L);
+      const nr = L.nr && p > 0.46 && p < 0.7;                 // NOT RESPONDING window
+      const wob = nr ? (Math.floor(L.t * 22) % 2 ? 1 : -1) : 0;
+      gfx.rect(0, 0, cw, ch, '#dfe3ec');
+      for (let i = 0; i < ch; i += 4) gfx.hline(0, i, cw, 'rgba(255,255,255,0.4)');
+      const bands = L.style === 'bands';
+      const pw = cw - 16, ph = bands ? 98 : 60;
+      const px = 8 + wob, py = Math.max(6, Math.floor((ch - ph) / 2));
+      gfx.rrect(px - 1, py - 1, pw + 2, ph + 2, 5, CH.art.INK);
+      gfx.rrect(px, py, pw, ph, 4, '#f3eee2');
+      gfx.rect(px + 2, py + 2, pw - 4, 1, '#fffaf0');
+      const mid = px + pw / 2;
+      let yy = py + 6;
+      gfx.text(L.label.slice(0, 24), mid, yy, '#2a2436', { align: 'center', font: 'small' }); yy += 9;
+      if (bands) {
+        // an image painting in from the top, four pixel rows at a time
+        const iw = pw - 12, ih = 44, ix = px + 6, iy = yy;
+        gfx.rect(ix, iy, iw, ih, '#c9cedb');
+        for (let i = 0; i < ih; i += 4) gfx.hline(ix, iy + i, iw, '#bec4d2');
+        const rows = Math.max(0, Math.min(ih, Math.floor(p * 1.25 * ih / 4) * 4));
+        if (rows > 0) { gfx.clip(ix, iy, iw, rows); if (L.art) L.art(ix, iy, iw, ih, this.t2 || 0); gfx.unclip(); }
+        if (rows > 0 && rows < ih) gfx.hline(ix, iy + rows - 1, iw, '#fff');
+        gfx.frame(ix, iy, iw, ih, CH.art.INK);
+        yy += ih + 5;
+      } else if (L.style === 'spinner') {
+        this.drawLoadSpinner(g, mid, yy + 10, L); yy += 22;
+      }
+      if (L.style !== 'spinner') {
+        const bx = px + 6, bw = pw - 12;
+        gfx.rrect(bx - 1, yy - 1, bw + 2, 9, 2, CH.art.INK);
+        gfx.rect(bx, yy, bw, 7, '#d8d2c4');
+        const fw = Math.round(bw * pct / 100);
+        gfx.rect(bx, yy, fw, 7, pct >= 99 ? '#f5d76b' : '#4f9d3a');
+        for (let i = 2; i < fw; i += 4) gfx.vline(bx + i, yy, 7, 'rgba(255,255,255,0.3)');
+        gfx.text(pct + '%', mid, yy + 1, '#2a2436', { align: 'center', font: 'small' });
+        yy += 12;
+      }
+      // the patter underneath
+      const quips = ['ESTIMATING TIME REMAINING…', 'STILL ESTIMATING…', 'TIME LEFT: 4 MINUTES', 'TIME LEFT: 2 SECONDS', 'TIME LEFT: 11 MINUTES', 'ALMOST THERE', 'DEFINITELY ALMOST THERE'];
+      const line = nr ? '(NOT RESPONDING)' : pct >= 99 ? quips[5 + (Math.floor(L.t * 1.4) % 2)] : L.sub || quips[Math.floor(L.t * 1.4 + L.seed) % 5];
+      gfx.text(line.slice(0, 30), mid, yy, nr ? '#c8352b' : '#6a6478', { align: 'center', font: 'small' }); yy += 8;
+      if (L.sub && (pct >= 99 || nr)) gfx.text(L.sub.slice(0, 30), mid, yy, '#9a94a8', { align: 'center', font: 'small' });
+      // it never blocks: say so
+      gfx.text('MOOSEPHONE 12 MINI', mid, py + ph - 8, '#b8b2a4', { align: 'center', font: 'small' });
+    }
+    // ================== DONALD'S BURGERS: the loud ad unit ==================
+    drawBurger(cx, cy, t, sc = 1) {
+      const spin = Math.cos(t * 2.6);
+      const rx = Math.max(2, 8 * sc * Math.abs(spin) + 1.5);
+      gfx.ellipse(cx, cy - 4 * sc, rx + 1.5, 9 * sc, CH.art.INK);
+      gfx.ellipse(cx, cy, rx, 2.2 * sc, '#d9a05b');
+      gfx.ellipse(cx, cy - 2.4 * sc, rx * 0.98, 1.8 * sc, '#5a3320');
+      gfx.ellipse(cx, cy - 4.4 * sc, rx * 1.06, 1.3 * sc, '#4f9d3a');
+      gfx.ellipse(cx, cy - 6 * sc, rx * 1.0, 1.2 * sc, '#f5c33b');
+      gfx.ellipse(cx, cy - 8.6 * sc, rx, 3.4 * sc, '#e8b166');
+      for (let i = 0; i < 3; i++) { const ph = t * 2.6 + i * 2.1, sx2 = Math.cos(ph); if (sx2 > -0.1 && rx > 4) gfx.px(cx + Math.round(sx2 * rx * 0.5), cy - Math.round(10 * sc) - (i % 2), '#fff6dc'); }
+    }
+    bigD(x, y, sc = 2) {
+      const ctx = gfx.cur; ctx.save(); ctx.translate(x, y); ctx.scale(sc, sc);
+      gfx.text('D', 0, 0, '#f5d76b', { outline: '#8f2419' });
+      ctx.restore();
+    }
+    adStripes(x, y, w, h, t, c) {
+      gfx.clip(x, y, w, h);
+      const off = Math.floor(t * 14) % 14;
+      for (let i = -h - 14 + off; i < w; i += 14) for (let k = 0; k < h; k++) gfx.rect(x + i + k, y + k, 7, 1, c);
+      gfx.unclip();
+    }
+    // Full-size ad. h >= 48 gets the APPLY TODAY button.
+    donaldsAd(x, y, w, h, t, opts = {}) {
+      const AD = CH.DONALDS_AD, blink = Math.floor(t * 4) % 2 === 0;
+      gfx.rrect(x, y, w, h, 3, CH.art.INK);
+      gfx.rrect(x + 1, y + 1, w - 2, h - 2, 3, AD.bg);
+      this.adStripes(x + 2, y + 2, w - 4, h - 4, t, AD.bg2);
+      // NOW HIRING ribbon, bobbing
+      const bob = Math.round(Math.sin(t * 6) * 1);
+      const hy = y + 3 + bob;
+      gfx.rect(x + 3, hy, w - 6, 13, blink ? AD.fg : AD.ink);
+      gfx.hline(x + 3, hy + 13, w - 6, AD.ink);
+      const ctx = gfx.cur;
+      ctx.save(); ctx.translate(x + w / 2, hy + 2); ctx.scale(1.5, 1.5);
+      gfx.text(AD.headline, 0, 0, blink ? AD.ink : AD.fg, { align: 'center' });
+      ctx.restore();
+      // logo + rotating burger flanking the pitch
+      this.bigD(x + 5, y + 21, 2);
+      this.drawBurger(x + w - 15, y + 34, t, 1);
+      const tx = x + w / 2 + 2;
+      gfx.text("DONALD'S BURGERS", tx, y + 19, AD.fg, { align: 'center', font: 'small' });
+      gfx.text(AD.sub + '!', tx, y + 26, blink ? '#fff' : '#ffe9a0', { align: 'center', font: 'small' });
+      gfx.text('$15.50/HR - START NOW', tx, y + 33, '#fff', { align: 'center', font: 'small' });
+      if (h >= 48) {
+        const bw = 74, bx = x + w / 2 - bw / 2, by = y + h - 13;
+        gfx.rrect(bx - 1, by - 1, bw + 2, 13, 3, AD.ink);
+        gfx.rrect(bx, by, bw, 11, 2, blink ? AD.fg : '#fff3b0');
+        gfx.text(AD.cta + ' ▶', x + w / 2, by + 3, AD.ink, { align: 'center', font: 'small' });
+      }
+      // flashing border, drawn last so it sits on top of everything
+      const bc = [AD.fg, '#fff', AD.fg, '#ffe9a0'][Math.floor(t * 8) % 4];
+      gfx.frame(x + 1, y + 1, w - 2, h - 2, bc);
+      gfx.frame(x + 2, y + 2, w - 4, h - 4, blink ? AD.ink : AD.bg2);
+    }
+    // Slim banner-slot variant.
+    donaldsAdStrip(x, y, w, h, t) {
+      const AD = CH.DONALDS_AD, blink = Math.floor(t * 4) % 2 === 0;
+      gfx.rrect(x, y, w, h, 3, CH.art.INK);
+      gfx.rrect(x + 1, y + 1, w - 2, h - 2, 3, AD.bg);
+      this.adStripes(x + 2, y + 2, w - 4, h - 4, t, AD.bg2);
+      this.bigD(x + 4, y + Math.floor(h / 2) - 7, 2);
+      this.drawBurger(x + w - 13, y + h - 6, t, 0.8);
+      const ctx = gfx.cur;
+      ctx.save(); ctx.translate(x + w / 2 - 2, y + 3 + Math.round(Math.sin(t * 6))); ctx.scale(1.2, 1.2);
+      gfx.text(AD.headline, 0, 0, AD.fg, { align: 'center', outline: AD.ink });
+      ctx.restore();
+      gfx.text(AD.sub, x + w / 2 - 2, y + h - 9, blink ? '#fff' : AD.fg, { align: 'center', font: 'small' });
+      gfx.text('AD', x + w - 8, y + 2, 'rgba(255,255,255,0.55)', { align: 'right', font: 'small' });
+      const bc = [AD.fg, '#fff', AD.fg, '#ffe9a0'][Math.floor(t * 8) % 4];
+      gfx.frame(x + 1, y + 1, w - 2, h - 2, bc);
+    }
+    // ad slot used on every job site page; returns the height it used
+    adSlot(x, y, w, st, t) {
+      const r = { x, y, w, h: 30 };
+      this.donaldsAdStrip(x, y, w, 30, t);
+      if (this.hover(r)) { ui.cursor = 'hand'; gfx.frame(x, y, w, 30, '#fff'); }
+      if (this.clicked(r)) { this.goto(st, 'job:donalds'); inp.eat(); }
+      return 34;
+    }
+    docPreviewArt(x, y, w, h) {
+      gfx.rect(x, y, w, h, '#fff');
+      gfx.text('CHUBBY QUILLSWORTH', x + w / 2, y + 4, '#1a1a2a', { align: 'center', font: 'small' });
+      gfx.hline(x + 6, y + 11, w - 12, '#3b6fd6');
+      for (let i = 0; i < 8; i++) gfx.rect(x + 6, y + 15 + i * 4, w - 12 - ((i * 13) % 30), 2, i % 4 === 0 ? '#3b6fd6' : '#c9ccd6');
+    }
     drawScreen(g) {
       const d = PD();
       // wallpaper
@@ -169,7 +359,8 @@
       const cx = SX, cy = SY + STATUS_H, cw = SW, ch = SH - STATUS_H - NAV_H;
       gfx.clip(cx, cy, cw, ch);
       g.save(); g.translate(cx, cy);
-      if (home) this.drawHome(g, cw, ch);
+      if (this.loading) this.drawLoading(g, cw, ch);
+      else if (home) this.drawHome(g, cw, ch);
       else {
         g.save(); g.translate(0, -this.app.scroll);
         this.drawApp(g, cw, ch);
@@ -247,6 +438,10 @@
     openApp(name) {
       if (name === 'camera') { A.sfx('camera'); fx.doFlash(0.8); ui.toast('You took a photo of your own face. It is 4 AM tired.', '#fff', 3); return; }
       if (name === 'hedgehog') { ui.toast('Blue Hedgehog Mobile: "Not now, Chubby." - the game, somehow', '#9fdcff', 3.5); A.sfx('error'); return; }
+      const LOAD = { photos: 1.3, maps: 1.7, settings: 0.9, jobs: 1.9, browser: 1.6, shop: 1.5, donalds: 1.3, mail: 1.4, messages: 1.0, files: 1.2, bank: 2.1 };
+      const LABEL = { photos: 'PHOTOS', maps: 'MAPS', settings: 'SETTINGS', jobs: 'LINKEDOUT', browser: 'FOXFIRE', shop: 'AMAZOON', donalds: "DONALD'S CREW", mail: 'MAIL', messages: 'MESSAGES', files: 'FILES', bank: 'MOOSEBANK' };
+      const SUB = { photos: 'SCANNING 3 PHOTOS…', maps: 'LOCATING MOOSE HOLLOW…', jobs: 'CONNECTING…', browser: 'RESTORING 41 TABS…', mail: 'CHECKING FOR MAIL…', messages: 'SYNCING…', files: 'INDEXING 127.9 GB…', bank: 'SECURE CONNECTION…' };
+      this.beginLoad({ label: 'OPENING ' + (LABEL[name] || name.toUpperCase()), dur: LOAD[name] || 1.1, style: 'spinner', sub: SUB[name] || '' });
       if (name === 'photos') { this.open('photos'); return; }
       if (name === 'maps') { this.open('maps'); return; }
       if (name === 'settings') { this.open('settings'); return; }
@@ -351,13 +546,33 @@
       if (this.hover({ x: ub.x, y: ub.y, w: ub.w, h: ub.h })) ui.cursor = 'hand';
       if (this.clicked({ x: ub.x, y: ub.y, w: ub.w, h: ub.h })) { this.focus = 'url'; this.fields.url = ''; this.keyboardShown = true; inp.eat(); }
       // back arrow
-      if (this.button(2, a.scroll + 3, 10, 10, '◀', { color: '#8899aa' })) { if (st.hist && st.hist.length) { st.url = st.hist.pop(); a.scroll = 0; } else this.back(); }
-      if (this.button(cw - 14, a.scroll + 3, 12, 10, '↻', { color: '#8899aa' })) { A.sfx('swipe'); }
+      if (this.button(2, a.scroll + 3, 10, 10, '◀', { color: '#8899aa' })) { if (st.hist && st.hist.length) { st.url = st.hist.pop(); a.scroll = 0; this.pageLoad(st.url); } else this.back(); }
+      if (this.button(cw - 14, a.scroll + 3, 12, 10, '↻', { color: '#8899aa' })) { this.pageLoad(url); }
       if (this.enterPressed && this.focus === 'url') { this.enterPressed = false; this.navigate(st, this.fields.url || ''); this.focus = null; this.keyboardShown = false; }
       let y = 20;
       const page = this.pageFor(url);
       const h = page.call(this, g, cw, y, st, a);
       a.contentH = y + h;
+    }
+    // every page load takes a comedically long beat; longer for "downloads"
+    pageLoad(url) {
+      const u = String(url || '');
+      if (u.startsWith('apply:')) {
+        const step = parseInt(u.split(':')[2], 10);
+        if (step === 5) return this.beginLoad({ label: 'SUBMITTING APPLICATION', dur: 2.4, style: 'bar', sub: 'UPLOADING RESUME (84 KB)' });
+        return this.beginLoad({ label: 'LOADING FORM', dur: 0.9, style: 'spinner', sub: 'STEP ' + (step + 1) + ' OF 6' });
+      }
+      if (u.startsWith('donaldsburgers')) return this.beginLoad({ label: 'DONALDSBURGERS.CA', dur: 2.5, style: 'bands', sub: 'DOWNLOADING HERO.GIF (2.4 MB)', art: (x, y, w, h, t) => this.donaldsAd(x, y, w, h, t, { compact: true }) });
+      if (u.startsWith('job:')) {
+        const j = CH.jobById(u.split(':')[1]);
+        if (j && j.ad) return this.beginLoad({ label: 'LOADING POSTING', dur: 1.9, style: 'bands', sub: 'DOWNLOADING AD BANNER…', art: (x, y, w, h, t) => this.donaldsAd(x, y, w, h, t, { compact: true }) });
+        return this.beginLoad({ label: 'LOADING POSTING', dur: 1.2, style: 'spinner', sub: '4,311 OTHER APPLICANTS' });
+      }
+      if (u.startsWith('goggle.ca/search')) return this.beginLoad({ label: 'SEARCHING GOGGLE', dur: 1.8, style: 'bar', sub: 'ASKING THE INTERNET…' });
+      if (u.startsWith('goggle')) return this.beginLoad({ label: 'GOGGLE.CA', dur: 1.0, style: 'spinner' });
+      if (u.startsWith('indeedly') || u.startsWith('kijujube') || u.startsWith('linkedout')) return this.beginLoad({ label: u.split('.')[0].toUpperCase() + '.CA', dur: 1.8, style: 'bar', sub: 'LOADING 1,203 LISTINGS…' });
+      if (u.startsWith('error:')) return this.beginLoad({ label: 'CONNECTING…', dur: 0.8, style: 'spinner', nr: false });
+      return this.beginLoad({ label: u.slice(0, 22).toUpperCase(), dur: 1.3, style: 'bar' });
     }
     navigate(st, input) {
       st.hist = st.hist || []; st.hist.push(st.url || 'goggle.ca'); if (st.hist.length > 10) st.hist.shift();
@@ -369,6 +584,7 @@
       else if (u.includes('.')) st.url = 'error:' + u;
       else st.url = 'goggle.ca/search?q=' + encodeURIComponent(u);
       this.app.scroll = 0; A.sfx('swipe');
+      this.pageLoad(st.url);
       PD().history.push(st.url);
     }
     pageFor(url) {
@@ -392,7 +608,7 @@
       if (this.hover(r)) ui.cursor = 'hand';
       if (this.clicked(r)) { onClick(); inp.eat(); }
     }
-    goto(st, url) { st.hist = st.hist || []; st.hist.push(st.url); st.url = url; this.app.scroll = 0; A.sfx('swipe'); }
+    goto(st, url) { st.hist = st.hist || []; st.hist.push(st.url); st.url = url; this.app.scroll = 0; A.sfx('swipe'); this.pageLoad(url); }
     page_goggle(g, cw, y, st) {
       gfx.rect(0, y, cw, 200, '#fff');
       // logo
@@ -428,6 +644,14 @@
       if (!results.length) results.push(['Did you mean: get a job', 'goggle.ca/search?q=jobs', 'Showing results for "jobs near me" instead.'], ['Moosepedia - ' + q.slice(0, 12), 'moosepedia.org', 'The free encyclopedia that anyone can edit (mostly Kevin).']);
       gfx.text(`About ${(q.length * 1337 + 42).toLocaleString()} results (0.${q.length}1 seconds)`, 6, yy, '#888', { font: 'small' }); yy += 10;
       for (const [title, url, snip] of results) {
+        if (url === 'donaldsburgers.ca') { // paid placement, and it shows
+          const r = { x: 6, y: yy, w: cw - 12, h: 54 };
+          this.donaldsAd(6, yy, cw - 12, 54, this.t2 || 0);
+          if (this.hover(r)) { ui.cursor = 'hand'; gfx.frame(6, yy, cw - 12, 54, '#fff'); }
+          if (this.clicked(r)) { this.goto(st, url); inp.eat(); }
+          gfx.text('AD - DONALDSBURGERS.CA', 6, yy + 56, '#3a9a5a', { font: 'small' });
+          yy += 66; continue;
+        }
         this.link(6, yy, title.length > 32 ? title.slice(0, 32) + '…' : title, () => { if (url.startsWith('goggle')) this.navigate(st, 'jobs'); else this.goto(st, url); });
         gfx.text(url, 6, yy + 8, '#3a9a5a', { font: 'small' });
         yy += 16; yy += this.para(snip, 6, yy, cw - 12, '#555') + 6;
@@ -439,13 +663,22 @@
       gfx.rect(0, y, cw, 600, '#fff');
       gfx.rect(0, y, cw, 18, color); gfx.text(name, 6, y + 3, '#fff'); gfx.text(tagline, 6, y + 11, 'rgba(255,255,255,0.8)', { font: 'small' });
       let yy = y + 22;
-      const v = this.field(site + '_q', 6, yy, cw - 46, 11, 'Search jobs...'); if (this.button(cw - 38, yy, 32, 11, 'Find')) { A.sfx('swipe'); }
+      const v = this.field(site + '_q', 6, yy, cw - 46, 11, 'Search jobs...'); if (this.button(cw - 38, yy, 32, 11, 'Find')) { this.beginLoad({ label: 'SEARCHING JOBS', dur: 2.0, style: 'bar', sub: 'SORTING 1,203 RESULTS…' }); }
       yy += 16;
+      yy += this.adSlot(4, yy, cw - 8, st, this.t2 || 0);
       let jobs = CH.JOB_LISTINGS.filter((j) => j.site === site);
       if (v) jobs = jobs.filter((j) => (j.title + j.company + j.desc).toLowerCase().includes(v.toLowerCase()));
       gfx.text(`${jobs.length} jobs in Moose Hollow, ON`, 6, yy, '#666', { font: 'small' }); yy += 10;
       for (const j of jobs) {
         const st2 = S.applied[j.id] || (PD().applications[j.id] ? PD().applications[j.id].status : null);
+        if (j.ad) { // the one employer that ever answers does not do plain listings
+          const adH = 58;
+          this.row(yy, adH, () => {
+            this.donaldsAd(2, yy + 2, cw - 4, 52, this.t2 || 0);
+            if (st2) { gfx.rrect(4, yy + 4, 40, 8, 2, st2 === 'pending' ? '#f0a030' : st2 === 'interview' ? '#3a9a5a' : '#999'); gfx.text(st2 === 'pending' ? 'APPLIED' : st2 === 'interview' ? 'INTERVIEW' : 'REJECTED', 24, yy + 5, '#fff', { align: 'center', font: 'small' }); }
+          }, () => this.goto(st, 'job:' + j.id));
+          yy += adH; continue;
+        }
         const rowH = 34;
         this.row(yy, rowH, (hv) => {
           gfx.rect(4, yy + 3, 22, 22, hv ? '#eef' : '#f0f2f6'); gfx.frame(4, yy + 3, 22, 22, '#dde'); gfx.text(j.company[0], 15, yy + 10, color, { align: 'center' });
@@ -470,6 +703,7 @@
       g.save(); g.translate(22, yy + 36); g.scale(0.9, 0.9); CH.drawChubby(g, 0, 0, { outfit: S.outfit, noShadow: true, face: 'normal', arm: 'pocket' }); g.restore();
       gfx.text('Chubby Quillsworth', 42, yy + 5, '#1a1a2a', { font: 'small' }); gfx.text('Couch Manager at Self', 42, yy + 13, '#555', { font: 'small' }); gfx.text('Moose Hollow, ON - 2 connections', 42, yy + 21, '#888', { font: 'small' }); gfx.text('(Mom, and a bot)', 42, yy + 29, '#888', { font: 'small' });
       yy += 46;
+      yy += this.adSlot(6, yy, cw - 12, st, this.t2 || 0);
       gfx.text('Jobs for you', 6, yy, '#1a1a2a'); yy += 10;
       for (const j of CH.JOB_LISTINGS.filter((j) => j.site === 'linkedout')) {
         const st2 = PD().applications[j.id] ? PD().applications[j.id].status : null;
@@ -490,11 +724,12 @@
       gfx.text("Donald's Burgers", 34, y + 6, '#fff'); gfx.text('"It\'s a D. Not an M."', 34, y + 17, '#f5c33b', { font: 'small' });
       let yy = y + 36;
       yy += this.para("Home of the Big Don, the Quarter Pounder-ish, and the McFlurry-adjacent Donald Swirl. Serving Moose Hollow since 1987.", 6, yy, cw - 12, '#5a3a1a') + 6;
-      gfx.rrect(6, yy, cw - 12, 40, 3, '#f5c33b'); gfx.text('WE ARE HIRING', cw / 2, yy + 4, '#8f2419', { align: 'center' });
-      gfx.text('Janitor / Crew Member. Immediately.', cw / 2, yy + 15, '#5a3a1a', { align: 'center', font: 'small' });
-      gfx.text('Kevin quit.', cw / 2, yy + 23, '#5a3a1a', { align: 'center', font: 'small' });
-      if (this.button(cw / 2 - 30, yy + 30, 60, 9, 'View posting', { color: '#c8352b' })) this.goto(st, 'job:donalds');
-      yy += 48;
+      this.donaldsAd(6, yy, cw - 12, 56, this.t2 || 0);
+      yy += 60;
+      gfx.text('JANITOR / CREW MEMBER. IMMEDIATELY.', cw / 2, yy, '#5a3a1a', { align: 'center', font: 'small' }); yy += 8;
+      gfx.text(CH.DONALDS_AD.kicker, cw / 2, yy, '#c8352b', { align: 'center', font: 'small' }); yy += 10;
+      if (this.button(cw / 2 - 34, yy, 68, 11, 'View posting', { color: '#c8352b' })) this.goto(st, 'job:donalds');
+      yy += 16;
       gfx.text('Menu highlights', 6, yy, '#5a3a1a'); yy += 10;
       for (const [n, p] of [['Big Don', '$6.99'], ['Double Don w/ cheese', '$8.49'], ['Donald Fries (L)', '$3.29'], ['Moose Shake', '$4.99'], ['Kids Meal (toy: sad egg)', '$5.99']]) { gfx.text(n, 8, yy, '#333', { font: 'small' }); gfx.text(p, cw - 8, yy, '#c8352b', { align: 'right', font: 'small' }); yy += 8; }
       yy += 6; gfx.text('123 Main St, Moose Hollow  -  Open 6AM-11PM', 6, yy, '#888', { font: 'small' }); yy += 8;
@@ -504,6 +739,7 @@
       const j = CH.jobById(st.url.split(':')[1]);
       gfx.rect(0, y, cw, 600, '#fff');
       let yy = y + 4;
+      if (j.ad) { this.donaldsAd(6, yy, cw - 12, 56, this.t2 || 0); yy += 62; }
       yy += this.para(j.title, 6, yy, cw - 12, '#1a1a2a', 'main') + 2;
       gfx.text(j.company + ' - ' + j.loc, 6, yy, '#555', { font: 'small' }); yy += 8;
       gfx.text(j.pay + '  -  ' + j.type + '  -  ' + j.posted, 6, yy, '#3a9a5a', { font: 'small' }); yy += 12;
@@ -671,7 +907,7 @@
           gfx.text(m.from.length > 26 ? m.from.slice(0, 26) + '…' : m.from, 12, yy + 3, m.read ? '#555' : '#1a1a2a', { font: 'small' });
           gfx.text(m.subject.length > 30 ? m.subject.slice(0, 30) + '…' : m.subject, 12, yy + 11, m.kind === 'interview' ? '#3a9a5a' : m.kind === 'reject' ? '#c8352b' : '#333', { font: 'small' });
           gfx.text(m.text.replace(/\n/g, ' ').slice(0, 32) + '…', 12, yy + 19, '#888', { font: 'small' });
-        }, () => { if (!m.read) { m.read = true; d.unreadMail = Math.max(0, d.unreadMail - 1); } st.open = m; a.scroll = 0; });
+        }, () => { if (!m.read) { m.read = true; d.unreadMail = Math.max(0, d.unreadMail - 1); } st.open = m; a.scroll = 0; this.beginLoad({ label: 'LOADING MESSAGE', dur: 1.2, style: 'bar', sub: 'FETCHING FROM SERVER…' }); });
         yy += 26;
       }
       a.contentH = yy + 10;
@@ -706,7 +942,7 @@
       const threads = Object.keys(d.texts);
       for (const who of threads) {
         const msgs = d.texts[who]; const last = msgs[msgs.length - 1]; const unread = msgs.filter((m) => m.them && !m.read).length;
-        this.row(yy, 24, (hv) => { gfx.circle(14, yy + 12, 8, who === 'Mom' ? '#c85a8a' : '#8899aa'); gfx.text(who[0], 14, yy + 9, '#fff', { align: 'center' }); gfx.text(who, 28, yy + 4, '#1a1a2a', { font: 'small' }); gfx.text(last.text.slice(0, 26) + (last.text.length > 26 ? '…' : ''), 28, yy + 13, '#666', { font: 'small' }); if (unread) { gfx.circle(cw - 10, yy + 12, 4, '#e83030'); gfx.text(String(unread), cw - 10, yy + 9, '#fff', { align: 'center', font: 'small' }); } }, () => { st.thread = who; a.scroll = 0; });
+        this.row(yy, 24, (hv) => { gfx.circle(14, yy + 12, 8, who === 'Mom' ? '#c85a8a' : '#8899aa'); gfx.text(who[0], 14, yy + 9, '#fff', { align: 'center' }); gfx.text(who, 28, yy + 4, '#1a1a2a', { font: 'small' }); gfx.text(last.text.slice(0, 26) + (last.text.length > 26 ? '…' : ''), 28, yy + 13, '#666', { font: 'small' }); if (unread) { gfx.circle(cw - 10, yy + 12, 4, '#e83030'); gfx.text(String(unread), cw - 10, yy + 9, '#fff', { align: 'center', font: 'small' }); } }, () => { st.thread = who; a.scroll = 0; this.beginLoad({ label: 'LOADING THREAD', dur: 0.9, style: 'spinner' }); });
         yy += 24;
       }
       a.contentH = yy + 10;
@@ -734,7 +970,7 @@
       let yy = 16;
       const files = [['resume_final_FINAL2.pdf', '84 KB', 'resume'], ['resume_final.pdf', '81 KB', 'msg:An older version. It says "Couch Manger". Twice.'], ['cover_letter_template.doc', '22 KB', 'msg:"Dear [COMPANY], I am [ADJECTIVE] to apply..."'], ['blue_hedgehog_speedrun_41min.mp4', '1.2 GB', 'msg:Your personal best. Nobody has watched it. Except Gus.'], ['IMG_2019_pancakes.jpg', '2.1 MB', 'msg:A very good stack. Mom is blurry in the background, laughing.'], ['pancake_mix_coupon.pdf', '12 KB', 'msg:Save $1.00 on Maple Moose Pancake Mix. Expired.'], ['taxes_2022_DO_NOT_OPEN.zip', '9 KB', 'msg:You do not open it.'], ['ManEgg_wallpaper.png', '340 KB', 'msg:He looks so smug.']];
       for (const [name, size, act] of files) {
-        this.row(yy, 16, (hv) => { const ext = name.split('.').pop(); gfx.rect(6, yy + 3, 10, 10, ext === 'pdf' ? '#c8352b' : ext === 'mp4' ? '#7b4fb0' : ext === 'jpg' || ext === 'png' ? '#3b6fd6' : '#8899aa'); gfx.text(name.length > 28 ? name.slice(0, 28) + '…' : name, 20, yy + 2, '#1a1a2a', { font: 'small' }); gfx.text(size, 20, yy + 9, '#888', { font: 'small' }); }, () => { if (act === 'resume') { st.open = 'resume'; a.scroll = 0; } else ui.toast(act.slice(4), '#fff', 3.5); });
+        this.row(yy, 16, (hv) => { const ext = name.split('.').pop(); gfx.rect(6, yy + 3, 10, 10, ext === 'pdf' ? '#c8352b' : ext === 'mp4' ? '#7b4fb0' : ext === 'jpg' || ext === 'png' ? '#3b6fd6' : '#8899aa'); gfx.text(name.length > 28 ? name.slice(0, 28) + '…' : name, 20, yy + 2, '#1a1a2a', { font: 'small' }); gfx.text(size, 20, yy + 9, '#888', { font: 'small' }); }, () => { if (act === 'resume') { st.open = 'resume'; a.scroll = 0; this.beginLoad({ label: 'OPENING PDF', dur: 1.8, style: 'bands', sub: 'RENDERING PAGE 1 OF 1…', art: (x, y, w, h) => this.docPreviewArt(x, y, w, h) }); } else ui.toast(act.slice(4), '#fff', 3.5); });
         yy += 16;
       }
       a.contentH = yy + 10;

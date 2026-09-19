@@ -6,6 +6,11 @@
 // is built from ellipses on a local axis: origin at the feet, +y up the screen
 // is negative, and +x is always "facing right" - mirroring is done by the blit,
 // so no pose has to be written twice.
+//
+// Proportions: ~41px from sole to the top of the head (quills go higher), with
+// a head about a fifth of that. He is a ball with small limbs and a head that
+// is small enough to read as a teenager rather than a toddler - and the whole
+// face is built around the glasses, which are the character.
 // ============================================================================
 (function (CH) {
   const gfx = CH.gfx, art = CH.art;
@@ -29,6 +34,12 @@
     nose: '#2a1a22', tongue: '#e0708a', teeth: '#fff8ee',
     blush: '#e08a7e', tear: '#8fd0ff', cream: '#efe1c0',
     gold: '#f2c94c', white: '#f4f1ea', red: '#c8352b',
+    frame: '#1f1826',                    // the nerd frames - darker than the ink
+    lens: '#cfe3e4',                     // glass, cool against the warm fur
+    lensLo: '#a9c4ca',                   // glass in the lower half of the lens
+    tape: '#ece2c6', tapeLo: '#c9bb9a',  // the repair on the bridge
+    toothLo: '#ddcdb4',
+    brow: '#4a2a12',                     // reads over the fur at actual size
   };
   CH.CHUBBY_COL = C;
 
@@ -71,17 +82,17 @@
   // and a radial fan puts quills where a porcupine does not have them.
   // [baseX, baseY, tipX, tipY, baseWidth] relative to the head / body centre.
   const HEAD_QUILLS = [
-    [-8, -6.5, -17, -13, 4.6],
-    [-5.5, -9.5, -12, -20, 4.4],
-    [-1, -11.5, -4.5, -23, 4.2],
-    [3.5, -11, 1.5, -21.5, 3.6],
-    [-10.5, -3, -19.5, -9, 4.0],
+    [-6.2, -5.0, -12.8, -9.8, 3.6],
+    [-4.3, -7.3, -9.2, -15.2, 3.4],
+    [-0.8, -8.8, -3.4, -17.4, 3.2],
+    [2.7, -8.4, 1.1, -16.2, 2.8],
+    [-8.1, -2.3, -14.8, -6.9, 3.1],
   ];
   const BODY_QUILLS = [
-    [-7, -8.5, -16, -18, 5.0],
-    [-10, -3, -21, -9, 4.6],
-    [-10.5, 1.5, -19, -6, 4.0],
-    [-3, -11, -7, -20, 4.2],
+    [-6.4, -7.8, -14.6, -16.4, 4.6],
+    [-9.1, -2.7, -19.1, -8.2, 4.2],
+    [-9.6, 1.4, -17.3, -5.5, 3.7],
+    [-2.7, -10.0, -6.4, -18.2, 3.9],
   ];
 
   function drawChubby(g, x, y, p = {}) {
@@ -94,9 +105,10 @@
     const sleep = !!p.sleep, sitting = !!p.sitting;
     const qt = p.quillTilt || 0;
     const arm = p.arm || 'idle';
+    const specs = p.glasses !== false;
 
     if (!p.noShadow) {
-      const sh = sitting ? 12 : 11 - Math.abs(jig) * 0.2;
+      const sh = sitting ? 11 : 10 - Math.abs(jig) * 0.2;
       art.shadow(Math.round(x), Math.round(y) + 1, sh * sx, p.shadowAlpha !== undefined ? p.shadowAlpha : 0.3);
     }
 
@@ -110,17 +122,18 @@
       };
       const L = (x0, y0, x1, y1, c) => gfx.line(X(x0), Y(y0), X(x1), Y(y1), c);
       const T = (x0, y0, x1, y1, x2, y2, c) => gfx.tri(X(x0), Y(y0), X(x1), Y(y1), X(x2), Y(y2), c);
+      const P = (x0, y0, c) => gfx.px(X(x0), Y(y0), c);
 
       // ---- rhythm ------------------------------------------------------------
       const step = Math.sin(walk), step2 = Math.sin(walk + Math.PI);
-      const bob = Math.abs(Math.sin(walk)) * 1.6 * moving;
+      const bob = Math.abs(Math.sin(walk)) * 1.5 * moving;
       const lean = moving * 1.2;
-      const bodyY = (sitting ? -12 : -15.5) - bob;
+      const bodyY = (sitting ? -11 : -14) - bob;
       const bodyX = jig * 0.55 + lean * 0.4;
-      const headY = bodyY - 16.5 - (sitting ? -1 : 0) + (p.headDY || 0) - bob * 0.35;
-      const headX = bodyX + 2.2 + (p.headDX || 0) + lean * 0.5;
-      const brx = 12.6 + jig * 0.45, bry = 11.4 - Math.abs(jig) * 0.22;
-      const hr = 12.8;
+      const headY = bodyY - 15 - (sitting ? -1 : 0) + (p.headDY || 0) - bob * 0.35;
+      const headX = bodyX + 2 + (p.headDX || 0) + lean * 0.5;
+      const brx = 11.8 + jig * 0.45, bry = 10.8 - Math.abs(jig) * 0.22;
+      const hr = 9.7;
       const hood = outfit === 'hoodie' || outfit === 'pajamas';
 
       // ---- quills ------------------------------------------------------------
@@ -129,7 +142,7 @@
       function spike(ox0, oy0, tx0, ty0, w0, cx, cy, sweep) {
         const bx0 = cx + ox0, by0 = cy + oy0;
         // quills trail the body: sweeping back when moving forward
-        const dx0 = tx0 - ox0 - sweep * 4.5, dy0 = ty0 - oy0 + Math.abs(sweep) * 1.6;
+        const dx0 = tx0 - ox0 - sweep * 4.2, dy0 = ty0 - oy0 + Math.abs(sweep) * 1.5;
         const tx1 = bx0 + dx0, ty1 = by0 + dy0;
         const len = Math.hypot(dx0, dy0) || 1;
         const nx = (-dy0 / len) * w0 * 0.5, ny = (dx0 / len) * w0 * 0.5;
@@ -148,23 +161,23 @@
       // ---- feet --------------------------------------------------------------
       const bootie = outfit === 'hoodie' || outfit === 'pajamas';
       if (!sitting && !sleep) {
-        const lift = (sv) => Math.max(0, sv) * 2.6 * moving;
+        const lift = (sv) => Math.max(0, sv) * 2.4 * moving;
         for (const [sgn, sw] of [[-1, step], [1, step2]]) {
-          const fx = sgn * 5 + sw * 3.4 * moving;
+          const fx = sgn * 4.4 + sw * 3.2 * moving;
           const fyy = -1 - lift(sw);
-          E(fx, fyy, 4.4, 2.6, M.shoe.d);
-          E(fx + 0.4, fyy - 1, 3.8, 1.8, bootie ? M.fur.d : M.shoe.base);
-          E(fx, fyy - 1.8, 2.4, 1, bootie ? M.fur.base : M.shoe.l);
+          E(fx, fyy, 4.1, 2.5, M.shoe.d);
+          E(fx + 0.4, fyy - 1, 3.5, 1.7, bootie ? M.fur.d : M.shoe.base);
+          E(fx, fyy - 1.8, 2.2, 1, bootie ? M.fur.base : M.shoe.l);
         }
       } else if (sitting) {
-        E(6, -5, 4.6, 2.8, M.pants.base); E(6, -6.2, 3.8, 1.9, M.pants.l);
-        E(-2.5, -4, 4.4, 2.6, M.pants.d);
-        E(10.5, -3.2, 3.8, 2.3, M.shoe.base); E(2, -2.4, 3.6, 2.1, M.shoe.d);
+        E(5.6, -4.6, 4.3, 2.7, M.pants.base); E(5.6, -5.8, 3.6, 1.8, M.pants.l);
+        E(-2.4, -3.8, 4.1, 2.5, M.pants.d);
+        E(9.8, -3, 3.6, 2.2, M.shoe.base); E(1.8, -2.3, 3.4, 2, M.shoe.d);
       }
 
       // ---- back arm ----------------------------------------------------------
       const paw = outfit === 'janitor' ? M.apron : M.fur;
-      const backSwing = step2 * 2.8 * moving;
+      const backSwing = step2 * 2.6 * moving;
       function limb(x0, y0, x1, y1, w0, matr) {
         const dx0 = x1 - x0, dy0 = y1 - y0, len = Math.hypot(dx0, dy0) || 1;
         const nx = (-dy0 / len) * w0 * 0.5, ny = (dx0 / len) * w0 * 0.5;
@@ -173,14 +186,14 @@
         T(x0 - nx, y0 - ny, x1 - nx, y1 - ny, x1 + nx * 0.1, y1 + ny * 0.1, matr.d);
         E((x0 + x1) / 2, (y0 + y1) / 2, w0 * 0.5, w0 * 0.5, matr.base);
       }
-      function hand(hx2, hy2, r = 2.9) {
+      function hand(hx2, hy2, r = 2.7) {
         E(hx2, hy2, r, r, paw.d);
         E(hx2 - 0.4, hy2 - 0.7, r - 0.8, r - 0.8, paw.base);
         E(hx2 - 0.9, hy2 + r * 0.55, r * 0.55, r * 0.4, paw.dd);
       }
       if (!sitting) {
-        limb(bodyX - 9, bodyY - 5, bodyX - 13.5, bodyY + 3 + backSwing, 4.8, { base: mat.d, d: mat.dd });
-        hand(bodyX - 14, bodyY + 5 + backSwing, 2.7);
+        limb(bodyX - 8.5, bodyY - 4.6, bodyX - 12.6, bodyY + 3 + backSwing, 4.5, { base: mat.d, d: mat.dd });
+        hand(bodyX - 13, bodyY + 4.8 + backSwing, 2.5);
       }
 
       // ---- body --------------------------------------------------------------
@@ -189,267 +202,314 @@
       E(bodyX, bodyY, brx - 0.4, bry - 0.5, mat.base);
       E(bodyX - 0.5, bodyY - bry * 0.62, brx * 0.72, bry * 0.42, mat.base);
       // belly mass
-      E(bodyX + 3, bodyY + 3.2, brx * 0.66, bry * 0.58, mat.l);
-      E(bodyX + 3, bodyY + 4.2, brx * 0.6, bry * 0.5, mat.base);
+      E(bodyX + 3, bodyY + 3, brx * 0.66, bry * 0.58, mat.l);
+      E(bodyX + 3, bodyY + 4, brx * 0.6, bry * 0.5, mat.base);
       // top light and bottom core shadow
-      E(bodyX - 3, bodyY - 6, brx * 0.46, bry * 0.24, mat.l);
+      E(bodyX - 3, bodyY - 5.6, brx * 0.46, bry * 0.24, mat.l);
       E(bodyX, bodyY + bry * 0.72, brx * 0.82, bry * 0.26, mat.d);
 
       // ---- outfit detail -----------------------------------------------------
       if (hood) {
         R(bodyX - brx + 3.5, bodyY + bry - 3.5, bodyX + brx - 3.5, bodyY + bry - 1, mat.d);
-        for (let i = -3; i <= 3; i++) R(bodyX + i * 2.6, bodyY + bry - 3.5, bodyX + i * 2.6, bodyY + bry - 1, mat.dd);
+        for (let i = -3; i <= 3; i++) R(bodyX + i * 2.5, bodyY + bry - 3.5, bodyX + i * 2.5, bodyY + bry - 1, mat.dd);
       }
       if (outfit === 'hoodie') {
-        E(bodyX + 2.5, bodyY + 4.2, 8, 4.4, mat.d);
-        E(bodyX + 2.5, bodyY + 3.4, 7.4, 3.8, mat.base);
-        L(bodyX - 4.6, bodyY + 1, bodyX - 3.4, bodyY + 5.5, mat.dd);
-        L(bodyX + 9.6, bodyY + 1, bodyX + 8.4, bodyY + 5.5, mat.dd);
+        E(bodyX + 2.5, bodyY + 4, 7.6, 4.2, mat.d);
+        E(bodyX + 2.5, bodyY + 3.2, 7, 3.6, mat.base);
+        L(bodyX - 4.4, bodyY + 1, bodyX - 3.2, bodyY + 5.2, mat.dd);
+        L(bodyX + 9.2, bodyY + 1, bodyX + 8, bodyY + 5.2, mat.dd);
         const sway = Math.sin(walk * 0.5) * moving * 1.2 + jig * 0.15;
-        for (const [dx0, len] of [[1.5, 8], [4.5, 6]]) {
-          L(bodyX + dx0, bodyY - 8, bodyX + dx0 + sway, bodyY - 8 + len, C.cream);
-          E(bodyX + dx0 + sway, bodyY - 7.5 + len, 0.9, 1.1, '#8a7a55');
+        for (const [dx0, len] of [[1.5, 7.5], [4.4, 5.6]]) {
+          L(bodyX + dx0, bodyY - 7.6, bodyX + dx0 + sway, bodyY - 7.6 + len, C.cream);
+          E(bodyX + dx0 + sway, bodyY - 7.1 + len, 0.9, 1.1, '#8a7a55');
         }
       } else if (outfit === 'suit') {
-        const t0 = bodyY - 9;
-        T(bodyX + 0.5, t0, bodyX + 7, t0, bodyX + 4, bodyY + 1.5, C.white);
-        R(bodyX + 1.5, bodyY - 1, bodyX + 6.5, bodyY + 6, C.white);
-        T(bodyX - 2, t0 - 1, bodyX + 3.5, t0 + 1, bodyX + 1, bodyY + 3.5, mat.l);
-        T(bodyX + 9.5, t0 - 1, bodyX + 4.5, t0 + 1, bodyX + 7, bodyY + 3.5, mat.l);
-        R(bodyX + 3, t0 + 1, bodyX + 5, t0 + 3, C.red);
-        T(bodyX + 2.5, t0 + 3, bodyX + 5.5, t0 + 3, bodyX + 4.5, bodyY + 5, C.red);
-        R(bodyX + 3.6, t0 + 4, bodyX + 4.1, bodyY + 3, gfx.shade(C.red, 26));
-        E(bodyX + 4, bodyY + 5.5, 1.2, 1.2, C.gold);
-        L(bodyX + 1.5, bodyY + 7, bodyX + 6.5, bodyY + 7, mat.dd);
+        const t0 = bodyY - 8.6;
+        T(bodyX + 0.5, t0, bodyX + 6.6, t0, bodyX + 3.8, bodyY + 1.5, C.white);
+        R(bodyX + 1.5, bodyY - 1, bodyX + 6.2, bodyY + 5.6, C.white);
+        T(bodyX - 2, t0 - 1, bodyX + 3.4, t0 + 1, bodyX + 1, bodyY + 3.4, mat.l);
+        T(bodyX + 9, t0 - 1, bodyX + 4.4, t0 + 1, bodyX + 6.6, bodyY + 3.4, mat.l);
+        R(bodyX + 2.9, t0 + 1, bodyX + 4.8, t0 + 3, C.red);
+        T(bodyX + 2.4, t0 + 3, bodyX + 5.3, t0 + 3, bodyX + 4.3, bodyY + 4.8, C.red);
+        R(bodyX + 3.5, t0 + 4, bodyX + 4, bodyY + 3, gfx.shade(C.red, 26));
+        E(bodyX + 3.9, bodyY + 5.2, 1.2, 1.2, C.gold);
+        L(bodyX + 1.5, bodyY + 6.6, bodyX + 6.2, bodyY + 6.6, mat.dd);
       } else if (outfit === 'uniform' || outfit === 'janitor') {
-        T(bodyX - 1, bodyY - 9.5, bodyX + 8, bodyY - 9.5, bodyX + 3.5, bodyY - 4, '#f5c33b');
-        R(bodyX + 2.5, bodyY - 8.5, bodyX + 4.5, bodyY - 5, mat.d);
-        R(bodyX - 8, bodyY - 4.5, bodyX - 3.5, bodyY - 2, C.white);
-        R(bodyX - 7, bodyY - 4, bodyX - 4.5, bodyY - 4, C.red);
+        T(bodyX - 1, bodyY - 9, bodyX + 7.6, bodyY - 9, bodyX + 3.3, bodyY - 3.8, '#f5c33b');
+        R(bodyX + 2.4, bodyY - 8, bodyX + 4.3, bodyY - 4.8, mat.d);
+        R(bodyX - 7.6, bodyY - 4.2, bodyX - 3.3, bodyY - 1.9, C.white);
+        R(bodyX - 6.6, bodyY - 3.8, bodyX - 4.2, bodyY - 3.8, C.red);
         if (outfit === 'janitor') {
-          E(bodyX + 1, bodyY + 3.5, 9.6, 7.6, M.apron.base);
-          E(bodyX + 1, bodyY + 5, 9, 6.2, M.apron.d);
-          R(bodyX - 8, bodyY + 0.5, bodyX + 10, bodyY + 1.2, M.apron.l);
-          L(bodyX - 5.5, bodyY - 3.5, bodyX - 8, bodyY - 8.5, M.apron.d);
-          L(bodyX + 7.5, bodyY - 3.5, bodyX + 9.5, bodyY - 8.5, M.apron.d);
-          R(bodyX + 2, bodyY + 4, bodyX + 8, bodyY + 8, M.apron.dd);
-          R(bodyX + 3, bodyY + 3, bodyX + 6, bodyY + 4, '#d8d2c0');
+          E(bodyX + 1, bodyY + 3.2, 9.2, 7.2, M.apron.base);
+          E(bodyX + 1, bodyY + 4.6, 8.6, 5.9, M.apron.d);
+          R(bodyX - 7.6, bodyY + 0.5, bodyX + 9.5, bodyY + 1.2, M.apron.l);
+          L(bodyX - 5.2, bodyY - 3.3, bodyX - 7.6, bodyY - 8, M.apron.d);
+          L(bodyX + 7.1, bodyY - 3.3, bodyX + 9, bodyY - 8, M.apron.d);
+          R(bodyX + 2, bodyY + 3.8, bodyX + 7.6, bodyY + 7.6, M.apron.dd);
+          R(bodyX + 3, bodyY + 2.8, bodyX + 5.8, bodyY + 3.8, '#d8d2c0');
         }
       } else if (outfit === 'pajamas') {
-        for (let i = -4; i <= 4; i++) R(bodyX + i * 3, bodyY - 8.5, bodyX + i * 3, bodyY + 7, mat.l);
+        for (let i = -4; i <= 4; i++) R(bodyX + i * 2.9, bodyY - 8, bodyX + i * 2.9, bodyY + 6.6, mat.l);
       }
 
       // ---- head --------------------------------------------------------------
       if (hood) {
         // hood shell: sits behind and above, opening toward the face
-        E(headX - 2.5, headY + 1, hr + 2.4, hr + 1.8, mat.dd);
-        E(headX - 3, headY, hr + 1.6, hr + 0.9, mat.base);
-        E(headX - 4.5, headY - 5, hr * 0.6, hr * 0.28, mat.l);
+        E(headX - 2.2, headY + 0.9, hr + 2.3, hr + 1.7, mat.dd);
+        E(headX - 2.6, headY, hr + 1.5, hr + 0.9, mat.base);
+        E(headX - 3.8, headY - 4, hr * 0.6, hr * 0.28, mat.l);
         // the opening, a shade darker than the shell
-        E(headX + 1.2, headY + 0.6, hr * 1.02, hr * 0.99, mat.dd);
+        E(headX + 1, headY + 0.5, hr * 1.02, hr * 0.99, mat.dd);
       }
       // face ball
-      E(headX + 1, headY + 1, hr * 0.94, hr * 0.92, M.fur.d);
-      E(headX + 1, headY, hr * 0.92, hr * 0.88, M.fur.base);
-      E(headX - 1.5, headY - 6, hr * 0.5, hr * 0.26, M.fur.l);
+      E(headX + 0.8, headY + 0.9, hr * 0.96, hr * 0.94, M.fur.d);
+      E(headX + 0.8, headY, hr * 0.94, hr * 0.9, M.fur.base);
+      E(headX - 1.4, headY - 4.6, hr * 0.5, hr * 0.26, M.fur.l);
       // muzzle: a distinct lighter mass, not a wash over the whole face
-      E(headX + 5, headY + 5.2, 7.4, 5.2, M.fur.dd);
-      E(headX + 5, headY + 4.6, 7, 4.8, M.muzzle.base);
-      E(headX + 4.4, headY + 3.4, 5.2, 2.4, M.muzzle.l);
-      E(headX + 5, headY + 6.6, 5.6, 2.2, M.muzzle.d);
-      if (hood) E(headX + 0.8, headY - 8, hr * 0.62, 1.8, M.fur.d);
+      E(headX + 5, headY + 4.7, 5.5, 3.8, M.fur.dd);
+      E(headX + 5, headY + 4.2, 5, 3.4, M.muzzle.base);
+      E(headX + 4.4, headY + 3.2, 3.6, 1.6, M.muzzle.l);
+      E(headX + 5, headY + 5.8, 4, 1.4, M.muzzle.d);
       if (!hood) {
-        E(headX - 6.5, headY - 8.5, 3, 3.2, M.fur.d);
-        E(headX - 6.5, headY - 8.5, 1.7, 1.8, C.blush);
+        E(headX - 5.2, headY - 6.6, 2.5, 2.6, M.fur.d);
+        E(headX - 5.2, headY - 6.6, 1.4, 1.5, C.blush);
       }
 
       // ---- headwear ----------------------------------------------------------
       const hat = p.hat || ((outfit === 'uniform' || outfit === 'janitor') ? 'visor' : null);
       if (hat === 'visor') {
-        R(headX - 9, headY - 10, headX + 8, headY - 8, C.red);
-        E(headX - 0.5, headY - 11, 8.6, 2.8, C.red);
-        E(headX - 2, headY - 12, 4, 1.1, gfx.shade(C.red, 30));
-        R(headX + 7, headY - 9.5, headX + 15, headY - 7.5, gfx.shade(C.red, -22));
-        R(headX - 1, headY - 11.5, headX + 1.5, headY - 9, '#f5c33b');
+        R(headX - 7, headY - 8.4, headX + 6.4, headY - 6.8, C.red);
+        E(headX - 0.4, headY - 9.2, 7, 2.3, C.red);
+        E(headX - 1.6, headY - 10, 3.2, 0.9, gfx.shade(C.red, 30));
+        R(headX + 5.6, headY - 8, headX + 12, headY - 6.4, gfx.shade(C.red, -22));
+        R(headX - 0.8, headY - 9.6, headX + 1.2, headY - 7.6, '#f5c33b');
       } else if (hat === 'hairnet') {
-        gfx.ellipseOutline(X(headX), Y(headY - 7), 8.6 * sx, 4.4 * sy, 'rgba(255,255,255,0.75)');
-        for (let i = -6; i <= 6; i += 3) gfx.px(X(headX + i), Y(headY - 9 + Math.abs(i) * 0.25), 'rgba(255,255,255,0.6)');
+        gfx.ellipseOutline(X(headX), Y(headY - 5.6), 7 * sx, 3.6 * sy, 'rgba(255,255,255,0.75)');
+        for (let i = -5; i <= 5; i += 2.5) gfx.px(X(headX + i), Y(headY - 7.2 + Math.abs(i) * 0.25), 'rgba(255,255,255,0.6)');
       } else if (hat === 'crown') {
-        R(headX - 6.5, headY - 13, headX + 6.5, headY - 10, C.gold);
-        for (const dx0 of [-6, 0, 6]) T(headX + dx0 - 1.8, headY - 13, headX + dx0 + 1.8, headY - 13, headX + dx0, headY - 17.5, C.gold);
-        for (const dx0 of [-3, 3]) gfx.px(X(headX + dx0), Y(headY - 11.5), C.red);
+        R(headX - 5.2, headY - 10.6, headX + 5.2, headY - 8.2, C.gold);
+        for (const dx0 of [-4.8, 0, 4.8]) T(headX + dx0 - 1.5, headY - 10.6, headX + dx0 + 1.5, headY - 10.6, headX + dx0, headY - 14.2, C.gold);
+        for (const dx0 of [-2.4, 2.4]) gfx.px(X(headX + dx0), Y(headY - 9.4), C.red);
       } else if (hat === 'toque') {
-        E(headX - 0.5, headY - 9, 9, 4.6, '#c8352b');
-        R(headX - 8.5, headY - 8, headX + 7.5, headY - 5.5, C.white);
-        E(headX - 0.5, headY - 13, 2.4, 2.4, C.white);
+        E(headX - 0.4, headY - 7.4, 7.4, 3.8, '#c8352b');
+        R(headX - 7, headY - 6.6, headX + 6.2, headY - 4.6, C.white);
+        E(headX - 0.4, headY - 10.6, 2, 2, C.white);
       }
 
-      // ---- face: brows, eyes, nose, mouth -----------------------------------
+      // ---- face: brows, eyes, glasses, nose, mouth, teeth --------------------
       const fk = FACES[p.face] || FACES.normal;
       const blink = p.blink && fk.eye !== 'shut' && fk.eye !== 'cross';
       const eyeShape = sleep ? 'shut' : blink ? 'shut' : fk.eye;
       const lx = CH.clamp(p.lookX || 0, -1, 1), ly = CH.clamp(p.lookY || 0, -1, 1);
-      const ey = headY - 2;
-      const eL = headX - 2.2, eR = headX + 6.4;
+      const ey = headY - 1.6;
+      const eL = headX - 2.4, eR = headX + 6;      // lens / eye centres
+      const LRX = 4.3, LRY = 3.85;                 // frame outer
+      const GRX = 2.95, GRY = 2.6;                 // glass inside the frame
+
+      // brows ride above the frames
+      if (eyeShape !== 'heart') {
+        const [bi, bo, bt] = fk.brow;
+        const raise = p.browRaise || 0;
+        for (const [cx, inner] of [[eL, 1], [eR, -1]]) {
+          const y0 = ey - 4.6 + (inner > 0 ? bo : bi) * 0.7 - raise;
+          const y1 = ey - 4.6 + (inner > 0 ? bi : bo) * 0.7 - raise;
+          for (let k = 0; k < bt; k++) L(cx - 2.2, y0 + k, cx + 2, y1 + k, C.brow);
+        }
+      }
+
+      // glasses, part one: frames and glass, under the eyes
+      if (specs) {
+        // temple arms, behind the lenses, running back to the head
+        L(eL - 3.4, ey - 0.6, headX - 8, ey - 2.8, C.frame);
+        L(eL - 3.4, ey + 0.4, headX - 8, ey - 1.8, C.frame);
+        L(eR + 3.2, ey - 0.8, eR + 4.6, ey - 2.2, C.frame);
+        // frame discs, then the glass inside them
+        E(eL, ey, LRX, LRY, C.frame);
+        E(eR, ey, LRX, LRY, C.frame);
+        E(eL, ey, GRX, GRY, C.lens);
+        E(eL, ey + 1.4, GRX * 0.92, GRY * 0.5, C.lensLo);
+        E(eR, ey, GRX, GRY, C.lens);
+        E(eR, ey + 1.4, GRX * 0.92, GRY * 0.5, C.lensLo);
+      }
 
       function eye(cx) {
-        const look = lx * 1.3, lookY = ly * 1.2;
+        const look = lx * 1.1, lookY = ly * 1;
         switch (eyeShape) {
           case 'shut':
-            L(cx - 2.6, ey, cx + 2.6, ey, C.pupil);
-            L(cx - 2.6, ey, cx - 1.6, ey - 0.9, C.pupil);
+            L(cx - 2.4, ey, cx + 2.4, ey, C.pupil);
+            L(cx - 2.4, ey, cx - 1.5, ey - 0.9, C.pupil);
             break;
           case 'arch':
-            L(cx - 2.8, ey + 0.8, cx - 1, ey - 1.6, C.pupil);
-            L(cx - 1, ey - 1.6, cx + 1, ey - 1.6, C.pupil);
-            L(cx + 1, ey - 1.6, cx + 2.8, ey + 0.8, C.pupil);
+            L(cx - 2.6, ey + 1, cx - 0.9, ey - 1.4, C.pupil);
+            L(cx - 0.9, ey - 1.4, cx + 0.9, ey - 1.4, C.pupil);
+            L(cx + 0.9, ey - 1.4, cx + 2.6, ey + 1, C.pupil);
             break;
           case 'cross':
-            L(cx - 2.2, ey - 2.2, cx + 2.2, ey + 2.2, C.pupil);
-            L(cx + 2.2, ey - 2.2, cx - 2.2, ey + 2.2, C.pupil);
+            L(cx - 2.2, ey - 2, cx + 2.2, ey + 2, C.pupil);
+            L(cx + 2.2, ey - 2, cx - 2.2, ey + 2, C.pupil);
             break;
           case 'heart':
-            E(cx - 1.4, ey - 0.8, 1.6, 1.5, '#e8496e');
-            E(cx + 1.4, ey - 0.8, 1.6, 1.5, '#e8496e');
-            T(cx - 2.9, ey - 0.2, cx + 2.9, ey - 0.2, cx, ey + 3.2, '#e8496e');
-            gfx.px(X(cx - 1.6), Y(ey - 1.5), '#ffd0dc');
+            E(cx - 1.2, ey - 0.8, 1.5, 1.4, '#e8496e');
+            E(cx + 1.2, ey - 0.8, 1.5, 1.4, '#e8496e');
+            T(cx - 2.6, ey - 0.2, cx + 2.6, ey - 0.2, cx, ey + 2.8, '#e8496e');
+            P(cx - 1.4, ey - 1.5, '#ffd0dc');
             break;
           default: {
             const wide = eyeShape === 'wide';
             const narrow = eyeShape === 'narrow' || eyeShape === 'glare';
             const half = eyeShape === 'half' || eyeShape === 'bags' || eyeShape === 'droop' || eyeShape === 'squint';
-            const rx = wide ? 3.4 : narrow ? 3 : 3.05;
-            const ry = wide ? 4.2 : narrow ? 2 : half ? 2.5 : 3.5;
+            // magnified by the lenses: the eye nearly fills the glass
+            const rx = wide ? 2.5 : narrow ? 2.6 : 2.4;
+            const ry = wide ? 2.45 : narrow ? 1.4 : half ? 1.8 : 2.2;
             E(cx, ey, rx, ry, C.eyeW);
-            E(cx, ey - ry * 0.55, rx * 0.9, ry * 0.34, gfx.mix(C.eyeW, '#9a8fae', 0.45));
-            const pr = wide ? 1.5 : 1.9;
-            const pcx = cx + look, pcy = ey + lookY + (eyeShape === 'droop' ? 0.7 : 0);
-            E(pcx, pcy, pr, pr + 0.4, C.pupil);
-            gfx.px(X(pcx + pr * 0.75), Y(pcy - pr * 0.85), C.glint);
-            gfx.px(X(pcx + pr * 0.75 + 1), Y(pcy - pr * 0.85), C.glint);
-            if (narrow) R(cx - rx, ey - ry - 1, cx + rx, ey - 0.7, M.fur.base);
-            if (half) R(cx - rx, ey - ry - 1, cx + rx, ey - 1.2, M.fur.base);
+            E(cx, ey - ry * 0.5, rx * 0.88, ry * 0.32, gfx.mix(C.eyeW, '#9a8fae', 0.4));
+            const pr = wide ? 1.35 : 1.55;
+            const pcx = cx + look, pcy = ey + lookY + (eyeShape === 'droop' ? 0.6 : 0);
+            E(pcx, pcy, pr, pr + 0.3, C.pupil);
+            P(pcx + pr * 0.8, pcy - pr * 0.8, C.glint);
+            P(pcx + pr * 0.8 + 1, pcy - pr * 0.8, C.glint);
+            if (narrow) R(cx - rx, ey - ry - 1, cx + rx, ey - 0.6, specs ? C.lens : M.fur.base);
+            if (half) R(cx - rx, ey - ry - 1, cx + rx, ey - 1, specs ? C.lens : M.fur.base);
             if (eyeShape === 'bags') {
-              L(cx - 2.2, ey + ry + 0.7, cx + 2.2, ey + ry + 0.7, M.fur.dd);
-              L(cx - 1.6, ey + ry + 1.8, cx + 1.6, ey + ry + 1.8, M.fur.d);
+              L(cx - 2, ey + ry + 0.6, cx + 2, ey + ry + 0.6, specs ? C.lensLo : M.fur.dd);
+              L(cx - 1.5, ey + ry + 1.6, cx + 1.5, ey + ry + 1.6, specs ? C.lensLo : M.fur.d);
             }
-            if (eyeShape === 'squint') L(cx - rx, ey + 0.5, cx + rx, ey + 0.5, M.fur.d);
+            if (eyeShape === 'squint') L(cx - rx, ey + 0.4, cx + rx, ey + 0.4, specs ? C.lensLo : M.fur.d);
             break;
           }
         }
       }
       eye(eL); eye(eR);
 
-      if (eyeShape !== 'heart') {
-        const [bi, bo, bt] = fk.brow;
-        const raise = p.browRaise || 0;
-        for (const [cx, inner] of [[eL, 1], [eR, -1]]) {
-          const y0 = ey - 5.6 + (inner > 0 ? bo : bi) * 0.95 - raise;
-          const y1 = ey - 5.6 + (inner > 0 ? bi : bo) * 0.95 - raise;
-          for (let k = 0; k < bt; k++) L(cx - 3, y0 + k, cx + 3, y1 + k, M.fur.dd);
+      // glasses, part two: the bridge, the tape and the glint, over the eyes
+      if (specs) {
+        // bridge over the muzzle
+        R(eL + 3, ey - 1.6, eR - 3, ey - 0.4, C.frame);
+        L(eL + 3.2, ey - 2, eR - 3.2, ey - 2, C.frame);
+        // tape, because they have been sat on at least once
+        R(headX + 1, ey - 2.6, headX + 2.3, ey + 0.8, C.tape);
+        R(headX + 1, ey + 0.2, headX + 2.3, ey + 0.8, C.tapeLo);
+        P(headX + 1, ey - 2.6, C.tapeLo);
+        // lens glint: a hard diagonal sweep across the upper-left of the glass
+        for (const cx of [eL, eR]) {
+          L(cx - 2.4, ey + 1, cx - 0.4, ey - 2.1, C.glint);
+          L(cx - 1.6, ey + 1.1, cx - 0.2, ey - 1.1, C.glint);
+          L(cx - 2.3, ey + 2.2, cx - 1.5, ey + 1.5, C.glint);
         }
       }
 
-      E(headX + 9.4, headY + 3.4, 2.4, 1.9, C.nose);
-      E(headX + 9, headY + 2.7, 1.2, 0.8, '#a28a98');
-      for (const dy0 of [0, 1.8]) gfx.px(X(headX + 11), Y(headY + 4.6 + dy0), M.muzzle.d);
+      // nose
+      E(headX + 5.7, headY + 3.2, 1.8, 1.4, C.nose);
+      E(headX + 5.3, headY + 2.6, 1, 0.6, '#a28a98');
+      for (const dy0 of [0, 1.6]) P(headX + 8.6, headY + 4.2 + dy0, M.muzzle.d);
 
       const m = p.mouth || fk.mouth;
-      const my = headY + 6.8, mx = headX + 4.6;
+      const my = headY + 6.6, mx = headX + 3.6;
       const ink = C.nose;
-      if (m === 'smile') { L(mx - 2.8, my - 0.8, mx, my + 0.9, ink); L(mx, my + 0.9, mx + 2.8, my - 0.8, ink); }
+      if (m === 'smile') { L(mx - 2.6, my - 0.8, mx, my + 0.8, ink); L(mx, my + 0.8, mx + 2.6, my - 0.8, ink); }
       else if (m === 'grin') {
-        T(mx - 3.4, my - 0.8, mx + 3.4, my - 0.8, mx, my + 2.8, ink);
-        R(mx - 2.6, my - 0.6, mx + 2.6, my, C.teeth);
-      } else if (m === 'smirk') { L(mx - 1.8, my + 0.2, mx + 2.6, my - 1.2, ink); gfx.px(X(mx + 3), Y(my - 1.8), ink); }
-      else if (m === 'frown') { L(mx - 2.8, my + 0.9, mx, my - 0.7, ink); L(mx, my - 0.7, mx + 2.8, my + 0.9, ink); }
+        T(mx - 3.1, my - 0.8, mx + 3.1, my - 0.8, mx, my + 2.5, ink);
+        R(mx - 2.4, my - 0.6, mx + 2.4, my, C.teeth);
+      } else if (m === 'smirk') { L(mx - 1.7, my + 0.2, mx + 2.4, my - 1.1, ink); P(mx + 2.8, my - 1.7, ink); }
+      else if (m === 'frown') { L(mx - 2.6, my + 0.9, mx, my - 0.7, ink); L(mx, my - 0.7, mx + 2.6, my + 0.9, ink); }
       else if (m === 'wail') {
-        E(mx, my + 1.2, 3.2, 2.8, ink); E(mx, my + 2, 2.1, 1.7, C.tongue);
-        L(mx - 3.2, my - 1.6, mx, my - 0.3, ink); L(mx, my - 0.3, mx + 3.2, my - 1.6, ink);
-      } else if (m === 'gape') { E(mx, my + 0.9, 2.8, 3.2, ink); E(mx, my + 2, 1.7, 1.5, C.tongue); }
-      else if (m === 'gasp') { E(mx, my + 0.7, 2.4, 2, ink); }
+        E(mx, my + 1.3, 3, 2.6, ink); E(mx, my + 2.1, 2, 1.5, C.tongue);
+        L(mx - 3, my - 1.5, mx, my - 0.3, ink); L(mx, my - 0.3, mx + 3, my - 1.5, ink);
+      } else if (m === 'gape') { E(mx, my + 1.1, 2.6, 2.9, ink); E(mx, my + 2.1, 1.6, 1.4, C.tongue); }
+      else if (m === 'gasp') { E(mx, my + 0.9, 2.2, 1.9, ink); }
       else if (m === 'snarl') {
-        L(mx - 3.2, my + 1.1, mx + 3.2, my - 0.5, ink);
-        for (let i = 0; i < 3; i++) T(mx - 2.2 + i * 2.1, my + 0.7 - i * 0.35, mx - 1.2 + i * 2.1, my + 0.7 - i * 0.35, mx - 1.7 + i * 2.1, my - 0.9 - i * 0.35, C.teeth);
-      } else if (m === 'wobble') { for (let i = 0; i < 7; i++) gfx.px(X(mx - 3 + i), Y(my + (i % 2 ? 0.9 : -0.3)), ink); }
-      else if (m === 'squiggle') { for (let i = 0; i < 7; i++) gfx.px(X(mx - 3 + i), Y(my + Math.sin(i * 1.5) * 1.1), ink); }
-      else if (m === 'set') { R(mx - 2.8, my, mx + 2.8, my + 0.6, ink); }
-      else if (m === 'snore') { E(mx + 0.6, my + 0.7, 2, 1.5, ink); }
-      else if (m === 'eat') { const o = (Math.sin(t * 18) + 1) * 0.5; E(mx, my + 0.7, 2.6, 1.1 + o * 1.9, ink); }
-      else if (m === 'o') { E(mx, my + 0.7, 1.8, 2, ink); }
-      else { R(mx - 2.6, my, mx + 2.6, my + 0.8, ink); gfx.px(X(mx - 3.2), Y(my - 0.6), ink); gfx.px(X(mx + 3.2), Y(my - 0.6), ink); }
+        L(mx - 3, my + 1.1, mx + 3, my - 0.5, ink);
+        for (let i = 0; i < 3; i++) T(mx - 2 + i * 2, my + 0.7 - i * 0.35, mx - 1.1 + i * 2, my + 0.7 - i * 0.35, mx - 1.6 + i * 2, my - 0.9 - i * 0.35, C.teeth);
+      } else if (m === 'wobble') { for (let i = 0; i < 7; i++) P(mx - 3 + i, my + (i % 2 ? 0.9 : -0.3), ink); }
+      else if (m === 'squiggle') { for (let i = 0; i < 7; i++) P(mx - 3 + i, my + Math.sin(i * 1.5) * 1.1, ink); }
+      else if (m === 'set') { R(mx - 2.6, my, mx + 2.6, my + 0.6, ink); }
+      else if (m === 'snore') { E(mx + 0.6, my + 0.8, 1.9, 1.4, ink); }
+      else if (m === 'eat') { const o = (Math.sin(t * 18) + 1) * 0.5; E(mx, my + 0.8, 2.4, 1 + o * 1.7, ink); }
+      else if (m === 'o') { E(mx, my + 0.8, 1.7, 1.9, ink); }
+      else { R(mx - 2.4, my, mx + 2.4, my + 0.7, ink); P(mx - 3, my - 0.6, ink); P(mx + 3, my - 0.6, ink); }
+
+      // rabbit teeth: they hang over the lip whatever the mouth is doing
+      if (p.teeth !== false) {
+        const tx = mx + 0.3, ty = my - 1.3;
+        R(tx - 2.3, ty - 0.4, tx + 2.3, ty + 3.4, ink);
+        R(tx - 1.95, ty, tx - 0.5, ty + 3, C.teeth);
+        R(tx + 0.5, ty, tx + 1.95, ty + 3, C.teeth);
+        R(tx - 1.95, ty + 2.5, tx - 0.5, ty + 3, C.toothLo);
+        R(tx + 0.5, ty + 2.5, tx + 1.95, ty + 3, C.toothLo);
+      }
 
       if (p.blush !== false) {
-        for (const bx0 of [headX - 7.5, headX + 11]) E(bx0, headY + 3.4, 2.2, 1.3, gfx.alpha(C.blush, 0.6));
+        E(headX - 5.8, headY + 3.4, 1.7, 1.1, gfx.alpha(C.blush, 0.5));
+        E(headX + 9.6, headY + 5.6, 1.4, 1, gfx.alpha(C.blush, 0.5));
       }
       if (p.face === 'cry') {
         for (const [cx, ph] of [[eL, 0], [eR, 0.5]]) {
           const k = (t * 1.6 + ph) % 1;
-          E(cx + 1, ey + 3.4 + k * 6, 1.1, 1.7, C.tear);
+          E(cx + 1, ey + 4.4 + k * 5, 1.1, 1.6, C.tear);
         }
       }
 
       // ---- front arm ---------------------------------------------------------
       const sleeve = mat;
-      const swing = step * 2.8 * moving;
+      const swing = step * 2.6 * moving;
       if (sitting) {
-        limb(bodyX + 7, bodyY - 2, bodyX + 11.5, bodyY + 4, 4.8, sleeve);
-        hand(bodyX + 12, bodyY + 5.5);
-        hand(bodyX + 1, bodyY + 6);
+        limb(bodyX + 6.6, bodyY - 2, bodyX + 10.8, bodyY + 3.8, 4.5, sleeve);
+        hand(bodyX + 11.2, bodyY + 5.2);
+        hand(bodyX + 1, bodyY + 5.6);
         if (arm === 'controller') {
           const mash = Math.sin(t * 14) * 0.6;
-          R(bodyX + 1, bodyY + 4.5, bodyX + 10.5, bodyY + 7, '#3a3a48');
-          E(bodyX + 2, bodyY + 5.8, 1.7, 1.7, '#4a4a5c'); E(bodyX + 9.5, bodyY + 5.8, 1.7, 1.7, '#4a4a5c');
-          gfx.px(X(bodyX + 8.8 + mash), Y(bodyY + 5.2), '#f05a4a');
-          gfx.px(X(bodyX + 10), Y(bodyY + 6 + mash), '#5ad07a');
-          L(bodyX + 5.5, bodyY + 5, bodyX + 5.5, bodyY + 6.6, '#20202c');
+          R(bodyX + 1, bodyY + 4.2, bodyX + 10, bodyY + 6.6, '#3a3a48');
+          E(bodyX + 2, bodyY + 5.4, 1.6, 1.6, '#4a4a5c'); E(bodyX + 9, bodyY + 5.4, 1.6, 1.6, '#4a4a5c');
+          gfx.px(X(bodyX + 8.4 + mash), Y(bodyY + 4.8), '#f05a4a');
+          gfx.px(X(bodyX + 9.6), Y(bodyY + 5.6 + mash), '#5ad07a');
+          L(bodyX + 5.2, bodyY + 4.6, bodyX + 5.2, bodyY + 6.2, '#20202c');
         }
       } else if (arm === 'up' || arm === 'reach') {
-        limb(bodyX + 8, bodyY - 5, bodyX + 13, bodyY - 15, 4.6, sleeve); hand(bodyX + 13.5, bodyY - 16.5);
+        limb(bodyX + 7.6, bodyY - 4.6, bodyX + 12.4, bodyY - 14, 4.4, sleeve); hand(bodyX + 12.8, bodyY - 15.4);
       } else if (arm === 'both_up' || arm === 'cheer') {
-        limb(bodyX + 8, bodyY - 5, bodyX + 14, bodyY - 15, 4.6, sleeve); hand(bodyX + 14.5, bodyY - 16.5);
-        limb(bodyX - 8, bodyY - 5, bodyX - 14, bodyY - 15, 4.6, sleeve); hand(bodyX - 14.5, bodyY - 16.5);
+        limb(bodyX + 7.6, bodyY - 4.6, bodyX + 13.2, bodyY - 14, 4.4, sleeve); hand(bodyX + 13.6, bodyY - 15.4);
+        limb(bodyX - 7.6, bodyY - 4.6, bodyX - 13.2, bodyY - 14, 4.4, sleeve); hand(bodyX - 13.6, bodyY - 15.4);
       } else if (arm === 'phone') {
-        limb(bodyX + 7, bodyY - 4, bodyX + 11, bodyY - 11, 4.6, sleeve); hand(bodyX + 11.5, bodyY - 12);
-        R(bodyX + 9.5, bodyY - 19, bodyX + 14, bodyY - 11, '#1a1a24');
-        R(bodyX + 10, bodyY - 18, bodyX + 13.5, bodyY - 12, '#6fb0ff');
-        gfx.px(X(bodyX + 11.8), Y(bodyY - 19.5), '#3a3a48');
+        limb(bodyX + 6.6, bodyY - 3.8, bodyX + 10.4, bodyY - 10.4, 4.4, sleeve); hand(bodyX + 10.8, bodyY - 11.4);
+        R(bodyX + 9, bodyY - 18, bodyX + 13.2, bodyY - 10.4, '#1a1a24');
+        R(bodyX + 9.5, bodyY - 17, bodyX + 12.7, bodyY - 11.4, '#6fb0ff');
+        gfx.px(X(bodyX + 11.1), Y(bodyY - 18.5), '#3a3a48');
       } else if (arm === 'hold' || arm === 'carry') {
-        limb(bodyX + 8, bodyY - 3, bodyX + 14, bodyY - 6, 4.6, sleeve); hand(bodyX + 14.5, bodyY - 6.5);
-        limb(bodyX - 8, bodyY - 3, bodyX - 13, bodyY - 6, 4.4, sleeve); hand(bodyX - 13.5, bodyY - 6.5, 2.6);
+        limb(bodyX + 7.6, bodyY - 2.8, bodyX + 13.2, bodyY - 5.6, 4.4, sleeve); hand(bodyX + 13.6, bodyY - 6.1);
+        limb(bodyX - 7.6, bodyY - 2.8, bodyX - 12.2, bodyY - 5.6, 4.2, sleeve); hand(bodyX - 12.6, bodyY - 6.1, 2.4);
       } else if (arm === 'controller') {
-        limb(bodyX + 8, bodyY - 3, bodyX + 7, bodyY + 3, 4.6, sleeve);
-        hand(bodyX + 6.5, bodyY + 4); hand(bodyX - 5.5, bodyY + 4);
-        R(bodyX - 4.5, bodyY + 2.4, bodyX + 5.5, bodyY + 5, '#3a3a48');
+        limb(bodyX + 7.6, bodyY - 2.8, bodyX + 6.6, bodyY + 2.8, 4.4, sleeve);
+        hand(bodyX + 6.2, bodyY + 3.8); hand(bodyX - 5.2, bodyY + 3.8);
+        R(bodyX - 4.2, bodyY + 2.2, bodyX + 5.2, bodyY + 4.7, '#3a3a48');
       } else if (arm === 'cover') {
-        limb(bodyX + 8, bodyY - 5, bodyX + 10, bodyY - 13, 4.6, sleeve);
-        hand(headX + 8.5, headY + 2.5, 3.2); hand(headX - 1, headY + 3.5, 3.2);
+        limb(bodyX + 7.6, bodyY - 4.6, bodyX + 9.4, bodyY - 12, 4.4, sleeve);
+        hand(headX + 8, headY + 2.6, 2.9); hand(headX - 2.2, headY + 3.2, 2.9);
       } else if (arm === 'mop') {
-        limb(bodyX + 8, bodyY - 5, bodyX + 15, bodyY - 10, 4.6, sleeve); hand(bodyX + 15.5, bodyY - 11);
+        limb(bodyX + 7.6, bodyY - 4.6, bodyX + 14, bodyY - 9.4, 4.4, sleeve); hand(bodyX + 14.4, bodyY - 10.4);
       } else if (arm === 'wave') {
         const wv = Math.sin(t * 11) * 3;
-        limb(bodyX + 9, bodyY - 5, bodyX + 17 + wv, bodyY - 14, 4.6, sleeve); hand(bodyX + 18 + wv, bodyY - 15.5);
+        limb(bodyX + 8.5, bodyY - 4.6, bodyX + 16 + wv, bodyY - 13, 4.4, sleeve); hand(bodyX + 17 + wv, bodyY - 14.4);
       } else if (arm === 'belly') {
-        limb(bodyX + 8, bodyY - 3, bodyX + 8, bodyY + 2, 4.6, sleeve);
-        hand(bodyX + 8, bodyY + 3); hand(bodyX - 7, bodyY + 3);
+        limb(bodyX + 7.6, bodyY - 2.8, bodyX + 7.6, bodyY + 1.8, 4.4, sleeve);
+        hand(bodyX + 7.6, bodyY + 2.8); hand(bodyX - 6.6, bodyY + 2.8);
       } else if (arm === 'pocket') {
-        limb(bodyX + 8, bodyY - 4, bodyX + 9.5, bodyY + 3, 4.6, sleeve);
+        limb(bodyX + 7.6, bodyY - 3.8, bodyX + 9, bodyY + 2.8, 4.4, sleeve);
       } else {
-        limb(bodyX + 9, bodyY - 5, bodyX + 13.5, bodyY + 3 + swing, 5, sleeve);
-        hand(bodyX + 14, bodyY + 5 + swing);
+        limb(bodyX + 8.5, bodyY - 4.6, bodyX + 12.6, bodyY + 2.8 + swing, 4.7, sleeve);
+        hand(bodyX + 13, bodyY + 4.8 + swing);
       }
     }, { flip: p.flip, outline: p.outline === null ? null : (p.outline || art.INK), alpha: p.alpha });
 
     // ---- effects outside the ink line ----------------------------------------
     const ox = Math.round(x), oy = Math.round(y);
     const dir = p.flip ? -1 : 1;
-    const hx = ox + dir * Math.round((2.2 + (p.headDX || 0)) * sx);
-    const hy = oy + Math.round((-32 + (p.headDY || 0)) * sy);
-    if (p.sweat > 0) art.effect('sweat', hx + dir * 11, hy - 7, t, 1);
-    if (sleep) art.effect('zzz', hx + dir * 11, hy - 7, t, 1);
-    if (p.fx) art.effect(p.fx, hx + dir * 9, hy - 12, t, 1);
+    const hx = ox + dir * Math.round((2 + (p.headDX || 0)) * sx);
+    const hy = oy + Math.round((-29 + (p.headDY || 0)) * sy);
+    if (p.sweat > 0) art.effect('sweat', hx + dir * 9, hy - 6, t, 1);
+    if (sleep) art.effect('zzz', hx + dir * 9, hy - 6, t, 1);
+    if (p.fx) art.effect(p.fx, hx + dir * 8, hy - 11, t, 1);
     if (p.emote) {
-      const bx = hx + dir * 13, by = hy - 18;
+      const bx = hx + dir * 12, by = hy - 16;
       art.bubble(bx - 9, by - 10, 19, 16, bx - 2, by + 8, { kind: 'think' });
       gfx.text(p.emote, bx + 0.5, by - 5, p.emote === '♥' ? '#e8496e' : '#2a1f33', { align: 'center' });
     }
@@ -595,11 +655,13 @@
   CH.Chubby = Chubby;
 
   // ---- dialogue portrait -------------------------------------------------------
+  // The box is 32x34 and the face is what matters, so he is scaled up until the
+  // glasses fill it.
   CH.ui.portraits.Chubby = (g, x, y, d) => {
     const face = (d && d.opts && d.opts.face) || 'normal';
     g.save();
-    g.translate(x, y + 34);
-    g.scale(1.15, 1.15);
+    g.translate(x, y + 27);
+    g.scale(1.45, 1.45);
     drawChubby(g, 0, 0, {
       face, outfit: CH.state.outfit || 'hoodie', noShadow: true, blink: false,
       arm: 'pocket', blush: true,

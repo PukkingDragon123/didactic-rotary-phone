@@ -126,13 +126,15 @@
       this.menu = new CH.MenuList(items, { x: 300, y: 128, w: 150, h: 18, gap: 5, sel: info ? 0 : 1 });
     }
     newGame() {
-      if (CH.anySave()) {
-        CH.game.push(new ConfirmNewGame(() => this.start(() => {
-          CH.resetState(); CH.game.set(new CH.CabinScene({ mode: 'intro' }));
-        })));
-        return;
-      }
-      this.start(() => { CH.resetState(); CH.game.set(new CH.CabinScene({ mode: 'intro' })); });
+      // a new game opens inside the dream; the alarm at the end of it is the
+      // same alarm the cabin intro wakes him with
+      const begin = () => {
+        CH.resetState();
+        if (CH.startDream) CH.startDream(() => CH.game.set(new CH.CabinScene({ mode: 'intro' })));
+        else CH.game.set(new CH.CabinScene({ mode: 'intro' }));
+      };
+      if (CH.anySave()) { CH.game.push(new ConfirmNewGame(() => this.start(begin))); return; }
+      this.start(begin);
     }
     start(fn) {
       if (this.started) return;
@@ -311,7 +313,7 @@
     const ch = S.chapter;
     if (ch === 'intro') CH.game.set(new CH.CabinScene({ mode: 'intro' }));
     else if (ch === 'emergency') { const c = new CH.CabinScene({ mode: 'intro' }); c.tvMode = 'static'; CH.game.set(c); c.cos = []; CH.flag('atePancakes', true); c.pancakes.st.eaten = true; c.stove.st.steam = false; c.player.x = 880; CH.beginEmergency(c); }
-    else if (ch === 'hospital') CH.game.set(new CH.AmbulanceScene());
+    else if (ch === 'hospital') CH.game.set(new CH.HospitalScene());
     else if (ch === 'jobsearch' && CH.startJobSearch) CH.startJobSearch();
     else if (ch === 'interview' && CH.startInterviewDay) CH.startInterviewDay();
     else if (ch === 'career' && CH.startCareerDay) CH.startCareerDay();
