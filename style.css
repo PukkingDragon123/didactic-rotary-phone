@@ -1,0 +1,16 @@
+html, body {
+  margin: 0; padding: 0; background: #0b0a0f; height: 100%; overflow: hidden;
+  font-family: monospace; color: #ddd;
+  -webkit-user-select: none; user-select: none; touch-action: none;
+}
+#wrap {
+  position: fixed; inset: 0; display: flex; align-items: center; justify-content: center;
+  background: radial-gradient(ellipse at center, #17151f 0%, #0b0a0f 70%);
+}
+canvas#game {
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  background: #000;
+  cursor: none;
+  box-shadow: 0 0 60px rgba(0,0,0,0.8);
+}
