@@ -64,7 +64,12 @@ async function step() {
     await page.evaluate(() => { const sc = CH.game.scene; if (sc.finish) sc.finish(0.85); });
     await page.waitForTimeout(1200); return s;
   }
-  if (s.locked || s.px === null) { await page.waitForTimeout(250); return s; }
+  if (s.px === null) {
+    // a screen with no walking character - a summary or a story card - just
+    // wants a keypress to move on
+    await page.keyboard.press('e'); await page.waitForTimeout(300); return s;
+  }
+  if (s.locked) { await page.waitForTimeout(250); return s; }
   // pick a destination from the objective
   let target = null;
   for (const [re, hint] of GOALS) {
