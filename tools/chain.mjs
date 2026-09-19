@@ -41,7 +41,7 @@ const GOALS = [
   [/Change into/i, 'Wardrobe'],
   [/smartphone|phone from/i, 'Smartphone'],
   [/Go to bed|sleep \(bed\)|then sleep/i, 'Bed'],
-  [/Eat \(fridge\)|eat, then leave/i, 'Fridge'],
+  [/Eat \(fridge\)|eat, then leave/i, ['Fridge', 'Front door']],
   [/front door|Leave through/i, 'Front door'],
   [/Grab the mop/i, 'Supply closet'],
   [/Clock out/i, 'Exit'],
@@ -50,6 +50,8 @@ const GOALS = [
 ];
 
 let lastNote = '';
+let lastObj = '';
+let tries = 0;
 const note = (s, label) => {
   const line = label + ' ' + JSON.stringify(s);
   if (line !== lastNote) { console.log(line); lastNote = line; }
@@ -65,7 +67,15 @@ async function step() {
   if (s.locked || s.px === null) { await page.waitForTimeout(250); return s; }
   // pick a destination from the objective
   let target = null;
-  for (const [re, hint] of GOALS) if (re.test(s.obj)) { target = await propX(hint); break; }
+  for (const [re, hint] of GOALS) {
+    if (!re.test(s.obj)) continue;
+    // an objective naming two places ("eat, then leave") needs both tried in turn
+    const list = Array.isArray(hint) ? hint : [hint];
+    tries = s.obj === lastObj ? tries + 1 : 0;
+    lastObj = s.obj;
+    target = await propX(list[Math.floor(tries / 6) % list.length]);
+    break;
+  }
   if (target === null) {
     // nothing named: nudge forward and try to interact
     await page.keyboard.down('ArrowRight'); await page.waitForTimeout(260); await page.keyboard.up('ArrowRight');
