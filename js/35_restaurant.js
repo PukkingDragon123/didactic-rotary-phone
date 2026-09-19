@@ -369,22 +369,85 @@
     }
     drawRoom(g) {
       const w = this.width, F = this.floorY;
-      gfx.rect(0, 0, w, 30, '#e8e4d8'); for (let x = 0; x < w; x += 40) gfx.rect(x, 0, 38, 28, '#f0ece0'); gfx.rect(0, 28, w, 2, '#c8352b');
-      // walls: cream tile top, red band, wood-look lower
-      gfx.rect(0, 30, w, F - 30, '#f4ead8'); for (let y = 34; y < 100; y += 10) for (let x = -((y / 10) & 1) * 10; x < w; x += 20) gfx.rect(x, y, 19, 9, (x + y) % 7 ? '#f8f0e0' : '#efe4cc');
-      gfx.rect(0, 100, w, 6, '#c8352b'); gfx.rect(0, 106, w, 2, '#f5c33b');
-      gfx.rect(0, 108, w, F - 108, '#e8dcc0'); for (let y = 112; y < F; y += 8) gfx.hline(0, y, w, '#dccfb0');
-      gfx.rect(0, F - 6, w, 6, '#c8352b');
-      // kitchen zone: stainless wall
-      gfx.rect(780, 30, 430, F - 30, '#c8ccd4'); for (let y = 30; y < F; y += 12) gfx.hline(780, y, 430, '#b8bcc4'); gfx.rect(780, 100, 430, 8, '#8a8a94');
-      gfx.rect(770, 30, 10, F - 30, '#5a5a66'); gfx.rect(1210, 30, 8, F - 30, '#5a5a66'); // kitchen dividers
-      gfx.text('KITCHEN - EMPLOYEES ONLY', 995, 40, '#5a5a66', { align: 'center', font: 'small' });
-      // shelves with supplies along the kitchen wall
-      for (const sx of [800, 1000]) { gfx.rect(sx, 60, 120, 3, '#8a8a94'); for (let i = 0; i < 6; i++) { gfx.rect(sx + 4 + i * 19, 46, 14, 14, ['#f5c33b', '#c8352b', '#e8e0d0', '#5fc05a', '#e8e0d0', '#3b6fd6'][i]); gfx.rect(sx + 6 + i * 19, 50, 10, 4, '#fff'); } }
-      gfx.rect(1120, 44, 40, 20, '#222'); gfx.text('CAM 2', 1140, 50, '#4f4', { align: 'center', font: 'small' });
-      // floor: red/white checker in dining, grey tile in kitchen
-      gfx.rect(0, F, w, H - F, '#e8e0d0'); for (let y = F; y < H; y += 12) for (let x = -((y / 12) & 1) * 12; x < 780; x += 24) gfx.rect(x, y, 12, 12, '#c8352b');
-      gfx.rect(780, F, w - 780, H - F, '#9a9aa4'); for (let y = F; y < H; y += 12) for (let x = 780 - ((y / 12) & 1) * 12; x < w; x += 24) gfx.rect(x, y, 12, 12, '#a8a8b2');
+      // ---- ceiling: suspended panels with a light diffuser every few bays ----
+      gfx.rect(0, 0, w, 30, '#ded9cc');
+      for (let x = 0; x < w; x += 40) {
+        gfx.rect(x + 1, 0, 38, 27, '#ece7da');
+        gfx.rect(x + 1, 0, 38, 1, '#f6f2e8');
+        gfx.rect(x + 1, 26, 38, 1, '#c8c2b4');
+        if ((x / 40) % 3 === 1) { gfx.rect(x + 8, 4, 24, 6, '#fdfbf2'); gfx.rect(x + 8, 10, 24, 1, '#d8d2c2'); }
+      }
+      gfx.rect(0, 27, w, 3, '#a8352b');
+      gfx.rect(0, 27, w, 1, '#e8584c');
+
+      // ---- dining wall: tile field, brand band, panelled dado ----------------
+      gfx.rect(0, 30, w, F - 30, '#f3e8d4');
+      for (let y = 34; y < 100; y += 10) {
+        for (let x = -((y / 10) & 1) * 10; x < 800; x += 20) {
+          const t2 = (x * 7 + y * 13) % 11;
+          gfx.rect(x, y, 19, 9, t2 < 2 ? '#e9dcc2' : t2 < 4 ? '#faf3e4' : '#f6eed8');
+          gfx.rect(x, y, 19, 1, '#fdf8ec');
+        }
+      }
+      // grout lines
+      for (let y = 34; y < 100; y += 10) gfx.hline(0, y - 1, 800, '#e2d6bc');
+      gfx.rect(0, 100, w, 7, '#b52f26');
+      gfx.rect(0, 100, w, 2, '#e8584c');
+      gfx.rect(0, 107, w, 2, '#f5c33b');
+      gfx.rect(0, 109, w, F - 109, '#e3d5b6');
+      for (let y = 113; y < F; y += 9) { gfx.hline(0, y, w, '#d2c2a0'); gfx.hline(0, y + 1, w, '#ecdfc4'); }
+      // vertical panel joints in the dado
+      for (let x = 0; x < 800; x += 60) { gfx.vline(x, 109, F - 109, '#d2c2a0'); gfx.vline(x + 1, 109, F - 109, '#ecdfc4'); }
+      gfx.rect(0, F - 7, w, 7, '#a8352b');
+      gfx.rect(0, F - 7, w, 1, '#e8584c');
+
+      // ---- kitchen zone: stainless splashback -------------------------------
+      gfx.rect(780, 30, 430, F - 30, '#c2c7d0');
+      for (let y = 30; y < F; y += 11) { gfx.hline(780, y, 430, '#b0b5c0'); gfx.hline(780, y + 1, 430, '#ced3dc'); }
+      for (let x = 780; x < 1210; x += 54) gfx.vline(x, 30, F - 30, '#b6bbc6');
+      gfx.rect(780, 100, 430, 9, '#83889a');
+      gfx.rect(780, 100, 430, 2, '#9aa0b2');
+      // grease haze near the line
+      g.globalAlpha = 0.09; gfx.rect(820, 110, 260, F - 110, '#8a7a50'); g.globalAlpha = 1;
+      gfx.rect(770, 30, 10, F - 30, '#55555f');
+      gfx.rect(770, 30, 3, F - 30, '#6d6d79');
+      gfx.rect(1210, 30, 8, F - 30, '#55555f');
+      gfx.text('KITCHEN - EMPLOYEES ONLY', 995, 40, '#5f6472', { align: 'center', font: 'small' });
+      // shelving with stock
+      for (const sx of [800, 1000]) {
+        gfx.rect(sx, 60, 120, 4, '#7d8290');
+        gfx.rect(sx, 60, 120, 1, '#a2a8b6');
+        for (let i = 0; i < 6; i++) {
+          const col = ['#f5c33b', '#c8352b', '#e8e0d0', '#5fc05a', '#e8e0d0', '#3b6fd6'][i];
+          gfx.rect(sx + 4 + i * 19, 46, 15, 14, gfx.shade(col, -28));
+          gfx.rect(sx + 5 + i * 19, 46, 13, 13, col);
+          gfx.rect(sx + 5 + i * 19, 46, 13, 2, gfx.shade(col, 28));
+        }
+        g.globalAlpha = 0.25; gfx.rect(sx, 64, 120, 3, '#000'); g.globalAlpha = 1;
+      }
+      gfx.rect(1118, 42, 44, 22, '#231f2c');
+      gfx.rect(1120, 44, 40, 18, '#0a1a10');
+      gfx.text('CAM 2', 1140, 49, '#3ecf6a', { align: 'center', font: 'small' });
+      gfx.px(1157, 46, '#ff4040');
+
+      // ---- floors -------------------------------------------------------------
+      gfx.rect(0, F, w, H - F, '#eee6d6');
+      for (let y = F; y < H; y += 12) {
+        for (let x = -((y / 12) & 1) * 12; x < 780; x += 24) {
+          gfx.rect(x, y, 12, 12, '#bc2f26');
+          gfx.rect(x, y, 12, 1, '#d84a3e');
+        }
+      }
+      for (let y = F; y < H; y += 12) gfx.hline(0, y, 780, '#d8cfbc');
+      // scuffed walking lane through the dining room
+      g.globalAlpha = 0.12; gfx.rect(0, F + 22, 780, 14, '#3a3028'); g.globalAlpha = 1;
+      gfx.rect(780, F, w - 780, H - F, '#93939d');
+      for (let y = F; y < H; y += 12) for (let x = 780 - ((y / 12) & 1) * 12; x < w; x += 24) gfx.rect(x, y, 12, 12, '#a2a2ac');
+      for (let y = F; y < H; y += 12) gfx.hline(780, y, w - 780, '#84848e');
+      for (let x = 780; x < w; x += 12) gfx.vline(x, F, H - F, '#84848e');
+      // wet sheen on the kitchen floor
+      g.globalAlpha = 0.1; gfx.rect(840, F + 8, 180, 6, '#fff'); g.globalAlpha = 1;
+
       // windows to street (dining)
       for (const wx of [60, 270]) { gfx.rect(wx, 40, 90, 56, '#a8c8e8'); gfx.rect(wx, 84, 90, 12, '#e6eef4'); for (let i = 0; i < 4; i++) gfx.tri(wx + 8 + i * 22, 86, wx + 24 + i * 22, 86, wx + 16 + i * 22, 60, '#2f6a24'); gfx.frame(wx, 40, 90, 56, '#c8352b'); gfx.rect(wx + 44, 40, 2, 56, '#c8352b'); gfx.rect(wx, 68, 90, 2, '#c8352b'); }
       // posters
