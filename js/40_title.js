@@ -223,13 +223,15 @@
       }
 
       // TV light blooming into the room, pulsing with the attract loop
-      const flick = 0.12 + Math.abs(Math.sin(this.t * 5.5)) * 0.07;
+      const flick = 0.1 + Math.abs(Math.sin(this.t * 5.5)) * 0.05;
       g.save();
       g.globalCompositeOperation = 'lighter';
-      g.globalAlpha = flick * 0.5;
-      gfx.ellipse(86, floorY - 40, 120, 54, '#2a4a70');
+      // keep the bloom inside the room so it does not smear across the wall
+      g.beginPath(); g.rect(28, floorY - 62, 240, 74); g.clip();
+      g.globalAlpha = flick * 0.55;
+      gfx.ellipse(96, floorY - 36, 86, 34, '#1e3350');
       g.globalAlpha = flick;
-      gfx.ellipse(80, floorY - 34, 64, 30, '#24405e');
+      gfx.ellipse(88, floorY - 30, 44, 20, '#1a2c46');
       g.restore();
 
       // ---- Chubby ------------------------------------------------------------
