@@ -796,7 +796,7 @@
       if (st.open) { gfx.rect(x + 2, y - 58, 32, 56, '#2a1a10'); gfx.rect(x + 6, y - 50, 6, 20, '#2a3350'); gfx.rect(x + 14, y - 50, 6, 20, '#2f8f7a'); gfx.rect(x + 22, y - 50, 6, 20, '#2f8f7a'); gfx.rect(x + 4, y - 54, 28, 1, '#888'); }
     }, 236, cabin.floorY, 36, 60, { id: 'wardrobe', hint: 'Wardrobe', anim: true, st: { open: false }, interact: () => wardrobeCo(cabin) });
     // smartphone on nightstand
-    cabin.smartphone = cabin.addCustom((g, x, y, t) => { gfx.rect(x, y - 3, 8, 3, '#1a1a24'); gfx.rect(x + 1, y - 3, 6, 1, '#6fb0ff'); if (Math.sin(t * 3) > 0.5) gfx.px(x + 7, y - 4, '#4f4'); }, 92, cabin.floorY - 16, 8, 4, { id: 'smartphone', hint: 'Smartphone', anim: true, interact: () => pickUpPhone(cabin), range: 30 });
+    cabin.smartphone = cabin.addCustom((g, x, y, t) => { gfx.rect(x, y - 3, 8, 3, '#1a1a24'); gfx.rect(x + 1, y - 3, 6, 1, '#6fb0ff'); if (Math.sin(t * 3) > 0.5) gfx.px(x + 7, y - 4, '#4f4'); }, 92, cabin.floorY - 16, 8, 4, { id: 'smartphone', hint: 'Smartphone', anim: true, interact: () => pickUpPhone(cabin), range: 30, priority: 3 });
     cabin.onSleep = function* () { yield* sleepCo(cabin); };
     cabin.onLeave = function* () { yield ui.say('Chubby', CH.flag('gotInterview') ? "The interview is tomorrow. I should sleep first. {p}Sleep. What a concept." : "Go outside? To do what, hand out resumes? {p}I have a phone. Phones were invented so I wouldn't have to do that."); };
     cabin.onFridge = function* () { if (S.hunger > 30) { A.sfx('eat'); S.hunger = Math.max(0, S.hunger - 40); yield ui.say('Chubby', "Cold leftover pancakes. {p}They taste like Saturday. {pp}I eat them standing up, like a raccoon."); } else yield ui.say('Chubby', "Not hungry. {p}That has literally never happened before."); };
@@ -816,7 +816,10 @@
     yield fx.fadeIn(1.5);
     yield ui.say('Chubby', "I didn't sleep. {p}I lay there doing math. {pp}Eighty-four thousand divided by twelve fifty is... a lot of vending machine chips.", { face: 'tired' });
     yield ui.say('Chubby', "Okay. Step one. Mom always says: 'Dress for the job you want.' {p}I want a job. Any job. So I'll dress like... {p}a job.", { face: 'focused' });
-    ui.objectiveShown = true; ui.setObjective('Change into something professional (wardrobe)');
+    ui.objectiveShown = true;
+    if (CH.flag('hasPhone')) { ui.setObjective(CH.flag('gotInterview') ? 'Go to bed. Interview tomorrow at 10 AM!' : 'Search for jobs on your phone (press I) and apply'); cabin.smartphone.hidden = true; if (!CH.flag('gotInterview')) cabin.run(jobSearchWatch(cabin)); }
+    else if (S.outfit === 'suit') ui.setObjective('Grab your smartphone from the nightstand');
+    else ui.setObjective('Change into something professional (wardrobe)');
     ui.showMoney = true;
     cabin.locked = false;
   }

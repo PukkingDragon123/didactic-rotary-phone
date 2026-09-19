@@ -51,7 +51,7 @@
   // ---- scene -------------------------------------------------------------------------------------
   class RestaurantScene extends CH.WorldScene {
     constructor(opts = {}) {
-      super({ width: 1060, floorY: 214, playerX: 30 });
+      super({ width: 1340, floorY: 214, playerX: 30 });
       this.name = 'restaurant';
       this.job = S.job || 'janitor'; this.jobIdx = CH.JOBS.indexOf(this.job);
       this.timeScale = 8 / SHIFT_SECONDS; this.shiftT = 0; this.shiftOver = false;
@@ -72,52 +72,56 @@
       gfx.rect(0, 108, w, F - 108, '#e8dcc0'); for (let y = 112; y < F; y += 8) gfx.hline(0, y, w, '#dccfb0');
       gfx.rect(0, F - 6, w, 6, '#c8352b');
       // kitchen zone: stainless wall
-      gfx.rect(630, 30, 290, F - 30, '#c8ccd4'); for (let y = 30; y < F; y += 12) gfx.hline(630, y, 290, '#b8bcc4'); gfx.rect(630, 100, 290, 8, '#8a8a94');
-      gfx.rect(620, 30, 10, F - 30, '#5a5a66'); gfx.rect(920, 30, 8, F - 30, '#5a5a66'); // kitchen dividers
-      gfx.text('KITCHEN - EMPLOYEES ONLY', 775, 40, '#5a5a66', { align: 'center', font: 'small' });
+      gfx.rect(780, 30, 430, F - 30, '#c8ccd4'); for (let y = 30; y < F; y += 12) gfx.hline(780, y, 430, '#b8bcc4'); gfx.rect(780, 100, 430, 8, '#8a8a94');
+      gfx.rect(770, 30, 10, F - 30, '#5a5a66'); gfx.rect(1210, 30, 8, F - 30, '#5a5a66'); // kitchen dividers
+      gfx.text('KITCHEN - EMPLOYEES ONLY', 995, 40, '#5a5a66', { align: 'center', font: 'small' });
+      // shelves with supplies along the kitchen wall
+      for (const sx of [800, 1000]) { gfx.rect(sx, 60, 120, 3, '#8a8a94'); for (let i = 0; i < 6; i++) { gfx.rect(sx + 4 + i * 19, 46, 14, 14, ['#f5c33b', '#c8352b', '#e8e0d0', '#5fc05a', '#e8e0d0', '#3b6fd6'][i]); gfx.rect(sx + 6 + i * 19, 50, 10, 4, '#fff'); } }
+      gfx.rect(1120, 44, 40, 20, '#222'); gfx.text('CAM 2', 1140, 50, '#4f4', { align: 'center', font: 'small' });
       // floor: red/white checker in dining, grey tile in kitchen
-      gfx.rect(0, F, w, H - F, '#e8e0d0'); for (let y = F; y < H; y += 12) for (let x = -((y / 12) & 1) * 12; x < 630; x += 24) gfx.rect(x, y, 12, 12, '#c8352b');
-      gfx.rect(630, F, w - 630, H - F, '#9a9aa4'); for (let y = F; y < H; y += 12) for (let x = 630 - ((y / 12) & 1) * 12; x < w; x += 24) gfx.rect(x, y, 12, 12, '#a8a8b2');
+      gfx.rect(0, F, w, H - F, '#e8e0d0'); for (let y = F; y < H; y += 12) for (let x = -((y / 12) & 1) * 12; x < 780; x += 24) gfx.rect(x, y, 12, 12, '#c8352b');
+      gfx.rect(780, F, w - 780, H - F, '#9a9aa4'); for (let y = F; y < H; y += 12) for (let x = 780 - ((y / 12) & 1) * 12; x < w; x += 24) gfx.rect(x, y, 12, 12, '#a8a8b2');
       // windows to street (dining)
-      for (const wx of [50, 250]) { gfx.rect(wx, 40, 90, 56, '#a8c8e8'); gfx.rect(wx, 84, 90, 12, '#e6eef4'); for (let i = 0; i < 4; i++) gfx.tri(wx + 8 + i * 22, 86, wx + 24 + i * 22, 86, wx + 16 + i * 22, 60, '#2f6a24'); gfx.frame(wx, 40, 90, 56, '#c8352b'); gfx.rect(wx + 44, 40, 2, 56, '#c8352b'); gfx.rect(wx, 68, 90, 2, '#c8352b'); }
+      for (const wx of [60, 270]) { gfx.rect(wx, 40, 90, 56, '#a8c8e8'); gfx.rect(wx, 84, 90, 12, '#e6eef4'); for (let i = 0; i < 4; i++) gfx.tri(wx + 8 + i * 22, 86, wx + 24 + i * 22, 86, wx + 16 + i * 22, 60, '#2f6a24'); gfx.frame(wx, 40, 90, 56, '#c8352b'); gfx.rect(wx + 44, 40, 2, 56, '#c8352b'); gfx.rect(wx, 68, 90, 2, '#c8352b'); }
       // posters
-      gfx.rect(160, 44, 60, 46, '#f5c33b'); gfx.rect(164, 48, 52, 38, '#c8352b'); gfx.text('MAN EGG', 190, 52, '#fff', { align: 'center', font: 'small' }); gfx.text('KIDS MEAL', 190, 60, '#fff', { align: 'center', font: 'small' }); gfx.text('TOY INSIDE', 190, 74, '#f5c33b', { align: 'center', font: 'small' }); gfx.ellipse(190, 68, 5, 6, '#e8dcc0'); gfx.rect(187, 67, 6, 1, '#5a3a1a');
-      gfx.rect(360, 44, 50, 40, '#fff'); gfx.frame(360, 44, 50, 40, '#c8352b'); gfx.text('EMPLOYEE', 385, 48, '#c8352b', { align: 'center', font: 'small' }); gfx.text('OF THE', 385, 55, '#c8352b', { align: 'center', font: 'small' }); gfx.text('MONTH', 385, 62, '#c8352b', { align: 'center', font: 'small' }); gfx.text('TAMMY (x71)', 385, 74, '#333', { align: 'center', font: 'small' });
-      gfx.rect(940, 50, 60, 30, '#f5c33b'); gfx.text('DAYS SINCE', 970, 54, '#8f2419', { align: 'center', font: 'small' }); gfx.text('FRYER FIRE', 970, 61, '#8f2419', { align: 'center', font: 'small' }); gfx.text('0', 970, 69, '#c8352b', { align: 'center' });
-      // clock
-      CH.PROPS.hClock.draw(g, 520, 60, 0);
+      gfx.rect(180, 44, 60, 46, '#f5c33b'); gfx.rect(184, 48, 52, 38, '#c8352b'); gfx.text('MAN EGG', 210, 52, '#fff', { align: 'center', font: 'small' }); gfx.text('KIDS MEAL', 210, 60, '#fff', { align: 'center', font: 'small' }); gfx.text('TOY INSIDE', 210, 74, '#f5c33b', { align: 'center', font: 'small' }); gfx.ellipse(210, 68, 5, 6, '#e8dcc0'); gfx.rect(207, 67, 6, 1, '#5a3a1a');
+      gfx.rect(400, 44, 50, 40, '#fff'); gfx.frame(400, 44, 50, 40, '#c8352b'); gfx.text('EMPLOYEE', 425, 48, '#c8352b', { align: 'center', font: 'small' }); gfx.text('OF THE', 425, 55, '#c8352b', { align: 'center', font: 'small' }); gfx.text('MONTH', 425, 62, '#c8352b', { align: 'center', font: 'small' }); gfx.text('TAMMY (x71)', 425, 74, '#333', { align: 'center', font: 'small' });
+      gfx.rect(1230, 50, 60, 30, '#f5c33b'); gfx.text('DAYS SINCE', 1260, 54, '#8f2419', { align: 'center', font: 'small' }); gfx.text('FRYER FIRE', 1260, 61, '#8f2419', { align: 'center', font: 'small' }); gfx.text('0', 1260, 69, '#c8352b', { align: 'center' });
+      // wall menu chalkboard above dining + clock
+      gfx.rect(480, 44, 70, 46, '#2a3a2a'); gfx.frame(480, 44, 70, 46, '#8a5a2b'); gfx.text('TODAY', 515, 48, '#f5c33b', { align: 'center', font: 'small' }); gfx.text('BIG DON', 515, 58, '#fff', { align: 'center', font: 'small' }); gfx.text('+ FRIES', 515, 66, '#fff', { align: 'center', font: 'small' }); gfx.text('$9.99', 515, 76, '#8bd06a', { align: 'center', font: 'small' });
+      CH.PROPS.hClock.draw(g, 560, 60, 0);
     }
     build() {
       const F = this.floorY, s = this;
       const say = (t, o) => () => ui.say('Chubby', t, Object.assign({ face: 'normal' }, o));
       this.door = this.addProp('glassDoor', 6, F, { hint: 'Exit', interact: () => this.interactExit(), range: 26 });
-      this.addProp('kidsCorner', 36, F, { hint: 'PlayPlace', interact: say("The PlayPlace. A ball pit with 400 balls and, historically, one raccoon.") });
+      this.addProp('hDoor', 44, F, { st: { label: 'WC' }, hint: 'Bathroom', interact: (p) => this.interactBathroom(p), id: 'bathroom', range: 26 });
+      this.addProp('kidsCorner', 90, F, { hint: 'PlayPlace', interact: say("The PlayPlace. A ball pit with 400 balls and, historically, one raccoon.") });
       this.booths = [];
-      for (let i = 0; i < 4; i++) this.booths.push(this.addProp('booth', 110 + i * 100, F, { st: { dirty: false }, hint: 'Table', interact: (p) => this.interactBooth(p), range: 50, id: 'booth' + i, seatX: 155 + i * 100, occupied: null }));
-      this.bin = this.addProp('binR', 520, F, { st: { fill: 0.2 }, hint: 'Bin', interact: (p) => this.interactBin(p), id: 'bin', range: 24 });
-      this.addProp('binR', 600, F, { st: { fill: 0.1 } });
-      this.addProp('menuBoard', 440, 100);
-      this.addProp('orderScreen', 648, 96, { st: { num: 41 }, id: 'orderScreen' });
-      this.counter = this.addProp('counter', 440, F, { st: { bags: 0 }, hint: 'Counter', interact: () => this.interactCounter(), range: 60, id: 'counter' });
-      this.addProp('sodaMachine', 660, F, { hint: 'Soda machine', interact: say('The fountain. Four flavours. One of them is just "brown".') });
-      this.grill = this.addProp('grillStation', 700, F, { hint: 'Grill', interact: () => this.interactStation('grill'), range: 40, id: 'grill' });
-      this.fryer = this.addProp('fryerStation', 780, F, { hint: 'Fryer', interact: () => this.interactStation('fries'), range: 34, id: 'fries' });
-      this.prep = this.addProp('prepStation', 846, F, { hint: 'Assembly', interact: () => this.interactStation('assembly'), range: 40, id: 'assembly' });
-      this.bagSt = this.addProp('bagStation', 720, F - 0, { layer: 'front', hint: 'Bagging', interact: () => this.interactStation('bagging'), range: 34, id: 'bagging', promptY: F - 76 });
-      this.dt = this.addProp('dtWindow', 930, F - 30, { st: { car: null }, hint: 'Drive-thru', interact: () => this.interactStation('drivethru'), range: 34, id: 'drivethru', promptY: F - 110 });
-      this.closet = this.addProp('closet', 990, F, { st: { mopTaken: false }, hint: 'Supply closet', interact: () => this.interactCloset(), range: 26 });
-      this.office = this.addProp('officeDoor', 1030, F, { hint: "Brenda's office", interact: () => this.interactOffice(), range: 26 });
-      this.kiosk = this.addProp('kiosk', 950, F, { hint: 'Career Tower', interact: () => this.interactKiosk(), range: 26 });
-      this.addProp('hDoor', 590, F, { st: { label: 'WC' }, hint: 'Bathroom', interact: (p) => this.interactBathroom(p), id: 'bathroom', range: 26 });
-      this.addProp('plant', 420, F, { st: { variant: 0 } });
-      this.addProp('extinguisher', 640, 150);
+      for (let i = 0; i < 4; i++) this.booths.push(this.addProp('booth', 160 + i * 100, F, { st: { dirty: false }, hint: 'Table', interact: (p) => this.interactBooth(p), range: 50, id: 'booth' + i, seatX: 205 + i * 100, occupied: null }));
+      this.bin = this.addProp('binR', 556, F, { st: { fill: 0.2 }, hint: 'Bin', interact: (p) => this.interactBin(p), id: 'bin', range: 24 });
+      this.addProp('plant', 574, F, { st: { variant: 0 } });
+      this.addProp('menuBoard', 590, 100);
+      this.addProp('orderScreen', 798, 96, { st: { num: 41 }, id: 'orderScreen' });
+      this.counter = this.addProp('counter', 590, F, { st: { bags: 0 }, hint: 'Counter', interact: () => this.interactCounter(), range: 60, id: 'counter' });
+      this.addProp('sodaMachine', 790, F, { hint: 'Soda machine', interact: say('The fountain. Four flavours. One of them is just "brown".') });
+      this.grill = this.addProp('grillStation', 840, F, { hint: 'Grill', interact: () => this.interactStation('grill'), range: 40, id: 'grill' });
+      this.fryer = this.addProp('fryerStation', 920, F, { hint: 'Fryer', interact: () => this.interactStation('fries'), range: 34, id: 'fries' });
+      this.prep = this.addProp('prepStation', 990, F, { hint: 'Assembly', interact: () => this.interactStation('assembly'), range: 40, id: 'assembly' });
+      this.bagSt = this.addProp('bagStation', 1070, F, { hint: 'Bagging', interact: () => this.interactStation('bagging'), range: 34, id: 'bagging', promptY: F - 76 });
+      this.dt = this.addProp('dtWindow', 1140, F - 30, { st: { car: null }, hint: 'Drive-thru', interact: () => this.interactStation('drivethru'), range: 34, id: 'drivethru', promptY: F - 110 });
+      this.addProp('binR', 1200, F, { st: { fill: 0.1 } });
+      this.kiosk = this.addProp('kiosk', 1224, F, { hint: 'Career Tower', interact: () => this.interactKiosk(), range: 26 });
+      this.closet = this.addProp('closet', 1264, F, { st: { mopTaken: false }, hint: 'Supply closet', interact: () => this.interactCloset(), range: 26 });
+      this.office = this.addProp('officeDoor', 1304, F, { hint: "Brenda's office", interact: () => this.interactOffice(), range: 26 });
+      this.addProp('extinguisher', 790, 150);
       // coworkers
-      this.tammy = CH.makeTammy(500, F - 4); this.tammy.flip = true; this.tammy.arm = 'hold'; this.tammy.depth = -1; this.addNPC(this.tammy);
-      this.kevin = CH.makeKevin(730, F + 1); this.kevin.wanderRange = [700, 760]; this.kevin.arm = 'hold'; this.addNPC(this.kevin);
-      this.jorge = CH.makeJorge(800, F + 1); this.jorge.arm = 'hold'; this.jorge.flip = true; this.addNPC(this.jorge);
-      this.destiny = CH.makeDestiny(880, F + 1); this.destiny.wanderRange = [850, 910]; this.destiny.arm = 'hold'; this.addNPC(this.destiny);
-      this.brenda = CH.makeBrenda(1000, F + 1); this.brenda.hidden = true; this.addNPC(this.brenda);
-      if (this.job !== 'janitor') { this.newKevin = new CH.NPC({ name: 'New Kevin', species: 'raccoon', outfit: 'polo', x: 560, y: F + 1, speed: 45, hat: 'visor' }); this.newKevin.arm = 'mop'; this.addNPC(this.newKevin); }
+      this.tammy = CH.makeTammy(650, F - 4); this.tammy.flip = true; this.tammy.arm = 'hold'; this.tammy.depth = -1; this.addNPC(this.tammy);
+      this.kevin = CH.makeKevin(870, F + 1); this.kevin.wanderRange = [850, 905]; this.kevin.arm = 'hold'; this.addNPC(this.kevin);
+      this.jorge = CH.makeJorge(950, F + 1); this.jorge.arm = 'hold'; this.jorge.flip = true; this.addNPC(this.jorge);
+      this.destiny = CH.makeDestiny(1040, F + 1); this.destiny.wanderRange = [1000, 1120]; this.destiny.arm = 'hold'; this.addNPC(this.destiny);
+      this.brenda = CH.makeBrenda(1290, F + 1); this.brenda.hidden = true; this.addNPC(this.brenda);
+      if (this.job !== 'janitor') { this.newKevin = new CH.NPC({ name: 'New Kevin', species: 'raccoon', outfit: 'polo', x: 700, y: F + 1, speed: 45, hat: 'visor' }); this.newKevin.arm = 'mop'; this.addNPC(this.newKevin); }
       // idle animation coroutines for coworkers
       this.run(this.coworkerLife());
       this.cars = []; this.carT = 5;
@@ -141,7 +145,7 @@
         if (c === 0) yield ui.say('Brenda', "Supply closet. Back right. It's the one with the bucket. {p}It's always the one with the bucket.", { voice: 'blip2' });
         else if (c === 1) yield ui.say('Brenda', "You will be. Everyone is. Then you're less bad. Then one day you're Tammy. {p}Nobody's Tammy.", { voice: 'blip2' });
         else yield ui.say('Brenda', "Ha. Okay. I like that. It's wrong, but I like it.", { voice: 'blip2' });
-        this.brenda.walkTo(1010); this.brenda.onArrive = () => { this.brenda.hidden = true; };
+        this.brenda.walkTo(1290); this.brenda.onArrive = () => { this.brenda.hidden = true; };
         CH.flag('firstShiftDone', true);
         this.closet.st.mopTaken = false; this.needMop = true;
         ui.setObjective('Grab the mop from the supply closet (far right)');
@@ -186,7 +190,7 @@
       const promo = CH.checkPromotion();
       if (promo === 'promote') { yield* this.promotionScene(); }
       else if (promo === 'needTower') { yield ui.say('Brenda', `Corporate says you're ready for ${CH.JOB_INFO[CH.JOBS[this.jobIdx + 1]].title}, but you need to unlock floor ${CH.JOB_INFO[CH.JOBS[this.jobIdx + 1]].floor} in the Career Tower first. {p}Kiosk's in the back. Buy five upgrades on a floor to unlock the elevator.`, { voice: 'blip2' }); }
-      this.brenda.walkTo(1010); this.brenda.onArrive = () => { this.brenda.hidden = true; };
+      this.brenda.walkTo(1290); this.brenda.onArrive = () => { this.brenda.hidden = true; };
       ui.setObjective('Clock out: leave through the front door (or use the Career Tower kiosk)');
       this.afterShift = true;
       this.locked = false;
@@ -245,9 +249,9 @@
       this.bin.st.fill = Math.min(1, this.bin.st.fill + dt * 0.006 * (rush ? 2 : 1));
       if (this.bin.st.fill >= 1 && !this.tasks.some((t) => t.type === 'bin')) this.addTask({ type: 'bin', x: this.bin.x + 8, y: this.bin.y - 30, patience: 45, label: 'Bin overflowing!' });
       this.bathDirt = (this.bathDirt || 0) + dt * 0.004 * (rush ? 2 : 1);
-      if (this.bathDirt >= 1 && !this.tasks.some((t) => t.type === 'bathroom')) { this.addTask({ type: 'bathroom', x: 607, y: this.floorY - 70, patience: 60, label: 'Bathroom needs attention' }); this.bathDirt = 0; }
+      if (this.bathDirt >= 1 && !this.tasks.some((t) => t.type === 'bathroom')) { this.addTask({ type: 'bathroom', x: 61, y: this.floorY - 70, patience: 60, label: 'Bathroom needs attention' }); this.bathDirt = 0; }
       this.supplyT = (this.supplyT || 0) + dt * 0.003 * (rush ? 2 : 1);
-      if (this.supplyT >= 1 && !this.tasks.some((t) => t.type === 'restock')) { this.addTask({ type: 'restock', x: 460, y: this.floorY - 66, patience: 55, label: 'Napkins out!' }); this.supplyT = 0; }
+      if (this.supplyT >= 1 && !this.tasks.some((t) => t.type === 'restock')) { this.addTask({ type: 'restock', x: 610, y: this.floorY - 66, patience: 55, label: 'Napkins out!' }); this.supplyT = 0; }
       // auto janitor (New Kevin) handles messes when player has another job
       if (this.newKevin) { const mess = this.tasks.find((t) => ['spill', 'table', 'bin', 'bathroom', 'restock'].includes(t.type)); if (mess && !this.newKevin.target && !this.newKevin.busy) { this.newKevin.walkTo(mess.x, () => { this.newKevin.busy = true; this.run((function* (self) { yield 4 + Math.random() * 3; self.removeTask(mess, true); self.newKevin.busy = false; })(this)); }); } }
     }
@@ -258,7 +262,7 @@
       npc.walkTo(this.queueX(c));
       return c;
     }
-    queueX(c) { const idx = this.customers.filter((k) => k.state === 'queue').indexOf(c); return 450 - Math.max(0, idx) * 22; }
+    queueX(c) { const idx = this.customers.filter((k) => k.state === 'queue').indexOf(c); return 600 - Math.max(0, idx) * 22; }
     updateCustomer(c, dt) {
       const n = c.npc; c.t += dt;
       if (c.state === 'queue') {
@@ -267,9 +271,9 @@
         if (c.patience < 12 && Math.random() < dt * 0.3) n.doEmote(CH.pick(['...', '?', '!']), 1);
         if (c.patience <= 0) { this.complain({ label: 'Customer left the line' }); n.face = 'angry'; c.state = 'leave'; n.walkTo(-20, () => { c.state = 'gone'; }); return; }
         // front of the queue & orders
-        if (this.customers.filter((k) => k.state === 'queue').indexOf(c) === 0 && Math.abs(n.x - 450) < 4 && c.t > 2) {
+        if (this.customers.filter((k) => k.state === 'queue').indexOf(c) === 0 && Math.abs(n.x - 600) < 4 && c.t > 2) {
           if (c.orderT === undefined) { c.orderT = 3.5; n.say(CH.pick(['One ' + c.order.name + ' please', 'Uh... ' + c.order.name + '?', c.order.name + '. And a job. Kidding.', 'Is this the D one?']), 3); this.tammy.talk = true; }
-          else { c.orderT -= dt; if (c.orderT <= 0) { this.tammy.talk = false; c.state = 'wait'; c.waitT = (this.isRush() ? 14 : 8) * (CH.has('predict') ? 0.8 : 1); n.walkTo(600 + CH.rand(-14, 14)); A.sfx('cash'); this.orderNum++; } }
+          else { c.orderT -= dt; if (c.orderT <= 0) { this.tammy.talk = false; c.state = 'wait'; c.waitT = (this.isRush() ? 14 : 8) * (CH.has('predict') ? 0.8 : 1); n.walkTo(750 + CH.rand(-14, 14)); A.sfx('cash'); this.orderNum++; } }
         }
       } else if (c.state === 'wait') {
         c.waitT -= dt; c.patience -= dt * 0.5;
@@ -289,13 +293,13 @@
           if (Math.random() < 0.7 && !b.st.dirty) { b.st.dirty = true; this.addTask({ type: 'table', x: b.x + 45, y: b.y - 40, patience: 70, label: 'Dirty table', prop: b }); }
           if (Math.random() < 0.35) this.spawnSpill(n.x + CH.rand(-30, 30));
           this.bin.st.fill = Math.min(1, this.bin.st.fill + 0.15);
-          if (Math.random() < 0.25) { c.state = 'bathroom'; n.walkTo(603, () => { n.hidden = true; this.bathDirt += 0.4; this.run((function* (self) { yield 3; n.hidden = false; c.state = 'leave'; n.walkTo(-20, () => { c.state = 'gone'; }); })(this)); }); }
+          if (Math.random() < 0.25) { c.state = 'bathroom'; n.walkTo(61, () => { n.hidden = true; this.bathDirt += 0.4; this.run((function* (self) { yield 3; n.hidden = false; c.state = 'leave'; n.walkTo(-20, () => { c.state = 'gone'; }); })(this)); }); }
           else { c.state = 'leave'; n.walkTo(-20, () => { c.state = 'gone'; }); }
         }
       }
     }
     spawnSpill(x) {
-      x = CH.clamp(x, 60, 560);
+      x = CH.clamp(x, 110, 570);
       const kinds = Object.keys(CH.MESSES); const kind = S.day < 3 ? CH.pick(['soda', 'ketchup', 'milkshake']) : CH.pick(kinds);
       const p = this.addProp('spill', x - 15, this.floorY + 3, { st: { mess: CH.MESSES[kind] }, layer: 'back', anim: true, id: 'spill' + Math.random() });
       this.addTask({ type: 'spill', x, y: this.floorY - 14, patience: 50, label: CH.MESSES[kind].name, prop: p, kind });
@@ -305,7 +309,7 @@
     removeTask(t, silent) { const i = this.tasks.indexOf(t); if (i >= 0) this.tasks.splice(i, 1); if (t.prop && t.type === 'spill') { this.props.splice(this.props.indexOf(t.prop), 1); if (!silent) { const ws = this.addProp('wetSign', t.x - 6, this.floorY, { anim: false, layer: 'front' }); this.bgDirty = true; this.run((function* (self) { yield 20; self.props.splice(self.props.indexOf(ws), 1); })(this)); } } if (t.prop && t.type === 'table') { t.prop.st.dirty = false; this.bgDirty = true; } if (t.type === 'bin') this.bin.st.fill = 0; }
     complain(t) { this.complaints++; S.reputation = Math.max(-10, S.reputation - 1); A.sfx('angry'); ui.toast('Complaint: ' + (t.label || 'something'), '#ff8080', 3); CH.doShake(2, 0.2); this.particles.text(this.player.x, this.player.y - 40, 'COMPLAINT', '#ff6060'); }
     makeStationTask() {
-      const st = this.job === 'shiftlead' ? { x: 540, y: this.floorY - 50 } : this.job === 'manager' ? { x: this.office.x + 13, y: this.floorY - 66 } : this.jobIdx >= 9 ? { x: this.kiosk.x + 15, y: this.floorY - 66 } : this.prop(this.job === 'cashier' ? 'counter' : this.job) || this.counter;
+      const st = this.job === 'shiftlead' ? { x: 690, y: this.floorY - 50 } : this.job === 'manager' ? { x: this.office.x + 13, y: this.floorY - 66 } : this.jobIdx >= 9 ? { x: this.kiosk.x + 15, y: this.floorY - 66 } : this.prop(this.job === 'cashier' ? 'counter' : this.job) || this.counter;
       const x = st.x + (st.w ? st.w / 2 : 0), y = st.y !== undefined && st.h ? st.y - st.h - 6 : (st.y || this.floorY - 60);
       this.stationTask = this.addTask({ type: 'station', x, y: this.job === 'cashier' ? this.floorY - 66 : y, patience: this.jobIdx >= 7 ? 120 : 40, label: this.jobIdx >= 7 ? CH.JOB_INFO[this.job].title + ' duty' : 'Orders waiting', count: this.pendingOrders });
       this.stationTask.onExpire = true;
@@ -326,7 +330,7 @@
       if (this.needMop) { this.needMop = false; this.closet.st.mopTaken = true; this.bgDirty = true; A.sfx('pop'); this.player.arm = 'mop'; yield ui.say('Chubby', "The mop. {p}My mop. {pp}Hello, mop. We're going to be spending a lot of time together.", { face: 'focused' }); ui.setObjective('Clean up messes before customers complain!'); this.player.arm = 'idle'; this.run(this.firstMess()); return; }
       yield ui.say('Chubby', 'Mops, buckets, 400 rolls of paper towel, and a mysterious box labelled "KEVIN - DO NOT OPEN".');
     }
-    *firstMess() { yield 2; this.spawnSpill(300); ui.setHint('A spill! Walk to it and press E', 4); }
+    *firstMess() { yield 2; this.spawnSpill(360); ui.setHint('A spill! Walk to it and press E', 4); }
     *interactOffice() {
       A.sfx('door');
       if (this.afterShift) { yield ui.say('Brenda', "Go home, Chubby. Or hit the kiosk. {p}Or stand there. It's a free country. Mostly.", { voice: 'blip2' }); return; }

@@ -52,7 +52,7 @@
       // ---------------- bedroom ----------------
       this.addProp('bed', 14, F, { hint: 'Bed', interact: () => this.interactBed() });
       this.addProp('nightstand', 86, F);
-      this.alarm = this.addProp('alarmClock', 90, F - 16, { hint: 'Alarm clock', st: { ringing: false }, interact: () => this.interactAlarm(), range: 30 });
+      this.alarm = this.addProp('alarmClock', 90, F - 16, { hint: 'Alarm clock', st: { ringing: false }, interact: () => this.interactAlarm(), range: 30, priority: 1 });
       this.addProp('poster', 24, 154, { st: { variant: 0 }, hint: 'Poster', interact: say('Blue Hedgehog 2. The greatest game ever made. I have it on three consoles.') });
       this.addProp('poster', 130, 150, { st: { variant: 1 }, hint: 'Poster', interact: say("Man Egg. The villain. Honestly kind of a fashion icon.") });
       this.addProp('gameCases', 150, F, { hint: 'Game pile', interact: say('Blue Hedgehog 1, 2, 3, Blue Hedgehog Kart, Blue Hedgehog Fishing... Blue Hedgehog Fishing was a mistake.') });
@@ -67,7 +67,7 @@
       this.addProp('boots', 318, F, { hint: 'Boots', interact: say("Winter boots. Haven't touched them since... a while.") });
       this.addProp('coatRack', 338, F, { hint: 'Coat rack', interact: say("Mom's red parka. My spare hoodie. Same hoodie, different smell.") });
       this.addProp('bathroomDoor', 360, F, { st: { sign: 'WC' }, hint: 'Bathroom', interact: () => this.interactBathroom() });
-      this.phone = this.addProp('rotaryPhone', 392, 160, { hint: 'Rotary phone', interact: () => this.interactPhone(), range: 30 });
+      this.phone = this.addProp('rotaryPhone', 392, 160, { hint: 'Rotary phone', interact: () => this.interactPhone(), range: 30, priority: 1 });
       this.addProp('wallClock', 300, 120, { hint: 'Clock', interact: () => ui.say('Chubby', `It's ${CH.timeStr()}. The clock ticks louder than it needs to.`) });
       this.addProp('flag', 340, 110, { hint: 'Flag', interact: say('Oh Canada. Our home and native land. Pancakes are also native land.') });
       this.addProp('thermostat', 300, 140, { hint: 'Thermostat', interact: say("21 degrees. Mom says 20 is 'plenty'. Mom is wrong.") });
@@ -79,7 +79,7 @@
       this.addProp('window', 522, 150, { hint: 'Window', st: { outside: (g, x, y, w, h, t) => CH.drawForestView(g, x, y, w, h, t, this.night) }, interact: say("Snow. Trees. A very smug squirrel. Nature is out there and I respect its decision to stay there.") });
       this.addProp('cereal', 578, F - 32, { hint: 'Cereal', interact: say("Choco Quills. The mascot is a porcupine. Representation matters.") });
       this.addProp('table', 606, F, { hint: 'Table' });
-      this.pancakes = this.addProp('pancakes', 626, F - 26, { hint: 'Pancakes', st: { eaten: false }, interact: () => this.interactPancakes(), range: 34 });
+      this.pancakes = this.addProp('pancakes', 626, F - 26, { hint: 'Pancakes', st: { eaten: false }, interact: () => this.interactPancakes(), range: 40, priority: 2 });
       this.addProp('bills', 648, F - 26, { hint: 'Mail', interact: () => this.interactMail() });
       this.addProp('chair', 590, F, { st: { flip: true } });
       this.addProp('chair', 664, F);
@@ -95,7 +95,7 @@
       this.addProp('bookshelf', 790, F, { hint: 'Bookshelf', interact: say("'Knitting for Joy', 'Cabin Recipes', 'Job Hunting for Dummies'... that last one is mine. Unopened.") });
       this.addProp('hockeyStick', 828, F, { hint: 'Hockey stick', interact: say("Dad's old stick. I still can't skate.") });
       this.addProp('rug', 860, F, { layer: 'back' });
-      this.couch = this.addProp('couch', 846, F, { hint: 'Couch', interact: () => this.interactCouch(), range: 40 });
+      this.couch = this.addProp('couch', 846, F, { hint: 'Couch', interact: () => this.interactCouch(), range: 40, priority: 1 });
       this.addProp('window', 858, 146, { hint: 'Window', st: { outside: (g, x, y, w, h, t) => CH.drawForestView(g, x, y, w, h, t, this.night) }, interact: say("The lake is frozen. Somewhere out there a beaver is having a better day than me.") });
       this.addProp('coffeeTable', 900, F + 6, { layer: 'front', hint: 'Coffee table', interact: say("Pizza, energy drinks, a remote with no batteries. My workstation."), promptY: F - 26 });
       this.addProp('controller', 920, F + 6, { layer: 'front' });
@@ -379,8 +379,8 @@
       if (this.night) { g.globalAlpha = 0.35; gfx.rect(0, 0, W, H, '#101a40'); g.globalAlpha = 1; }
     }
     enter() {
-      A.play(this.night ? 'night' : 'cabin');
-      if (this.mode === 'intro') this.run(this.intro());
+      if (this.mode !== 'emergency') A.play(this.night ? 'night' : 'cabin');
+      if (this.mode === 'intro' && !this.introStarted) { this.introStarted = true; this.run(this.intro()); }
     }
   }
   CH.CabinScene = CabinScene;

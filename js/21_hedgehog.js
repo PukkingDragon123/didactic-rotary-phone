@@ -657,7 +657,7 @@
       yield 0.9;
       A.sfx('thud'); CH.doShake(5, 0.5);
       yield 0.6;
-      CH.game.set(new TVZoomScene(cabin, game, -1, () => { CH.game.set(cabin); if (CH.beginEmergency) CH.beginEmergency(cabin); }, 1.3));
+      CH.game.set(new TVZoomScene(cabin, game, -1, () => { cabin.mode = 'emergency'; CH.game.set(cabin); if (CH.beginEmergency) CH.beginEmergency(cabin); }, 1.3));
     })());
     s.draw = (g) => { game.render(g); };
     CH.game.set(s);

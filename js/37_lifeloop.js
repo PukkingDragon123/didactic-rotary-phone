@@ -28,7 +28,8 @@
     cabin.run((function* () {
       cabin.locked = true; fx.setFade(1); yield fx.fadeIn(1);
       if (opts.msg) yield ui.say('Chubby', opts.msg, { face: opts.face || 'tired' });
-      ui.setObjective(S.momHome ? 'Evening: relax, eat, then sleep' : 'Evening: eat, check your phone, then sleep (bed)');
+      const when = S.hour < 17 ? 'Afternoon' : 'Evening';
+      ui.setObjective(S.momHome ? when + ': relax, eat, then sleep' : when + ': eat, check your phone, visit Mom (front door), or sleep (bed)');
       ui.showMoney = true;
       cabin.locked = false;
       if (!CH.flag('eveningTut')) { CH.flag('eveningTut', true); ui.setHint('Fridge: eat  -  TV: unwind  -  Phone (I): shop, bank, texts  -  Bed: sleep', 7); }
@@ -109,6 +110,7 @@
   };
   CH.startCareerDay = () => {
     S.chapter = 'career';
+    if (S.debtPaidOff && !S.momHome) { CH.pendingEnding = false; CH.endingSequence(); return; }
     const cabin = new CH.CabinScene({ mode: 'home', momPresent: !!S.momHome, playerX: 60 });
     cabin.tvMode = 'off'; cabin.fire.st.lit = false; cabin.pancakes.st.eaten = !S.momHome; cabin.stove.st.steam = !!S.momHome; cabin.stove.st.pan = !!S.momHome; cabin.bgDirty = true;
     cabin.player.outfit = 'hoodie'; S.outfit = 'hoodie';

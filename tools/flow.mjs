@@ -24,7 +24,7 @@ await page.waitForTimeout(9000); await pressE(3, 800);
 await page.waitForTimeout(2000); await pressE(6, 600);
 console.log('after alarm', await state()); await shot('1_awake');
 // walk to kitchen table (pancakes at ~633)
-await walkTo(645); await pressE(1); await page.waitForTimeout(800);
+await walkTo(636); await pressE(1); await page.waitForTimeout(800);
 console.log('at table', await state()); await shot('2_kitchen');
 // breakfast dialogue: press E repeatedly, answer a choice with Enter
 for (let i = 0; i < 40; i++) { const s = await state(); if (!s.dlg && !s.locked) break; await page.keyboard.press('e'); await page.waitForTimeout(400); if (i % 5 === 4) { await page.keyboard.press('Enter'); } }

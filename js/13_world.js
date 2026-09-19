@@ -112,8 +112,8 @@
           if (!p.interact || p.hidden || (p.once && p.used)) continue;
           const cx = p.x + p.w / 2 + p.offsetX;
           const range = p.range || p.w / 2 + 16;
-          const d = Math.abs(pl.x - cx);
-          if (d < range && d < bd) { bd = d; best = p; }
+          const d = Math.abs(pl.x - cx) - (p.priority || 0) * 1000;
+          if (Math.abs(pl.x - cx) < range && d < bd) { bd = d; best = p; }
         }
         this.hoverProp = best;
         if (best && inp.hit('interact')) {
