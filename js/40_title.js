@@ -85,7 +85,7 @@
     constructor() {
       super(); this.name = 'title';
       const couchH = (CH.PROPS && CH.PROPS.couch && CH.PROPS.couch.h) || 30;
-      this.chubby = new CH.Chubby(200, 214 - Math.round(couchH * 0.42));
+      this.chubby = new CH.Chubby(206, 214 - Math.round(couchH * 0.4));
       this.chubby.outfit = 'hoodie';
       this.chubby.sitting = true;
       this.chubby.arm = 'controller';
@@ -194,11 +194,14 @@
           gfx.tri(px0 + 2, py0 + 16 + tilt, px0 + 30, py0 + 16 + tilt, px0 + 16, py0 + 7 + tilt, '#8a5a34');
           gfx.rect(px0 + 13, py0 + 20 + tilt, 6, 6, '#3a2a1a');
           gfx.rect(px0 + 2, py0 + 24 + tilt, 28, 2, '#4f8a3a');
-        } else { // a moose, because Canada
-          gfx.ellipse(px0 + 16, py0 + 18 + tilt, 8, 5, '#5b3d24');
-          gfx.ellipse(px0 + 22, py0 + 13 + tilt, 4, 4, '#5b3d24');
-          gfx.line(px0 + 20, py0 + 10 + tilt, px0 + 17, py0 + 5 + tilt, '#8a6a4a');
-          gfx.line(px0 + 24, py0 + 10 + tilt, px0 + 27, py0 + 5 + tilt, '#8a6a4a');
+        } else { // Chubby's first fish, held up like a trophy
+          gfx.rect(px0 + 2, py0 + 20 + tilt, 28, 6, '#2f6a8a');
+          gfx.ellipse(px0 + 12, py0 + 15 + tilt, 5, 6, '#2f9d86');
+          gfx.ellipse(px0 + 12, py0 + 9 + tilt, 3.5, 3.5, '#b87c50');
+          for (let q = 0; q < 3; q++) gfx.tri(px0 + 9 + q * 2.5, py0 + 7 + tilt, px0 + 11 + q * 2.5, py0 + 7 + tilt, px0 + 8 + q * 2.5, py0 + 3 + tilt, '#e8d3a4');
+          gfx.ellipse(px0 + 21, py0 + 14 + tilt, 5, 2.6, '#8fb8d8');
+          gfx.tri(px0 + 25, py0 + 12 + tilt, px0 + 25, py0 + 16 + tilt, px0 + 28, py0 + 14 + tilt, '#8fb8d8');
+          gfx.px(px0 + 18, py0 + 13 + tilt, '#1a1420');
         }
         gfx.rect(px0, py0 + tilt, 32, 1, '#e0c090');
       }
