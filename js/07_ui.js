@@ -280,7 +280,8 @@
       L.w = CH.clamp(tw + 13, 44, maxW + 13);
       L.h = page.lines.length * 10 + 9;
       L.x = CH.clamp(Math.round(anchor.x - L.w / 2), 6, CH.W - L.w - 6);
-      L.y = CH.clamp(Math.round(anchor.y - L.h - 9), 16, CH.H - L.h - 44);
+      // keep clear of the objective banner at the top and the choice column below
+      L.y = CH.clamp(Math.round(anchor.y - L.h - 9), ui.objective && ui.objectiveShown ? 23 : 14, CH.H - L.h - 44);
       L.lines = page.lines;
       L.skip = page.skip;
       L.pageEndChar = page.end;
