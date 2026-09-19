@@ -46,8 +46,13 @@
       g.globalAlpha = 0.15; gfx.tri(bx + 108, by - 30, W, by - 80, W, by + 10, '#fff8c0'); g.globalAlpha = 1;
       // snow
       for (const s of this.snow) gfx.px(s[0], s[1], s[2] > 1 ? '#fff' : '#aab');
-      // inside: Chubby's silhouette in the back window? small
-      gfx.rect(bx + 44, by - 39, 26, 8, '#3a5a7a'); CH.drawChubby(g, bx + 62, by - 30, { outfit: 'hoodie', face: 'worried', noShadow: true, sx: 0.5, sy: 0.5, arm: 'pocket' });
+      // inside: Chubby pressed against the back window, clipped to the glass so
+      // he reads as riding in the van rather than standing on its roof
+      gfx.rect(bx + 44, by - 39, 26, 8, '#28425e');
+      gfx.clip(bx + 44, by - 39, 26, 8);
+      CH.drawChubby(g, bx + 58, by - 19, { outfit: 'hoodie', face: 'worried', noShadow: true, sx: 0.42, sy: 0.42, arm: 'pocket', blush: false });
+      gfx.unclip();
+      g.save(); g.globalAlpha = 0.2; gfx.rect(bx + 44, by - 39, 26, 3, '#cfe6ff'); g.restore();
     }
   }
   CH.AmbulanceScene = AmbulanceScene;
