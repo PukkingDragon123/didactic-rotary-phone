@@ -2,23 +2,46 @@
 (function (CH) {
   const gfx = CH.gfx;
   CH.TESTS = CH.TESTS || {};
+  CH.TESTS.chubby1 = () => {
+    const s = new CH.Scene();
+    let t = 0;
+    s.update = (dt) => { t += dt; };
+    s.draw = (g) => {
+      gfx.rect(0, 0, CH.W, CH.H, '#6b6270');
+      for (let i = 0; i < 5; i++) gfx.vline(60 + i * 90, 0, CH.H, '#7a7180');
+      g.save(); g.scale(4, 4);
+      CH.drawChubby(g, 30, 62, { face: 'normal', arm: 'idle' });
+      CH.drawChubby(g, 90, 62, { face: 'grin', arm: 'wave', flip: true });
+      g.restore();
+      gfx.text('ONE SPRITE AT 4X', 4, 8, '#fff', { font: 'small' });
+    };
+    return s;
+  };
   CH.TESTS.chubby = () => {
     const s = new CH.Scene();
-    const actors = [];
-    const faces = ['normal', 'happy', 'sad', 'shock', 'tired', 'angry', 'worried', 'cry', 'sleep', 'dead'];
+    const faces = ['normal', 'happy', 'grin', 'smug', 'sad', 'cry', 'shock', 'scared', 'worried', 'angry', 'annoyed', 'tired', 'exhausted', 'focused', 'determined', 'confused', 'love', 'sleep', 'proud', 'dead'];
     const outfits = ['hoodie', 'suit', 'uniform', 'janitor', 'pajamas'];
     s.draw = (g) => {
-      gfx.rect(0, 0, CH.W, CH.H, '#6e4523');
-      g.save(); g.scale(2, 2);
-      faces.forEach((f, i) => CH.drawChubby(g, 20 + i * 24, 40, { face: f, sleep: f === 'sleep' }));
-      outfits.forEach((o, i) => CH.drawChubby(g, 20 + i * 28, 80, { outfit: o, arm: i === 1 ? 'phone' : i === 3 ? 'mop' : 'idle' }));
-      // squash/stretch & walk
-      for (let i = 0; i < 6; i++) CH.drawChubby(g, 20 + i * 26, 120, { walk: (i / 6) * Math.PI * 2, moving: 1, quillTilt: 0.8, jig: Math.sin(i) * 3 });
-      CH.drawChubby(g, 190, 120, { sx: 1.3, sy: 0.7 }); CH.drawChubby(g, 215, 120, { sx: 0.8, sy: 1.25 });
-      CH.drawChubby(g, 190, 80, { flip: true, outfit: 'suit', emote: '!' }); CH.drawChubby(g, 215, 80, { sitting: true, arm: 'controller', face: 'focused' });
-      g.restore();
-      gfx.text('Hello, I am Chubby! Quick brown fox jumps over the lazy dog. 0123456789 $12.50 ♥★→…', 4, 250, '#fff');
-      gfx.text('SMALL FONT: ABCDEFGHIJKLMNOPQRSTUVWXYZ 0123456789 $.,!?:', 4, 260, '#fff', { font: 'small' });
+      gfx.rect(0, 0, CH.W, CH.H, '#6b6270');
+      // expression grid
+      faces.forEach((f, i) => {
+        const x = 26 + (i % 10) * 47, y = 58 + Math.floor(i / 10) * 62;
+        CH.drawChubby(g, x, y, { face: f, sleep: f === 'sleep', arm: 'pocket' });
+        gfx.text(f, x, y + 5, '#e8e0c8', { align: 'center', font: 'small' });
+      });
+      // outfits
+      outfits.forEach((o, i) => {
+        const x = 30 + i * 46;
+        CH.drawChubby(g, x, 200, { outfit: o, arm: i === 1 ? 'phone' : i === 3 ? 'mop' : 'idle', face: 'normal' });
+        gfx.text(o, x, 205, '#e8e0c8', { align: 'center', font: 'small' });
+      });
+      // walk cycle + squash/stretch + poses
+      for (let i = 0; i < 4; i++) CH.drawChubby(g, 250 + i * 40, 200, { walk: (i / 4) * Math.PI * 2, moving: 1, quillTilt: 0.8, jig: Math.sin(i) * 3 });
+      CH.drawChubby(g, 410, 200, { sx: 1.3, sy: 0.72, face: 'shock' });
+      CH.drawChubby(g, 450, 200, { sx: 0.82, sy: 1.22, face: 'determined', arm: 'both_up' });
+      gfx.text('walk cycle / squash / stretch', 250, 205, '#e8e0c8', { font: 'small' });
+      gfx.text('Hello, I am Chubby! 0123456789 $12.50', 4, 252, '#fff');
+      gfx.text('SMALL: ABCDEFGHIJKLMNOPQRSTUVWXYZ 0123456789', 4, 263, '#fff', { font: 'small' });
     };
     return s;
   };
