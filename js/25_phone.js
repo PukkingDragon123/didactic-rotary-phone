@@ -242,7 +242,7 @@
         if (this.clicked(r)) { this.openApp(ap[0]); inp.eat(); }
       });
       // objective hint on home
-      if (S.chapter === 'jobsearch' && !CH.flag('gotInterview')) { gfx.rrect(6, ch - 52, cw - 12, 12, 3, 'rgba(0,0,0,0.5)'); gfx.text('TIP: open Foxfire and search for jobs', cw / 2, ch - 49, '#fff', { align: 'center', font: 'small' }); }
+      if (S.chapter === 'jobsearch' && !CH.flag('gotInterview')) { gfx.rrect(5, ch - 15, cw - 10, 13, 4, '#150f1c'); gfx.rrect(6, ch - 14, cw - 12, 11, 3, '#2f2740'); gfx.text('TIP: open Foxfire and search for jobs', cw / 2, ch - 11, '#fff', { align: 'center', font: 'small' }); }
     }
     openApp(name) {
       if (name === 'camera') { A.sfx('camera'); fx.doFlash(0.8); ui.toast('You took a photo of your own face. It is 4 AM tired.', '#fff', 3); return; }
