@@ -66,10 +66,17 @@
     }
     *finish() { yield 0.5; A.sfx('dial'); yield 0.8; CH.game.pop(); if (this.onDone) this.onDone(); }
     draw(g) {
-      g.globalAlpha = 0.65; gfx.rect(0, 0, W, H, '#000'); g.globalAlpha = 1;
+      // a heartbeat vignette: the room falls away, the dial is all there is
+      const pulse = 0.84 + Math.sin(this.t * 4.4) * 0.04;
+      g.globalAlpha = pulse; gfx.rect(0, 0, W, H, '#07040c'); g.globalAlpha = 1;
       const cx = this.cx + Math.round(this.shake), cy = this.cy;
-      // phone body
-      gfx.rrect(cx - 90, cy - 100, 180, 190, 8, '#1a1a22'); gfx.rrect(cx - 88, cy - 98, 176, 186, 8, '#2a2a34'); gfx.rrect(cx - 84, cy - 94, 168, 6, 3, '#3a3a48');
+      // phone body, bakelite: dark shell, lit top edge, shadow underneath
+      gfx.rrect(cx - 92, cy - 102, 184, 194, 9, '#0d0b14');
+      gfx.rrect(cx - 90, cy - 100, 180, 190, 8, '#22202c');
+      gfx.rrect(cx - 88, cy - 98, 176, 184, 8, '#332f3e');
+      gfx.rrect(cx - 84, cy - 94, 168, 7, 3, '#453f54');
+      gfx.rrect(cx - 84, cy - 94, 168, 2, 1, '#57506a');
+      g.globalAlpha = 0.18; gfx.rrect(cx - 80, cy - 90, 40, 150, 6, '#fff'); g.globalAlpha = 1;
       // handset off the hook (lifted) at top
       gfx.rrect(cx - 70, cy - 122, 140, 14, 6, '#1a1a22'); gfx.rrect(cx - 78, cy - 126, 26, 22, 6, '#1a1a22'); gfx.rrect(cx + 52, cy - 126, 26, 22, 6, '#1a1a22');
       // coiled cord
@@ -101,14 +108,31 @@
       const sx = cx + Math.cos(sa) * (this.r + 4), sy = cy + Math.sin(sa) * (this.r + 4);
       gfx.rrect(sx - 4, sy - 3, 9, 14, 2, '#c8c8d0'); gfx.rrect(sx - 3, sy - 2, 7, 12, 2, '#eee');
       // instruction & dialed digits
-      gfx.text('DIAL 9-1-1', cx, cy - 92, this.wrongT > 0 ? '#ff6060' : '#fff', { align: 'center', outline: '#000' });
-      const shown = this.dialed.padEnd(3, '_').split('').join(' ');
-      gfx.text(shown, cx, cy + 76, '#f5c33b', { align: 'center', outline: '#000' });
-      if (this.msgT > 0) gfx.text(this.msg, cx, cy - 80, '#ff8080', { align: 'center', outline: '#000' });
+      {
+        const lbl = 'DIAL 9-1-1';
+        const lw = gfx.textWidth(lbl) + 16;
+        gfx.rrect(cx - lw / 2, cy - 146, lw, 15, 5, '#0d0b14');
+        gfx.rrect(cx - lw / 2 + 1, cy - 145, lw - 2, 13, 4, this.wrongT > 0 ? '#c8352b' : '#2f2740');
+        gfx.text(lbl, cx, cy - 142, this.wrongT > 0 ? '#fff' : '#f5d76b', { align: 'center' });
+      }
+      const shown = this.dialed.padEnd(3, '_').split('');
+      shown.forEach((ch, i) => {
+        const dx = cx - 30 + i * 30;
+        const filled = ch !== '_';
+        gfx.rrect(dx - 11, cy + 68, 22, 20, 3, '#0d0b14');
+        gfx.rrect(dx - 10, cy + 69, 20, 18, 2, filled ? '#2a3d2a' : '#1a1a24');
+        gfx.text(filled ? ch : '-', dx, cy + 74, filled ? '#8bf08b' : '#4a4a58', { align: 'center' });
+      });
+      if (this.msgT > 0) gfx.text(this.msg, cx, cy + 100, '#ff8080', { align: 'center', outline: '#000' });
       gfx.text('Click a number  -  or type it', W / 2, H - 12, '#aaa', { align: 'center', font: 'small' });
-      // Chubby's shaking paw
+      // Chubby's paw, shaking too hard to be precise
       const px = inp.mx, py = inp.my;
-      if (this.state === 'idle') { gfx.ellipse(px + 6, py + 8, 4, 3, '#8a5a3b'); }
+      if (this.state === 'idle') {
+        const tr = Math.sin(this.t * 22) * 0.8;
+        gfx.ellipse(px + 6 + tr, py + 9, 4.4, 3.4, '#6b4227');
+        gfx.ellipse(px + 5.6 + tr, py + 8.2, 3.4, 2.6, '#b87c50');
+        gfx.ellipse(px + 4 + tr, py + 11, 2, 1.4, '#5a3721');
+      }
     }
   }
   CH.RotaryDialScene = RotaryDialScene;
