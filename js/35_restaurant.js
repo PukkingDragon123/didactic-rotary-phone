@@ -598,6 +598,12 @@
       if (this.dt.st.car) { this.dt.st.car.x += dt * 12; if (this.dt.st.car.x > 60) this.dt.st.car = null; }
       // task patience
       for (const t of this.tasks) { if (t.strikes >= 2) continue; t.patience -= dt; if (t.patience <= 0) { t.strikes = (t.strikes || 0) + 1; this.complain(t); t.patience = t.maxPatience * 1.25; } }
+      // pressure reads on the character, not just in the HUD
+      const load = this.tasks.length + (this.pendingOrders || 0) * 0.5;
+      this.player.sweat = CH.clamp(load * 0.4 + (this.isRush() ? 0.5 : 0), 0, 1.4);
+      if (!CH.ui.busy() && !this.player.idleAnim) {
+        this.player.face = load >= 4 ? 'exhausted' : load >= 2 ? 'focused' : this.player.face === 'exhausted' || this.player.face === 'focused' ? 'normal' : this.player.face;
+      }
       this.prop('orderScreen').st.num = this.orderNum;
     }
     isRush() { return (S.hour > 11.5 && S.hour < 13.5) || (S.hour > 15 && S.hour < 16); }
@@ -672,9 +678,13 @@
       this.addTask({ type: 'spill', x, y: this.floorY - 14, patience: 50, label: CH.MESSES[kind].name, prop: p, kind });
       A.sfx('splash');
     }
-    addTask(t) { t.maxPatience = t.patience; this.tasks.push(t); if (this.job === 'janitor' || t.type === 'station') A.sfx('notify'); return t; }
+    addTask(t) {
+      t.maxPatience = t.patience; this.tasks.push(t);
+      if (this.job === 'janitor' || t.type === 'station') { A.sfx('notify'); this.player.doFx('exclaim', 0.8); }
+      return t;
+    }
     removeTask(t, silent) { const i = this.tasks.indexOf(t); if (i >= 0) this.tasks.splice(i, 1); if (t.prop && t.type === 'spill') { this.props.splice(this.props.indexOf(t.prop), 1); if (!silent) { const ws = this.addProp('wetSign', t.x - 6, this.floorY, { anim: false, layer: 'front' }); this.bgDirty = true; this.run((function* (self) { yield 20; self.props.splice(self.props.indexOf(ws), 1); })(this)); } } if (t.prop && t.type === 'table') { t.prop.st.dirty = false; this.bgDirty = true; } if (t.type === 'bin') this.bin.st.fill = 0; }
-    complain(t) { this.complaints++; S.reputation = Math.max(-10, S.reputation - 1); A.sfx('angry'); ui.toast('Complaint: ' + (t.label || 'something'), '#ff8080', 3); CH.doShake(2, 0.2); this.particles.text(this.player.x, this.player.y - 40, 'COMPLAINT', '#ff6060'); }
+    complain(t) { this.complaints++; this.player.doFx('anger', 1.1); this.player.setFace('annoyed', 1.4); S.reputation = Math.max(-10, S.reputation - 1); A.sfx('angry'); ui.toast('Complaint: ' + (t.label || 'something'), '#ff8080', 3); CH.doShake(2, 0.2); this.particles.text(this.player.x, this.player.y - 40, 'COMPLAINT', '#ff6060'); }
     makeStationTask() {
       const st = this.job === 'shiftlead' ? { x: 690, y: this.floorY - 50 } : this.job === 'manager' ? { x: this.office.x + 13, y: this.floorY - 66 } : this.jobIdx >= 9 ? { x: this.kiosk.x + 15, y: this.floorY - 66 } : this.prop(this.job === 'cashier' ? 'counter' : this.job) || this.counter;
       const x = st.x + (st.w ? st.w / 2 : 0), y = st.y !== undefined && st.h ? st.y - st.h - 6 : (st.y || this.floorY - 60);
@@ -736,6 +746,8 @@
       A.play(this.isRush() ? 'rush' : 'restaurant', 0.5);
       this.inMinigame = false;
       this.taskResults.push(r); this.stars += r.stars; this.tasksDone++;
+      if (r.stars >= 3) { this.player.doFx('spark', 1.4); this.player.setFace('proud', 1.6); }
+      else if (r.stars <= 1) this.player.setFace('sad', 1.2);
       const tipNow = Math.round(r.stars * (2 + this.jobIdx) * 100) / 100; if (tipNow) { CH.addMoney(tipNow); this.particles.text(this.player.x, this.player.y - 44, '+' + CH.fmtMoney(tipNow) + ' tip', '#8bd06a'); }
       if (t.type === 'station') { this.pendingOrders = Math.max(0, this.pendingOrders - Math.max(1, t.count || 1)); this.stationTask = null; this.counter.st.bags += 2; if (this.pendingOrders > 0) this.makeStationTask(); }
       this.removeTask(t);
