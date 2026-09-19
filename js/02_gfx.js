@@ -234,6 +234,15 @@
     }
     return Math.max(0, w - f.space);
   };
+  // trim a string to fit maxW, ending in an ellipsis when it had to be cut
+  gfx.ellipsize = (str, maxW, font = 'main') => {
+    str = String(str);
+    if (maxW <= 0) return '';
+    if (gfx.textWidth(str, font) <= maxW) return str;
+    let out = str;
+    while (out.length && gfx.textWidth(out + '\u2026', font) > maxW) out = out.slice(0, -1);
+    return out ? out + '\u2026' : '';
+  };
   // opts: {font, align:'left'|'center'|'right', shadow:color, outline:color, ctx}
   gfx.text = (str, x, y, color = '#fff', opts = {}) => {
     const font = opts.font || 'main';

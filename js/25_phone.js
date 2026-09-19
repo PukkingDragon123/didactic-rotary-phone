@@ -253,15 +253,15 @@
     }
     // ================== DONALD'S BURGERS: the loud ad unit ==================
     drawBurger(cx, cy, t, sc = 1) {
-      const spin = Math.cos(t * 2.6);
-      const rx = Math.max(2, 8 * sc * Math.abs(spin) + 1.5);
+      const spin = Math.cos(t * 2.2);
+      const rx = Math.max(4 * sc, 8 * sc * Math.abs(spin) + 2.5);
       gfx.ellipse(cx, cy - 4 * sc, rx + 1.5, 9 * sc, CH.art.INK);
       gfx.ellipse(cx, cy, rx, 2.2 * sc, '#d9a05b');
       gfx.ellipse(cx, cy - 2.4 * sc, rx * 0.98, 1.8 * sc, '#5a3320');
       gfx.ellipse(cx, cy - 4.4 * sc, rx * 1.06, 1.3 * sc, '#4f9d3a');
       gfx.ellipse(cx, cy - 6 * sc, rx * 1.0, 1.2 * sc, '#f5c33b');
       gfx.ellipse(cx, cy - 8.6 * sc, rx, 3.4 * sc, '#e8b166');
-      for (let i = 0; i < 3; i++) { const ph = t * 2.6 + i * 2.1, sx2 = Math.cos(ph); if (sx2 > -0.1 && rx > 4) gfx.px(cx + Math.round(sx2 * rx * 0.5), cy - Math.round(10 * sc) - (i % 2), '#fff6dc'); }
+      for (let i = 0; i < 3; i++) { const ph = t * 2.2 + i * 2.1, sx2 = Math.cos(ph); if (sx2 > -0.1 && rx > 5) gfx.px(cx + Math.round(sx2 * rx * 0.5), cy - Math.round(10 * sc) - (i % 2), '#fff6dc'); }
     }
     bigD(x, y, sc = 2) {
       const ctx = gfx.cur; ctx.save(); ctx.translate(x, y); ctx.scale(sc, sc);
@@ -682,9 +682,10 @@
         const rowH = 34;
         this.row(yy, rowH, (hv) => {
           gfx.rect(4, yy + 3, 22, 22, hv ? '#eef' : '#f0f2f6'); gfx.frame(4, yy + 3, 22, 22, '#dde'); gfx.text(j.company[0], 15, yy + 10, color, { align: 'center' });
-          gfx.text(j.title.length > 26 ? j.title.slice(0, 26) + '…' : j.title, 30, yy + 4, '#1a1a2a', { font: 'small' });
-          gfx.text(j.company.slice(0, 26), 30, yy + 12, '#555', { font: 'small' });
-          gfx.text(j.pay + '  -  ' + j.type, 30, yy + 20, '#3a9a5a', { font: 'small' });
+          const postedW = gfx.textWidth(j.posted, 'small');
+          gfx.text(gfx.ellipsize(j.title, cw - 42 - postedW, 'small'), 30, yy + 4, '#1a1a2a', { font: 'small' });
+          gfx.text(gfx.ellipsize(j.company, cw - 36, 'small'), 30, yy + 12, '#555', { font: 'small' });
+          gfx.text(gfx.ellipsize(j.pay + '  -  ' + j.type, cw - 36, 'small'), 30, yy + 20, '#3a9a5a', { font: 'small' });
           gfx.text(j.posted, cw - 6, yy + 4, j.hot ? '#c8352b' : '#999', { align: 'right', font: 'small' });
           if (j.hot) { gfx.rrect(cw - 30, yy + 12, 24, 8, 2, '#c8352b'); gfx.text('URGENT', cw - 18, yy + 13, '#fff', { align: 'center', font: 'small' }); }
           if (st2) { gfx.rrect(cw - 40, yy + 22, 36, 8, 2, st2 === 'pending' ? '#f0a030' : st2 === 'interview' ? '#3a9a5a' : '#999'); gfx.text(st2 === 'pending' ? 'APPLIED' : st2 === 'interview' ? 'INTERVIEW' : 'REJECTED', cw - 22, yy + 23, '#fff', { align: 'center', font: 'small' }); }
