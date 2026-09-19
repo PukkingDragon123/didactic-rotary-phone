@@ -152,11 +152,29 @@
     d.t += dt;
     // typewriter
     const raw = d.text;
+    if (d.clean === undefined) { d.clean = raw.replace(/\{[a-z]+\}/g, ''); d.cshown = 0; d.page = 0; }
+    // a long line is paged rather than grown into a screen-filling bubble
+    const pageEndChar = dialogPageEnd(d);
+    if (d.cshown >= pageEndChar && d.cshown < d.clean.length) {
+      d.waiting = true; d.autoT += dt;
+      // an auto-advancing line must turn its own pages or the scene would stall
+      const auto = d.opts.auto !== undefined && d.autoT >= Math.max(0.6, d.opts.auto);
+      if (auto || advanceKey()) {
+        d.page++; d.waiting = false; d.autoT = 0;
+        if (!auto) { inp.eat(); CH.audio.sfx('blip2'); }
+      }
+      return;
+    }
     if (d.shown < raw.length) {
       if (d.pause > 0) { d.pause -= dt; }
       else if (!(d.opts.noSkip) && advanceKey() && d.shown > 2 && !d.opts.noSkipText) {
-        // skip typing (but honor forced pauses for dramatic scenes)
-        d.shown = raw.length; inp.eat();
+        // skip to the end of this page, not past it
+        while (d.shown < raw.length && d.cshown < pageEndChar) {
+          if (raw[d.shown] === '{') { d.shown = raw.indexOf('}', d.shown) + 1; continue; }
+          d.shown++; d.cshown++;
+        }
+        d.pause = 0;
+        inp.eat();
       } else {
         const spd = (d.opts.slow ? 18 : ui.speed) * dt;
         d.acc = (d.acc || 0) + spd;
@@ -171,7 +189,8 @@
             break;
           }
           const ch = raw[d.shown];
-          d.shown++;
+          d.shown++; d.cshown++;
+          if (d.cshown >= pageEndChar) { d.pause = 0; break; }
           if (ch === '.' || ch === ',' || ch === '?' || ch === '!' || ch === '…') d.pause = ch === ',' ? 0.12 : 0.28;
           if (ch !== ' ' && d.shown % 2 === 0 && d.speaker !== 'TV' && !d.opts.silent) CH.audio.sfx(d.opts.voice || 'talk');
         }
@@ -230,6 +249,21 @@
     return null;
   }
 
+  // Slice wrapped lines into a page, and report how many characters of the
+  // whole string are consumed by the end of it.
+  function pageSlice(all, page, perPage) {
+    const total = Math.max(1, Math.ceil(all.length / perPage));
+    const p = CH.clamp(page, 0, total - 1);
+    const from = p * perPage;
+    const lines = all.slice(from, from + perPage);
+    let skip = 0;
+    for (let i = 0; i < from; i++) skip += all[i].length + 1;
+    let end = skip;
+    for (const ln of lines) end += ln.length + 1;
+    return { lines, skip, end: Math.min(end, allLen(all)), more: p < total - 1, page: p, total };
+  }
+  function allLen(all) { let n = 0; for (const ln of all) n += ln.length + 1; return Math.max(0, n - 1); }
+
   // One layout used by both hit-testing and drawing, so a click always lands
   // on the option the player can see.
   function dialogLayout(d) {
@@ -238,15 +272,19 @@
     const L = { anchor, clean };
     if (anchor) {
       const maxW = 176;
-      const lines = gfx.wrap(clean, maxW);
+      const all = gfx.wrap(clean, maxW);
+      const page = pageSlice(all, d.page || 0, 3);
       let tw = 0;
-      for (const ln of lines) tw = Math.max(tw, gfx.textWidth(ln));
+      for (const ln of page.lines) tw = Math.max(tw, gfx.textWidth(ln));
       L.mode = 'bubble';
       L.w = CH.clamp(tw + 13, 44, maxW + 13);
-      L.h = lines.length * 10 + 9;
+      L.h = page.lines.length * 10 + 9;
       L.x = CH.clamp(Math.round(anchor.x - L.w / 2), 6, CH.W - L.w - 6);
       L.y = CH.clamp(Math.round(anchor.y - L.h - 9), 16, CH.H - L.h - 44);
-      L.lines = lines;
+      L.lines = page.lines;
+      L.skip = page.skip;
+      L.pageEndChar = page.end;
+      L.more = page.more;
       L.tx = L.x + 6;
       L.ty = L.y + 5;
       L.portrait = false;
@@ -256,7 +294,12 @@
       L.portrait = !!ui.portraits[d.opts.portrait || d.speaker];
       const padL = L.portrait ? 46 : 10;
       const maxTextW = b.w - padL - 10;
-      L.lines = gfx.wrap(clean, maxTextW);
+      const all = gfx.wrap(clean, maxTextW);
+      const page = pageSlice(all, d.page || 0, 4);
+      L.lines = page.lines;
+      L.skip = page.skip;
+      L.pageEndChar = page.end;
+      L.more = page.more;
       let tw = 0;
       for (const ln of L.lines) tw = Math.max(tw, gfx.textWidth(ln));
       // grow to the text, but never shorter than the portrait needs
@@ -280,6 +323,12 @@
     return L;
   }
   function choiceRects(d) { return dialogLayout(d).choices || []; }
+
+  // Number of tag-stripped characters revealed by the end of the current page.
+  function dialogPageEnd(d) {
+    const L = dialogLayout(d);
+    return L.pageEndChar;
+  }
 
   ui.drawBox = (x, y, w, h, opts = {}) => {
     gfx.rect(x + 1, y + 1, w - 2, h - 2, opts.bg || 'rgba(16,12,22,0.92)');
@@ -353,7 +402,7 @@
     const L = dialogLayout(d);
     const appear = CH.clamp(d.t / 0.14, 0, 1);
     const pop = CH.ease.outBack(appear);
-    const vis = L.clean.slice(0, d.shown);
+    const revealed = (d.cshown === undefined ? d.shown : d.cshown) - (L.skip || 0);
     const col = d.opts.color || '#241c2e';
 
     if (L.mode === 'bubble') {
@@ -375,7 +424,7 @@
         gfx.rrect(tx + 1, L.y - 8, tw - 2, 8, 2, sc);
         gfx.text(d.speaker, tx + 4, L.y - 6, '#fbf6ea', { font: 'small' });
       }
-      let remaining = vis.length, ly = L.ty;
+      let remaining = revealed, ly = L.ty;
       for (const ln of L.lines) {
         if (remaining <= 0) break;
         const part = ln.slice(0, remaining);
@@ -386,7 +435,8 @@
       }
       if (d.waiting && !d.choices && d.opts.auto === undefined) {
         const bob = Math.sin(d.autoT * 6) > 0 ? 1 : 0;
-        gfx.tri(L.x + L.w - 11, L.y + L.h - 7 + bob, L.x + L.w - 5, L.y + L.h - 7 + bob, L.x + L.w - 8, L.y + L.h - 3 + bob, '#9a8fae');
+        const c = L.more ? '#c8352b' : '#9a8fae';
+        gfx.tri(L.x + L.w - 11, L.y + L.h - 7 + bob, L.x + L.w - 5, L.y + L.h - 7 + bob, L.x + L.w - 8, L.y + L.h - 3 + bob, c);
       }
     } else {
       const bh = Math.round(L.h * pop);
@@ -408,7 +458,7 @@
         gfx.rrect(L.tx - 2, L.y - 7, tw - 2, 9, 2, sc);
         gfx.text(d.speaker, L.tx + 1, L.y - 5, '#fbf6ea', { font: 'small' });
       }
-      let remaining = vis.length, ly = L.ty;
+      let remaining = revealed, ly = L.ty;
       for (const ln of L.lines) {
         if (remaining <= 0) break;
         const part = ln.slice(0, remaining);
@@ -419,7 +469,8 @@
       }
       if (d.waiting && !d.choices && d.opts.auto === undefined) {
         const bob = Math.sin(d.autoT * 6) > 0 ? 1 : 0;
-        gfx.tri(L.x + L.w - 14, L.y + L.h - 10 + bob, L.x + L.w - 8, L.y + L.h - 10 + bob, L.x + L.w - 11, L.y + L.h - 6 + bob, '#9a8fae');
+        const c = L.more ? '#c8352b' : '#9a8fae';
+        gfx.tri(L.x + L.w - 14, L.y + L.h - 10 + bob, L.x + L.w - 8, L.y + L.h - 10 + bob, L.x + L.w - 11, L.y + L.h - 6 + bob, c);
       }
     }
 
