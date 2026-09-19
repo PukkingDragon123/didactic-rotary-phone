@@ -215,6 +215,10 @@
     if ((name === 'Chubby' || d.opts.player) && sc.player && !sc.player.hidden) {
       return { x: sc.player.x - cx, y: sc.player.y - cy - (sc.player.sitting ? 40 : 48) };
     }
+    if (sc.speakerAt && name) {
+      const at = sc.speakerAt(name);
+      if (at) return { x: at.x - (at.world === false ? 0 : cx), y: at.y - (at.world === false ? 0 : cy) };
+    }
     if (sc.npcs && name) {
       for (const n of sc.npcs) {
         if (n.name === name && !n.hidden) {
@@ -249,11 +253,19 @@
     } else {
       const b = BOX;
       L.mode = 'panel';
-      L.x = b.x; L.y = b.y; L.w = b.w; L.h = b.h;
       L.portrait = !!ui.portraits[d.opts.portrait || d.speaker];
-      L.tx = b.x + (L.portrait ? 46 : 10);
-      L.ty = b.y + 11;
-      L.lines = gfx.wrap(clean, b.x + b.w - 10 - L.tx);
+      const padL = L.portrait ? 46 : 10;
+      const maxTextW = b.w - padL - 10;
+      L.lines = gfx.wrap(clean, maxTextW);
+      let tw = 0;
+      for (const ln of L.lines) tw = Math.max(tw, gfx.textWidth(ln));
+      // grow to the text, but never shorter than the portrait needs
+      L.w = CH.clamp(padL + tw + 12, L.portrait ? 150 : 90, b.w);
+      L.h = Math.max(L.portrait ? 46 : 24, L.lines.length * 10 + 14);
+      L.x = b.x;
+      L.y = b.y + b.h - L.h;
+      L.tx = L.x + padL;
+      L.ty = L.y + 8;
     }
     if (d.choices) {
       const n = d.choices.length;
@@ -293,11 +305,14 @@
     if (ui.objective && ui.objectiveShown) {
       const slide = ui.objectiveT < 0.5 ? Math.round((1 - CH.ease.outCubic(ui.objectiveT / 0.5)) * -80) : 0;
       const pulse = ui.objectiveT < 2 ? Math.sin(ui.objectiveT * 12) > 0 : false;
-      const w = gfx.textWidth(ui.objective, 'small') + 24;
-      gfx.rect(slide, 4, w, 11, 'rgba(0,0,0,0.7)');
-      gfx.rect(slide, 4, 2, 11, pulse ? '#fff' : P.amber);
-      gfx.text('★', slide + 5, 7, P.amber, { font: 'small' });
-      gfx.text(ui.objective, slide + 13, 7, pulse ? '#fff' : '#e8e0c8', { font: 'small' });
+      const w = gfx.textWidth(ui.objective, 'small') + 28;
+      const bob = pulse ? Math.round(Math.sin(ui.objectiveT * 12)) : 0;
+      gfx.rrect(slide - 5, 3, w + 5, 15, 5, CH.art.INK);
+      gfx.rrect(slide - 4, 4, w + 4, 13, 4, '#2f2740');
+      gfx.rrect(slide - 4, 4, w + 4, 3, 2, '#453a5e');
+      gfx.rrect(slide + 1, 6, 9, 9, 3, pulse ? '#fff' : P.amber);
+      gfx.text('!', slide + 5, 7 + bob, '#2a1f33', { align: 'center', font: 'small' });
+      gfx.text(ui.objective, slide + 14, 7, pulse ? '#fff' : '#efe6d2', { font: 'small' });
     }
     // money
     if (ui.showMoney) {

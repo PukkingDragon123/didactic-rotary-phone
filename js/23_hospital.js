@@ -321,6 +321,8 @@
       this.addProp('trashBin', 440, F);
       // mom in bed (custom drawn over the bed)
       this.momAwake = true; this.momTalk = false; this.momFace = 'tired';
+      // let dialogue bubbles find Mom even though she is drawn as scenery
+      this.speakerAt = (n) => (n === 'Mom' ? { x: 212, y: this.floorY - 48 } : null);
       this.momDraw = this.addCustom((g, x, y) => {
         CH.drawCritter(g, x, y, { species: 'porcupine', outfit: 'gown', pose: 'inbed', glasses: false, hair: 'bun', hairColor: '#d8d0c0', face: this.momFace, sleep: !this.momAwake, blink: !this.momAwake, talk: this.momTalk, noShadow: true, fur: '#9a6a48' });
         // blanket over her

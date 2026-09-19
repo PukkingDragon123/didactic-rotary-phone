@@ -525,8 +525,54 @@
       this.blinkT -= dt;
       if (this.blinkT <= 0) { this.blink = !this.blink; this.blinkT = this.blink ? 0.11 : CH.rand(1.4, 4.5); }
       if (this.faceT > 0) { this.faceT -= dt; if (this.faceT <= 0) this.face = 'normal'; }
+      this.updateIdle(dt);
       if (this.emoteT > 0) { this.emoteT -= dt; if (this.emoteT <= 0) this.emote = null; }
       if (this.fxT > 0) { this.fxT -= dt; if (this.fxT <= 0) this.fx = null; }
+    }
+    // Standing still is not the same as being a still image. After a few quiet
+    // seconds he does something small - a look around, a yawn, a shuffle -
+    // then goes back to neutral.
+    updateIdle(dt) {
+      if (this.idleAnim) {
+        this.idleT2 -= dt;
+        const a = this.idleAnim;
+        if (a === 'look') {
+          this.lookX = Math.sin((1.6 - this.idleT2) * 2.4) * 0.9;
+        } else if (a === 'yawn') {
+          const k = 1 - this.idleT2 / 1.8;
+          this.face = k < 0.75 ? 'tired' : 'normal';
+          this.mouth = k < 0.7 && k > 0.15 ? 'gape' : null;
+          this.browRaise = k < 0.7 && k > 0.15 ? 1 : 0;
+        } else if (a === 'shuffle') {
+          if (this.idleT2 > 0.9) this.flip = this._idleFlip;
+          else this.flip = !this._idleFlip;
+        } else if (a === 'scratch') {
+          this.arm = 'cover';
+          this.headDX = Math.sin((1.2 - this.idleT2) * 22) * 0.6;
+        } else if (a === 'bounce') {
+          const k = 1 - this.idleT2 / 0.9;
+          this.squashY.x = 1 + Math.sin(k * Math.PI * 2) * 0.1;
+        }
+        if (this.idleT2 <= 0) {
+          this.idleAnim = null;
+          this.lookX = 0; this.mouth = null; this.browRaise = 0; this.headDX = 0;
+          if (a === 'scratch') this.arm = this._idleArm || 'idle';
+          if (a === 'yawn') this.face = 'normal';
+        }
+        return;
+      }
+      if (this.moving > 0.15 || this.sleep || this.sitting || CH.ui.busy() || this.noIdleAnim) { this.nextIdle = null; return; }
+      if (this.nextIdle === null || this.nextIdle === undefined) { this.nextIdle = CH.rand(4, 9); return; }
+      this.nextIdle -= dt;
+      if (this.nextIdle > 0) return;
+      this.nextIdle = CH.rand(5, 11);
+      if (this.arm !== 'idle' && this.arm !== 'pocket') return;
+      const pick = CH.pick(['look', 'yawn', 'shuffle', 'scratch', 'bounce', 'look']);
+      this.idleAnim = pick;
+      this._idleFlip = this.flip;
+      this._idleArm = this.arm;
+      this.idleT2 = pick === 'yawn' ? 1.8 : pick === 'look' ? 1.6 : pick === 'scratch' ? 1.2 : pick === 'bounce' ? 0.9 : 1.6;
+      if (pick === 'bounce') this.jiggle.kick(-18);
     }
     params(extra = {}) {
       return Object.assign({
