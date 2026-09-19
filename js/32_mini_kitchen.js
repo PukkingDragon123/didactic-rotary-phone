@@ -1,8 +1,13 @@
 // ============================================================================
 // KITCHEN MINIGAMES (first-person): grill, assembly, fries & drinks, bagging
+//
+// The equipment (grill body, fryer, fountain, belt) is flat background metal;
+// the food, baskets, cups, boxes and bags are ink-outlined props. Heat is sold
+// with glow + shimmer + sizzle flecks rather than with colour alone.
 // ============================================================================
 (function (CH) {
   const gfx = CH.gfx, ui = CH.ui, A = CH.audio, inp = CH.input, S = CH.state, F = CH.FOOD;
+  const MG = CH.MG, art = CH.art;
   const W = CH.W, H = CH.H;
   const has = (k) => CH.has(k);
 
@@ -21,6 +26,16 @@
   }
   CH.TicketQueue = TicketQueue;
 
+  // shared: the little "Orders x/y" strip at the bottom of every kitchen game
+  function ordersStrip(g, q) {
+    const txt = `Orders ${q.done}/${q.total}`;
+    const bad = q.failed ? `  Failed ${q.failed}` : '';
+    const wdt = gfx.textWidth(txt + bad, 'small') + 10;
+    MG.panel(4, H - 13, wdt, 11, { r: 3, face: '#231b30', shadow: false });
+    gfx.text(txt, 9, H - 10, '#f3eee2', { font: 'small' });
+    if (bad) gfx.text(bad, 9 + gfx.textWidth(txt, 'small'), H - 10, '#ff8a7a', { font: 'small' });
+  }
+
   // ---------------------------------------------------------------- GRILL -------
   class GrillScene extends CH.MinigameScene {
     constructor(opts = {}) {
@@ -35,12 +50,29 @@
       this.q = new TicketQueue(this, 6 + Math.round(d * 2), Math.max(4, 9 - d), Math.max(18, 30 - d * 2), (i) => ({ patties: 1 + (Math.random() < 0.3 + d * 0.1 ? 1 : 0) + (Math.random() < d * 0.08 ? 1 : 0), got: 0 }));
       this.q.maxActive = 4;
       this.tray = { x: 40, y: 120 }; this.trayStack = 8;
-      this.trash = { x: 440, y: 230, w: 60, h: 40 };
+      // the burnt bin sits fully on screen so its ink line is not clipped
+      this.trash = { x: 396, y: 206, w: 74, h: 52 };
       this.patties = [];
       this.sizzleT = 0;
     }
     progress() { return this.q.progress(); }
-    makePatty(x, y) { const p = { x, y, cook: 0, flipped: false, burnt: false, onGrill: null, w: 24, h: 12, kind: 'patty', draw: (g, gx, gy, it) => { F.patty(g, gx, gy, it.cook); if (it.burnt) { for (let i = 0; i < 2; i++) gfx.px(gx - 4 + i * 8, gy - 10 - Math.round(((this.t * 2 + i * 0.4) % 1) * 8), 'rgba(60,60,60,0.8)'); } if (it.onGrill && !it.burnt) { const p = CH.clamp(it.cook / 1, 0, 1.3); gfx.rect(gx - 12, gy - 12, 24, 3, '#222'); gfx.rect(gx - 12, gy - 12, Math.round(24 * Math.min(1, p)), 3, it.cook < 0.45 ? '#e07080' : it.cook < 1 ? '#f5c33b' : it.cook < this.burnAt ? '#4f9d3a' : '#c8352b'); if (!it.flipped && it.cook >= 0.45 && it.cook < 1) gfx.text('FLIP!', gx, gy - 22, Math.sin(this.t * 10) > 0 ? '#fff' : '#f5c33b', { align: 'center', font: 'small', outline: '#000' }); if (it.flipped && it.cook >= 1 && it.cook < this.burnAt) gfx.text('DONE', gx, gy - 22, '#8bd06a', { align: 'center', font: 'small', outline: '#000' }); } }, onGrab: (it) => { if (it.onGrill) { it.onGrill.patty = null; it.onGrill = null; } } }; this.ds.add(p); this.patties.push(p); return p; }
+    makePatty(x, y) {
+      const p = {
+        x, y, cook: 0, flipped: false, burnt: false, onGrill: null, w: 24, h: 12, kind: 'patty',
+        draw: (g, gx, gy, it) => {
+          F.patty(g, gx, gy, it.cook);
+          if (it.burnt) { MG.steam(gx, gy - 8, this.t, { n: 3, speed: 0.6, rise: 14, alpha: 0.55, color: '60,56,58', w: 2 }); }
+          if (it.onGrill && !it.burnt) {
+            const p2 = CH.clamp(it.cook / 1, 0, 1.3);
+            MG.meter(gx - 12, gy - 16, 24, 4, Math.min(1, p2), it.cook < 0.45 ? '#e07080' : it.cook < 1 ? '#f5c33b' : it.cook < this.burnAt ? '#4f9d3a' : '#c8352b');
+            if (!it.flipped && it.cook >= 0.45 && it.cook < 1) MG.tag('FLIP!', gx, gy - 30, { align: 'center', face: Math.sin(this.t * 10) > 0 ? MG.GOLD : MG.CREAM });
+            if (it.flipped && it.cook >= 1 && it.cook < this.burnAt) MG.tag('DONE', gx, gy - 30, { align: 'center', face: '#8bd06a' });
+          }
+        },
+        onGrab: (it) => { if (it.onGrill) { it.onGrill.patty = null; it.onGrill = null; } },
+      };
+      this.ds.add(p); this.patties.push(p); return p;
+    }
     step(dt) {
       this.q.update(dt);
       // assign tickets to free plates
@@ -56,7 +88,7 @@
         // where did it land?
         let slot = this.slots.find((s) => !s.patty && CH.dist(p.x, p.y, s.x, s.y) < 20);
         const plate = this.plates.find((pl) => CH.dist(p.x, p.y, pl.x, pl.y) < 26);
-        if (slot && !p.burnt) { slot.patty = p; p.onGrill = slot; p.x = slot.x; p.y = slot.y; A.sfx('sizzle'); this.particles.burst(p.x, p.y, 8, { color: ['#fff', '#f5c33b'], speed: 40, life: 0.4, grav: -50 }); }
+        if (slot && !p.burnt) { slot.patty = p; p.onGrill = slot; p.x = slot.x; p.y = slot.y; p.returning = false; A.sfx('sizzle'); this.particles.burst(p.x, p.y, 8, { color: ['#fff', '#f5c33b'], speed: 40, life: 0.4, grav: -50 }); }
         else if (plate && plate.ticket) {
           if (p.burnt || p.cook < 0.95) { A.sfx('error'); this.mistakes++; this.particles.text(plate.x, plate.y - 30, p.burnt ? 'BURNT!' : 'RAW!', '#ff6060'); this.ds.remove(p); this.patties.splice(this.patties.indexOf(p), 1); plate.ticket.time -= 4; }
           else { this.ds.remove(p); this.patties.splice(this.patties.indexOf(p), 1); plate.patties.push({ q: p.flipped ? 1 : 0.6 }); plate.ticket.got++; A.sfx('snap'); if (plate.ticket.got >= plate.ticket.patties) { const q = plate.patties.reduce((a, b) => a + b.q, 0) / plate.patties.length; plate.ticket.time *= q; this.q.complete(plate.ticket); S.stats.burgers++; plate.ticket = null; plate.patties = []; } }
@@ -88,30 +120,94 @@
     }
     draw(g) {
       CH.drawKitchenBackdrop(g, this.t, { steam: true });
-      // grill body
-      gfx.rect(80, 56, 170, 100, '#3a3a44'); gfx.rect(84, 60, 162, 92, '#222'); for (let y = 66; y < 150; y += 6) gfx.hline(86, y, 158, '#444'); for (let x = 92; x < 246; x += 20) gfx.vline(x, 62, 88, '#555');
-      g.globalAlpha = 0.15 + Math.sin(this.t * 6) * 0.05; gfx.rect(84, 60, 162, 92, '#ff6030'); g.globalAlpha = 1;
-      gfx.rect(80, 156, 170, 6, '#5a5a66'); for (let i = 0; i < 4; i++) { gfx.circle(100 + i * 44, 168, 4, '#c8352b'); gfx.rect(99 + i * 44, 164, 2, 3, '#f5c33b'); }
-      gfx.text('GRILL', 165, 48, '#fff', { align: 'center', font: 'small' });
-      // slots hint
-      for (const s of this.slots) if (!s.patty) gfx.ellipseOutline(s.x, s.y, 12, 5, this.ds.held ? 'rgba(255,255,255,0.4)' : 'rgba(255,255,255,0.12)');
-      // patty tray
-      gfx.rect(16, 80, 48, 90, '#8a8a94'); gfx.rect(20, 84, 40, 82, '#c8dce8'); for (let i = 0; i < 6; i++) F.patty(g, 40, 160 - i * 6, 0); gfx.text('RAW', 40, 72, '#fff', { align: 'center', font: 'small' });
-      // plates (pass)
-      gfx.rect(310, 56, 160, 110, '#5a5a66'); gfx.rect(314, 60, 152, 102, '#8a8a94'); gfx.text('PASS', 390, 48, '#fff', { align: 'center', font: 'small' });
-      for (const pl of this.plates) {
-        gfx.ellipse(pl.x, pl.y + 6, 24, 9, '#e8e8f0'); gfx.ellipse(pl.x, pl.y + 5, 20, 7, '#fff');
-        if (pl.ticket) { const t = pl.ticket; CH.drawTicket(g, pl.x - 24, pl.y - 34, [`${t.patties}x patty (${t.got}/${t.patties})`], { num: t.num, timer: t.time / t.maxTime, w: 50 }); for (let i = 0; i < pl.patties.length; i++) F.patty(g, pl.x - 6 + i * 6, pl.y + 2 - i * 2, 1); }
-        else gfx.text('-', pl.x, pl.y, '#555', { align: 'center', font: 'small' });
+      // ---- grill: a heavy steel body around a glowing flat-top -----------------
+      gfx.rect(78, 54, 174, 104, '#4a4e58');
+      gfx.rect(80, 56, 170, 100, '#3a3e47');
+      gfx.hline(80, 56, 170, '#6e737e');
+      gfx.rect(84, 60, 162, 92, '#241d21');
+      // radiant heat rising out of the plate
+      const heat = 0.16 + Math.sin(this.t * 3) * 0.04;
+      g.globalAlpha = heat; gfx.rect(84, 60, 162, 92, '#ff5c22'); g.globalAlpha = 1;
+      g.globalAlpha = heat * 0.7; gfx.ellipse(165, 106, 74, 42, '#ff9a3c'); g.globalAlpha = 1;
+      // grill bars + the greasy sheen between them
+      for (let y = 64; y < 152; y += 6) { gfx.hline(86, y, 158, '#4a3a34'); gfx.hline(86, y + 1, 158, '#191316'); }
+      for (let y = 64; y < 152; y += 6) gfx.hline(86, y, 158 - ((y * 7) % 40), 'rgba(255,190,120,0.16)');
+      for (let x = 92; x < 246; x += 20) gfx.vline(x, 62, 88, 'rgba(255,140,60,0.10)');
+      // char stains and old grease
+      MG.crumbs(88, 64, 154, 84, 46, ['#120d10', '#2e2119', '#4a3320'], 11);
+      // hot glow under whatever is cooking, plus shimmer above the plate
+      for (const s of this.slots) if (s.patty) { g.globalAlpha = 0.35 + Math.sin(this.t * 9 + s.x) * 0.1; gfx.ellipse(s.x, s.y + 2, 14, 6, '#ff7a30'); g.globalAlpha = 1; }
+      for (let i = 0; i < 3; i++) MG.steam(110 + i * 46, 62, this.t, { n: 2, speed: 0.5, rise: 22, alpha: 0.18, color: '255,214,170', seed: i, w: 3 });
+      // splash guard + knobs
+      gfx.rect(80, 156, 170, 6, '#5a5f6a');
+      gfx.hline(80, 156, 170, '#878d99');
+      for (let i = 0; i < 4; i++) {
+        MG.ink(100 + i * 44, 168, 14, 14, (cx, cy) => {
+          gfx.circle(cx, cy + 1, 5, '#8f231c');
+          gfx.circle(cx, cy, 4.6, MG.RED);
+          gfx.ellipse(cx - 1, cy - 2, 2.2, 1.2, '#e0655a');
+          gfx.rect(cx - 1, cy - 4, 2, 4, '#f5c33b');
+        });
       }
-      // trash
-      gfx.rect(this.trash.x, this.trash.y, this.trash.w, this.trash.h, '#5a7a94'); gfx.rect(this.trash.x - 2, this.trash.y - 4, this.trash.w + 4, 6, '#42566b'); gfx.text('BURNT BIN', this.trash.x + 30, this.trash.y + 14, '#fff', { align: 'center', font: 'small' });
-      // spatula
-      gfx.rect(270, 150, 3, 40, '#c8a060'); gfx.rect(262, 140, 20, 12, '#aab');
+      MG.tag('GRILL', 165, 44, { align: 'center' });
+      // slot hints
+      for (const s of this.slots) if (!s.patty) gfx.ellipseOutline(s.x, s.y, 12, 5, this.ds.held ? 'rgba(255,220,170,0.5)' : 'rgba(255,190,140,0.16)');
+      // ---- raw patty tray: a cold steel pan ------------------------------------
+      gfx.rect(14, 78, 52, 94, '#6e737e');
+      gfx.rect(16, 80, 48, 90, '#9aa0aa');
+      gfx.rect(20, 84, 40, 82, '#c3d4e0');
+      gfx.rect(20, 84, 40, 3, '#e4eef6');
+      gfx.vline(20, 84, 82, '#dfeaf2');
+      g.globalAlpha = 0.25; gfx.rect(20, 84, 12, 82, '#ffffff'); g.globalAlpha = 1;
+      for (let i = 0; i < 6; i++) F.patty(g, 40, 160 - i * 6, 0);
+      MG.tag('RAW', 40, 68, { align: 'center' });
+      // ---- pass shelf ----------------------------------------------------------
+      gfx.rect(308, 54, 164, 114, '#4a4e58');
+      gfx.rect(310, 56, 160, 110, '#5c616c');
+      gfx.rect(314, 60, 152, 102, '#8f959f');
+      gfx.rect(314, 60, 152, 3, '#c0c6d0');
+      for (let y = 64; y < 162; y += 4) gfx.hline(314, y, 152, 'rgba(255,255,255,0.04)');
+      MG.tag('PASS', 390, 44, { align: 'center' });
+      for (const pl of this.plates) {
+        MG.shadow(pl.x, pl.y + 12, 22, 0.22);
+        MG.ink(pl.x, pl.y + 5, 52, 22, (cx, cy) => {
+          gfx.ellipse(cx, cy + 1, 24, 9, '#b6b6c6');
+          gfx.ellipse(cx, cy, 24, 8.4, '#dcdce8');
+          gfx.ellipse(cx, cy - 1, 21, 7, '#f4f4fb');
+          gfx.ellipse(cx, cy - 1, 16, 5, '#e2e2ee');   // the well of the plate
+          gfx.ellipse(cx, cy - 2, 15, 4.4, '#fbfbff');
+          gfx.ellipse(cx - 7, cy - 3, 6, 1.8, '#ffffff');
+        });
+        if (pl.ticket) { const t = pl.ticket; CH.drawTicket(g, pl.x - 24, pl.y - 34, [`${t.patties}x patty (${t.got}/${t.patties})`], { num: t.num, timer: t.time / t.maxTime, w: 50 }); for (let i = 0; i < pl.patties.length; i++) F.patty(g, pl.x - 6 + i * 6, pl.y + 2 - i * 2, 1); }
+      }
+      // ---- burnt bin -----------------------------------------------------------
+      const tr = this.trash;
+      MG.shadow(tr.x + tr.w / 2, tr.y + tr.h, tr.w / 2 - 4, 0.28);
+      MG.ink(tr.x + tr.w / 2, tr.y + tr.h / 2, tr.w + 10, tr.h + 16, (cx, cy) => {
+        const m = MG.m('#5a7a94', { dark: -30, darker: -48, light: 24 });
+        gfx.rect(cx - tr.w / 2, cy - tr.h / 2, tr.w, tr.h, m.base);
+        gfx.rect(cx - tr.w / 2, cy - tr.h / 2, 8, tr.h, m.l);
+        gfx.rect(cx + tr.w / 2 - 7, cy - tr.h / 2, 7, tr.h, m.d);
+        gfx.hline(cx - tr.w / 2 + 1, cy, tr.w - 2, m.d);
+        gfx.rect(cx - tr.w / 2 - 3, cy - tr.h / 2 - 5, tr.w + 6, 6, m.dd);
+        gfx.hline(cx - tr.w / 2 - 3, cy - tr.h / 2 - 5, tr.w + 6, gfx.mix(m.l, '#fff', 0.2));
+        gfx.rect(cx - 14, cy - tr.h / 2 - 4, 28, 4, '#181320');
+        gfx.text('BURNT', cx, cy - 8, '#f3eee2', { align: 'center', font: 'small' });
+        gfx.text('BIN', cx, cy + 2, '#f3eee2', { align: 'center', font: 'small' });
+      });
+      // spatula resting against the grill
+      MG.ink(272, 168, 28, 60, (cx, cy) => {
+        gfx.rect(cx - 1, cy - 12, 3, 30, '#b98a4e');
+        gfx.vline(cx - 1, cy - 12, 30, '#dcae6c');
+        gfx.rect(cx - 10, cy - 26, 20, 13, '#9aa0aa');
+        gfx.rect(cx - 10, cy - 26, 20, 10, '#c3c8d2');
+        gfx.hline(cx - 9, cy - 26, 18, '#e2e6ee');
+        for (let i = 0; i < 3; i++) gfx.vline(cx - 5 + i * 5, cy - 24, 8, '#9aa0aa');
+        gfx.px(cx - 6, cy - 20, '#6e4a2a');
+      });
       this.ds.draw(g);
       this.particles.draw(g);
-      // orders summary
-      gfx.text(`Orders: ${this.q.done}/${this.q.total}  Failed: ${this.q.failed}`, 6, H - 10, '#fff', { font: 'small', outline: '#000' });
+      ordersStrip(g, this.q);
       if (this.ds.held) this.drawPaw(g, true);
       this.drawHud(g);
     }
@@ -194,33 +290,89 @@
     wrapBurger() { const cur = this.current(); if (!cur || this.stack.length < cur.layers.length) { A.sfx('error'); this.particles.text(this.stackX, this.stackY - 60, 'not finished!', '#ff6060'); return; } this.wrapped = true; A.sfx('paper'); this.particles.burst(this.stackX, this.stackY - 20, 10, { color: ['#f5c33b', '#fff'], speed: 50, life: 0.4 }); const it = this.ds.add({ kind: 'wrapped', x: this.stackX, y: this.stackY - 6, w: 28, h: 16, draw: (g, x, y) => F.wrapped(g, x, y) }); }
     deliver() { const cur = this.current(); if (cur) { this.q.complete(cur); S.stats.burgers++; } this.stack = []; this.wrapped = false; }
     drawIng(g, x, y, kind) { if (kind === 'ketchup') F.sauce(g, x, y, '#d13c3c'); else if (kind === 'mustard') F.sauce(g, x, y, '#f5c33b'); else if (F[kind]) F[kind](g, x, y, 1); }
+    drawBottle(g, x, y, kind, squeeze) {
+      const m = MG.m(kind === 'ketchup' ? '#c8352b' : '#e8b62c', { dark: -30, light: 26 });
+      MG.ink(x, y, 20, 36, (cx, cy) => {
+        const sq = squeeze || 0;
+        gfx.rect(cx - 5 + sq, cy - 10, 10 - sq * 2, 24, m.base);
+        gfx.rect(cx - 5 + sq, cy - 10, 3, 24, m.l);
+        gfx.rect(cx + 2, cy - 10, 2, 24, m.d);
+        gfx.rect(cx - 4, cy - 12, 8, 3, gfx.shade(m.base, -12));
+        gfx.rect(cx - 2, cy - 17, 4, 6, '#3a3346');
+        gfx.px(cx - 2, cy - 17, '#6a6480');
+        gfx.rect(cx - 4, cy - 2, 8, 6, gfx.mix(m.base, '#fff', 0.14));
+      });
+    }
     draw(g) {
       CH.drawKitchenBackdrop(g, this.t);
-      // bins
-      for (const b of this.bins) { gfx.rect(b.x - 19, b.y - 22, 38, 44, '#8a8a94'); gfx.rect(b.x - 16, b.y - 19, 32, 38, '#c8dce8'); const hv = Math.abs(inp.mx - b.x) < 19 && Math.abs(inp.my - b.y) < 22; if (hv) { gfx.frame(b.x - 19, b.y - 22, 38, 44, '#f5c33b'); ui.cursor = 'hand'; } for (let i = 0; i < 3; i++) this.drawIng(g, b.x, b.y + 8 - i * 5, b.kind); if (b.kind === 'ketchup' || b.kind === 'mustard') { gfx.rect(b.x - 5, b.y - 14, 10, 24, b.kind === 'ketchup' ? '#d13c3c' : '#f5c33b'); gfx.rect(b.x - 2, b.y - 18, 4, 5, '#333'); } gfx.text(ING_LABEL[b.kind].split(' ')[0].toUpperCase().slice(0, 6), b.x, b.y + 26, '#333', { align: 'center', font: 'small' }); }
-      // ticket(s)
+      // ---- chilled ingredient rail --------------------------------------------
+      gfx.rect(0, 46, W, 56, '#8f959f');
+      gfx.rect(0, 46, W, 3, '#c0c6d0');
+      gfx.rect(0, 99, W, 3, '#5c616c');
+      for (const b of this.bins) {
+        const hv = Math.abs(inp.mx - b.x) < 19 && Math.abs(inp.my - b.y) < 22;
+        // steel insert pan sunk into the rail
+        gfx.rect(b.x - 19, b.y - 22, 38, 44, '#6e737e');
+        gfx.rect(b.x - 17, b.y - 20, 34, 40, '#a8aeb8');
+        gfx.rect(b.x - 16, b.y - 19, 32, 38, '#c3d4e0');
+        gfx.rect(b.x - 16, b.y - 19, 32, 2, '#e4eef6');
+        g.globalAlpha = 0.22; gfx.rect(b.x - 16, b.y - 19, 9, 38, '#ffffff'); g.globalAlpha = 1;
+        if (hv) { gfx.frame(b.x - 19, b.y - 22, 38, 44, MG.GOLD); gfx.frame(b.x - 20, b.y - 23, 40, 46, '#8a6a20'); ui.cursor = 'hand'; }
+        if (b.kind === 'ketchup' || b.kind === 'mustard') this.drawBottle(g, b.x, b.y - 1, b.kind, 0);
+        else for (let i = 0; i < 3; i++) this.drawIng(g, b.x, b.y + 5 - i * 5, b.kind);
+        // name plate clipped into the pan so nothing outside can cover it
+        gfx.rect(b.x - 16, b.y + 12, 32, 7, '#3a3346');
+        gfx.hline(b.x - 16, b.y + 12, 32, '#565070');
+        gfx.text(ING_LABEL[b.kind].split(' ')[0].toUpperCase().slice(0, 6), b.x, b.y + 13, '#f3eee2', { align: 'center', font: 'small' });
+      }
+      // ---- ticket(s) -----------------------------------------------------------
       const cur = this.current();
       if (cur) {
         const lines = cur.layers.map((l, i) => Object.assign(new String((i < this.stack.length ? '✓ ' : (i === this.stack.length ? '▶ ' : '  ')) + ING_LABEL[l]), { done: i < this.stack.length }));
         CH.drawTicket(g, 20, 120, lines, { title: '#' + cur.num + ' ' + cur.name, num: cur.num, timer: cur.time / cur.maxTime, w: 100 });
         if (this.q.active[1]) CH.drawTicket(g, 128, 120, [this.q.active[1].name], { title: 'NEXT', w: 60, color: '#8899aa' });
       }
-      // assembly board
-      gfx.rect(180, 170, 120, 60, '#c8a060'); gfx.rect(184, 174, 112, 52, '#e0c080'); for (let i = 0; i < 6; i++) gfx.hline(186, 180 + i * 8, 108, '#d0b070');
-      // stack
+      // ---- assembly board ------------------------------------------------------
+      const bm = MG.m('#c8a060', { dark: -28, darker: -46, light: 20 });
+      MG.shadow(240, 232, 62, 0.22);
+      gfx.rect(178, 168, 124, 64, bm.dd);
+      gfx.rect(180, 170, 120, 60, bm.d);
+      gfx.rect(184, 172, 112, 54, bm.base);
+      for (let i = 0; i < 7; i++) gfx.hline(186, 176 + i * 7, 108, gfx.shade(bm.base, -8));
+      for (let i = 0; i < 5; i++) gfx.hline(190 + (i % 3) * 8, 180 + i * 10, 80 - i * 6, 'rgba(120,84,40,0.35)');
+      gfx.hline(184, 172, 112, bm.l);
+      MG.crumbs(186, 174, 108, 50, 18, ['#b58a4e', '#e8d0a0'], 5);
+      // ---- stack ---------------------------------------------------------------
       const sq = this.stackSquash ? Math.sin(this.stackSquash * Math.PI) * 2 : 0; if (this.stackSquash) this.stackSquash = Math.max(0, this.stackSquash - 0.05);
+      if (this.stack.length && !this.wrapped) MG.shadow(this.stackX, this.stackY + 6, 14, 0.25);
       if (!this.wrapped) this.stack.forEach((k, i) => this.drawIng(g, this.stackX, this.stackY - i * 4 + (i === this.stack.length - 1 ? sq : 0), k));
       if (cur && !this.wrapped && this.stack.length < cur.layers.length) { const ty = this.stackY - this.stack.length * 4; g.globalAlpha = 0.3 + Math.sin(this.t * 6) * 0.15; this.drawIng(g, this.stackX, ty, cur.layers[this.stack.length]); g.globalAlpha = 1; }
-      // wrapper supply
-      F.wrapper(g, this.wrapperHome.x, this.wrapperHome.y); F.wrapper(g, this.wrapperHome.x + 2, this.wrapperHome.y - 3); gfx.text('WRAP', this.wrapperHome.x, this.wrapperHome.y + 10, '#333', { align: 'center', font: 'small' });
-      // pass window
-      gfx.rect(330, 90, 130, 80, '#5a5a66'); gfx.rect(334, 94, 122, 72, '#e8e0d0'); gfx.rect(334, 94, 122, 8, '#c8352b'); gfx.text('→ PASS →', 395, 95, '#fff', { align: 'center', font: 'small' }); for (let i = 0; i < 3; i++) gfx.rect(340 + i * 40, 150, 30, 3, '#8a8a94');
-      if (this.wrapped) gfx.text('drag to pass!', 395, 130, '#333', { align: 'center', font: 'small' });
-      // sauce bottle in hand
-      if (this.holdKind) { gfx.rect(inp.mx - 5, inp.my - 10, 10, 24, this.holdKind === 'ketchup' ? '#d13c3c' : '#f5c33b'); gfx.rect(inp.mx - 2, inp.my + 12, 4, 5, '#333'); ui.bar(inp.mx - 10, inp.my - 18, 20, 3, this.holdT / 0.55, '#fff'); ui.cursor = 'grab'; }
+      // ---- wrapper supply ------------------------------------------------------
+      F.wrapper(g, this.wrapperHome.x, this.wrapperHome.y + 3);
+      F.wrapper(g, this.wrapperHome.x + 1, this.wrapperHome.y);
+      MG.tag('WRAP', this.wrapperHome.x, this.wrapperHome.y + 12, { align: 'center' });
+      // ---- pass window ---------------------------------------------------------
+      gfx.rect(328, 94, 134, 80, '#4a4e58');
+      gfx.rect(330, 96, 130, 76, '#5c616c');
+      gfx.rect(334, 100, 122, 68, '#e8e0d0');
+      gfx.rect(334, 100, 122, 8, '#b62f27');
+      gfx.hline(334, 100, 122, '#d9534a');
+      gfx.hline(334, 107, 122, '#8a1f19');
+      gfx.text('→ PASS →', 395, 101, '#fff2e6', { align: 'center', font: 'small' });
+      // heat lamp wash over the shelf
+      g.globalAlpha = 0.18; gfx.rect(336, 110, 118, 56, '#ffb24a'); g.globalAlpha = 1;
+      for (let i = 0; i < 3; i++) { gfx.rect(340 + i * 40, 154, 30, 3, '#9aa0aa'); gfx.hline(340 + i * 40, 154, 30, '#c6ccd6'); }
+      if (this.wrapped) MG.tag('drag to pass!', 395, 130, { align: 'center', face: MG.GOLD });
+      // ---- sauce bottle in hand ------------------------------------------------
+      if (this.holdKind) {
+        const squeeze = this.holdT > 0 ? Math.min(1.5, this.holdT * 3) : 0;
+        this.drawBottle(g, inp.mx, inp.my, this.holdKind, squeeze);
+        MG.meter(inp.mx - 10, inp.my - 22, 20, 4, this.holdT / 0.55, this.holdKind === 'ketchup' ? '#e0655a' : MG.GOLD);
+        ui.cursor = 'grab';
+      }
       this.ds.draw(g);
       this.particles.draw(g);
-      gfx.text(`Orders: ${this.q.done}/${this.q.total}  Failed: ${this.q.failed}`, 6, H - 10, '#fff', { font: 'small', outline: '#000' });
+      ordersStrip(g, this.q);
       if (this.ds.held) this.drawPaw(g, true);
       this.drawHud(g);
     }
@@ -239,7 +391,17 @@
       for (let i = 0; i < nb; i++) this.baskets.push(this.ds.add({ kind: 'basket', x: 40 + i * 30, y: 190, w: 26, h: 20, state: 'empty', cook: 0, shook: false, draw: (g, x, y, it) => this.drawBasket(g, x, y, it) }));
       this.vats = [{ x: 60, y: 110, basket: null }, { x: 110, y: 110, basket: null }]; if (nb === 3) this.vats.push({ x: 160, y: 110, basket: null });
       this.hotTray = { x: 210, y: 130, amount: 0, salt: 0 };
-      this.scoop = this.ds.add({ kind: 'scoop', x: 250, y: 190, w: 22, h: 14, draw: (g, x, y, it) => { gfx.rect(x - 10, y - 4, 16, 8, '#aab'); gfx.rect(x + 6, y - 2, 10, 3, '#c8352b'); if (it.load) for (let i = 0; i < 4; i++) gfx.rect(x - 8 + i * 3, y - 10, 2, 7, '#f5c33b'); } });
+      this.scoop = this.ds.add({
+        kind: 'scoop', x: 250, y: 190, w: 22, h: 14,
+        draw: (g, x, y, it) => MG.ink(x, y, 34, 26, (cx, cy) => {
+          if (it.load) for (let i = 0; i < 5; i++) { gfx.rect(cx - 8 + i * 3, cy - 11, 2, 8, i % 2 ? '#d9a62c' : '#f2c342'); gfx.px(cx - 8 + i * 3, cy - 11, '#fbe08a'); }
+          gfx.rect(cx - 10, cy - 4, 16, 8, '#8f959f');
+          gfx.rect(cx - 10, cy - 4, 16, 6, '#b6bcc6');
+          gfx.hline(cx - 9, cy - 4, 14, '#e2e6ee');
+          gfx.rect(cx + 6, cy - 2, 10, 3, '#a82a22');
+          gfx.hline(cx + 6, cy - 2, 10, '#e0655a');
+        }),
+      });
       this.boxes = []; this.cups = [];
       this.nozzles = Object.keys(FLAVORS).map((f, i) => ({ flavor: f, x: 320 + i * 36, y: 80 }));
       this.pass = { x: 400, y: 200, w: 70, h: 50 };
@@ -248,7 +410,40 @@
       this.spill = 0; this.holdFill = null;
     }
     progress() { return this.q.progress(); }
-    drawBasket(g, x, y, it) { gfx.rect(x - 12, y - 8, 24, 14, 'rgba(0,0,0,0)'); for (let i = 0; i < 5; i++) gfx.vline(x - 10 + i * 5, y - 6, 12, '#8a8a94'); for (let i = 0; i < 3; i++) gfx.hline(x - 10, y - 6 + i * 5, 20, '#8a8a94'); gfx.rect(x - 12, y - 8, 24, 2, '#aab'); gfx.rect(x - 2, y - 22, 3, 14, '#aab'); gfx.rect(x - 4, y - 24, 8, 3, '#c8352b'); if (it.state !== 'empty') { const c = it.state === 'raw' ? '#f0e8c0' : it.cook > this.burnAt ? '#3a2010' : gfx.mix('#f0e0a0', '#e8a030', Math.min(1, it.cook)); for (let i = 0; i < 6; i++) gfx.rect(x - 9 + i * 3, y - 6 + (i % 2), 2, 8, c); } if (it.inVat) { const p = it.cook; gfx.rect(x - 12, y - 30, 24, 3, '#222'); gfx.rect(x - 12, y - 30, Math.round(24 * Math.min(1, p / 1)), 3, p < 1 ? '#f5c33b' : p < this.burnAt ? '#4f9d3a' : '#c8352b'); if (p > 0.45 && !it.shook && p < 1) gfx.text('SHAKE!', x, y - 40, Math.sin(this.t * 10) > 0 ? '#fff' : '#f5c33b', { align: 'center', font: 'small', outline: '#000' }); if (p >= 1 && p < this.burnAt) gfx.text('LIFT!', x, y - 40, '#8bd06a', { align: 'center', font: 'small', outline: '#000' }); } }
+    drawBasket(g, x, y, it) {
+      const burnt = it.cook > this.burnAt;
+      MG.ink(x, y - 8, 32, 34, (cx, cy) => {
+        cy += 8;
+        // wire mesh basket
+        gfx.rect(cx - 12, cy - 7, 24, 13, '#6e737e');
+        gfx.rect(cx - 11, cy - 7, 22, 12, '#3a3e47');
+        for (let i = 0; i < 6; i++) gfx.vline(cx - 10 + i * 4, cy - 6, 11, '#9aa0aa');
+        for (let i = 0; i < 3; i++) gfx.hline(cx - 11, cy - 6 + i * 4, 22, '#9aa0aa');
+        gfx.rect(cx - 12, cy - 9, 24, 3, '#b6bcc6');
+        gfx.hline(cx - 12, cy - 9, 24, '#e2e6ee');
+        // handle
+        gfx.rect(cx - 2, cy - 22, 3, 14, '#9aa0aa');
+        gfx.vline(cx - 2, cy - 22, 14, '#d2d6de');
+        gfx.rect(cx - 5, cy - 25, 9, 4, '#a82a22');
+        gfx.rect(cx - 5, cy - 25, 9, 3, MG.RED);
+        gfx.hline(cx - 4, cy - 25, 7, '#e0655a');
+        if (it.state !== 'empty') {
+          const c = it.state === 'raw' ? '#f0e8c0' : burnt ? '#3a2010' : gfx.mix('#f0e0a0', '#e8a030', Math.min(1, it.cook));
+          const cl = gfx.mix(c, '#fff8d8', 0.4), cd = gfx.shade(c, -26);
+          for (let i = 0; i < 7; i++) {
+            const fx = cx - 10 + i * 3, fy = cy - 6 + (i % 2);
+            gfx.rect(fx, fy, 2, 9, cd);
+            gfx.vline(fx, fy, 8, i % 2 ? c : cl);
+          }
+        }
+      });
+      if (it.inVat) {
+        const p = it.cook;
+        MG.meter(x - 12, y - 30, 24, 4, Math.min(1, p), p < 1 ? '#f5c33b' : p < this.burnAt ? '#4f9d3a' : '#c8352b');
+        if (p > 0.45 && !it.shook && p < 1) MG.tag('SHAKE!', x, y - 42, { align: 'center', face: Math.sin(this.t * 10) > 0 ? MG.GOLD : MG.CREAM });
+        if (p >= 1 && p < this.burnAt) MG.tag('LIFT!', x, y - 42, { align: 'center', face: '#8bd06a' });
+      }
+    }
     step(dt) {
       this.q.update(dt);
       // cooking
@@ -267,7 +462,7 @@
       // lids
       const lidStack = { x: 440, y: 120, w: 30, h: 30 };
       if (inp.mouseIn(lidStack)) ui.cursor = 'hand';
-      if (inp.mpressed && inp.mouseIn(lidStack) && !this.ds.held) { const l = this.ds.add({ kind: 'lid', x: inp.mx, y: inp.my, w: 16, h: 6, draw: (g, x, y) => { gfx.ellipse(x, y, 8, 3, '#e8e8f0'); gfx.rect(x - 1, y - 6, 2, 6, '#c8352b'); } }); this.ds.held = l; l.grabbed = true; this.ds.offX = 0; this.ds.offY = 0; A.sfx('pop'); inp.eat(); }
+      if (inp.mpressed && inp.mouseIn(lidStack) && !this.ds.held) { const l = this.ds.add({ kind: 'lid', x: inp.mx, y: inp.my, w: 16, h: 6, draw: (g, x, y) => MG.ink(x, y, 22, 18, (cx, cy) => { gfx.ellipse(cx, cy + 1, 8, 3, '#d3d3dd'); gfx.ellipse(cx, cy, 8, 3, '#f0f0f8'); gfx.ellipse(cx - 2, cy - 1, 3, 1.2, '#ffffff'); gfx.rect(cx - 1, cy - 7, 2, 7, MG.RED); gfx.px(cx - 1, cy - 7, '#f0847a'); }) }); this.ds.held = l; l.grabbed = true; this.ds.offX = 0; this.ds.offY = 0; A.sfx('pop'); inp.eat(); }
       // salt shaker click over tray
       const saltR = { x: 176, y: 90, w: 20, h: 30 };
       if (inp.mouseIn(saltR)) ui.cursor = 'hand';
@@ -294,8 +489,8 @@
         const rawBin = { x: 20, y: 40, w: 60, h: 40 };
         if (CH.pointIn(it.x, it.y, rawBin) && it.state === 'empty') { it.state = 'raw'; A.sfx('paper'); it.x = it.home.x; it.y = it.home.y; it.returning = true; return; }
         const vat = this.vats.find((v) => CH.dist(it.x, it.y, v.x, v.y) < 22 && (!v.basket || v.basket === it));
-        if (vat && it.state === 'raw') { vat.basket = it; it.inVat = true; it.x = vat.x; it.y = vat.y; it.cook = 0; it.shook = false; it.state = 'cooking'; A.sfx('sizzle'); this.particles.burst(it.x, it.y, 10, { color: ['#f5c33b', '#fff'], speed: 60, life: 0.5 }); return; }
-        if (vat && it.inVat) { it.x = vat.x; it.y = vat.y; return; }
+        if (vat && it.state === 'raw') { vat.basket = it; it.inVat = true; it.returning = false; it.x = vat.x; it.y = vat.y; it.cook = 0; it.shook = false; it.state = 'cooking'; A.sfx('sizzle'); this.particles.burst(it.x, it.y, 10, { color: ['#f5c33b', '#fff'], speed: 60, life: 0.5 }); return; }
+        if (vat && it.inVat) { it.returning = false; it.x = vat.x; it.y = vat.y; return; }
         const tray = this.hotTray;
         if (Math.abs(it.x - tray.x) < 34 && Math.abs(it.y - tray.y) < 30 && (it.state === 'cooking' || it.state === 'burnt')) {
           if (it.state === 'burnt') { A.sfx('trash'); this.particles.text(tray.x, tray.y - 30, 'trashed burnt fries', '#ff8080'); }
@@ -331,34 +526,144 @@
     }
     draw(g) {
       CH.drawKitchenBackdrop(g, this.t, { steam: true });
-      // raw fries bin
-      gfx.rect(20, 40, 60, 40, '#5a5a66'); gfx.rect(24, 44, 52, 32, '#c8dce8'); for (let i = 0; i < 12; i++) gfx.rect(28 + (i % 6) * 8, 50 + Math.floor(i / 6) * 10 + (i % 3), 2, 10, '#f0e8c0'); gfx.text('FROZEN FRIES', 50, 32, '#fff', { align: 'center', font: 'small' });
-      // fryer
-      gfx.rect(30, 86, this.vats.length * 50 + 10, 60, '#8a8a94'); for (const v of this.vats) { gfx.rect(v.x - 22, v.y - 20, 44, 44, '#5a5a66'); gfx.rect(v.x - 20, v.y - 16, 40, 38, '#e8c040'); for (let i = 0; i < 5; i++) gfx.px(v.x - 16 + i * 8, v.y - 10 + Math.round(Math.sin(this.t * 6 + i * 1.3) * 3), '#fff8c0'); if (!v.basket) gfx.text('OIL', v.x, v.y + 4, 'rgba(0,0,0,0.3)', { align: 'center', font: 'small' }); }
-      gfx.text('FRYER', 30 + (this.vats.length * 50) / 2, 150, '#fff', { align: 'center', font: 'small' });
-      // hot tray
-      const tr = this.hotTray; gfx.rect(tr.x - 34, tr.y - 20, 68, 40, '#8a8a94'); gfx.rect(tr.x - 30, tr.y - 16, 60, 32, '#c8352b'); gfx.rect(tr.x - 30, tr.y - 24, 60, 4, '#f5c33b'); g.globalAlpha = 0.3; gfx.rect(tr.x - 30, tr.y - 16, 60, 32, '#ffe080'); g.globalAlpha = 1;
-      if (tr.amount > 0) { const n = Math.round(tr.amount * 12); for (let i = 0; i < n; i++) gfx.rect(tr.x - 24 + (i % 8) * 6, tr.y - 4 - Math.floor(i / 8) * 4 + (i % 2), 2, 10, i % 2 ? '#f5c33b' : '#e8a030'); if (tr.salt > 0) for (let i = 0; i < 6; i++) gfx.px(tr.x - 20 + i * 7, tr.y - 8 + (i % 3), '#fff'); }
-      gfx.text('HOT TRAY', tr.x, tr.y + 22, '#fff', { align: 'center', font: 'small' });
+      // ---- frozen fries bin ----------------------------------------------------
+      gfx.rect(18, 38, 64, 44, '#6e737e');
+      gfx.rect(20, 40, 60, 40, '#9aa0aa');
+      gfx.rect(24, 44, 52, 32, '#c3d4e0');
+      gfx.rect(24, 44, 52, 2, '#e8f2fa');
+      g.globalAlpha = 0.3; gfx.rect(24, 44, 14, 32, '#ffffff'); g.globalAlpha = 1;
+      for (let i = 0; i < 14; i++) { const fx = 27 + (i % 7) * 7, fy = 50 + Math.floor(i / 7) * 11 + (i % 3); gfx.rect(fx, fy, 2, 10, '#ded6ac'); gfx.vline(fx, fy, 9, '#f4eecd'); }
+      for (let i = 0; i < 12; i++) gfx.px(26 + (i * 13) % 48, 46 + (i * 7) % 28, 'rgba(255,255,255,0.8)');   // frost
+      MG.tag('FROZEN FRIES', 50, 28, { align: 'center' });
+      // ---- fryer ---------------------------------------------------------------
+      const fw = this.vats.length * 50 + 10;
+      gfx.rect(28, 84, fw + 4, 64, '#6e737e');
+      gfx.rect(30, 86, fw, 60, '#9aa0aa');
+      gfx.hline(30, 86, fw, '#c6ccd6');
+      for (const v of this.vats) {
+        gfx.rect(v.x - 22, v.y - 20, 44, 44, '#4a4e58');
+        gfx.rect(v.x - 21, v.y - 19, 42, 42, '#2f333b');
+        // hot oil: deep amber that darkens with depth, a bright moving surface,
+        // and bubbles that actually travel up through it
+        for (let i = 0; i < 38; i++) {
+          const k = i / 38;
+          gfx.hline(v.x - 20, v.y - 16 + i, 40, gfx.mix('#e8b52a', '#7a5406', k));
+        }
+        const surf = v.y - 16 + Math.round(Math.sin(this.t * 2) * 0.5);
+        gfx.rect(v.x - 20, surf, 40, 2, '#f6da78');
+        gfx.hline(v.x - 20, surf - 1, 40, '#fdf0bc');
+        for (let i = 0; i < 5; i++) { const sx = v.x - 16 + i * 8 + Math.round(Math.sin(this.t * 2.2 + i) * 3); gfx.rect(sx, surf, 4, 1, '#fffae0'); }
+        g.globalAlpha = 0.16; gfx.rect(v.x - 20, v.y - 16, 11, 38, '#fff6c0'); g.globalAlpha = 1;
+        for (let i = 0; i < 8; i++) {
+          const k = ((this.t * (0.5 + (i % 3) * 0.2) + i * 0.13) % 1);
+          const bx = v.x - 17 + ((i * 11) % 34) + Math.round(Math.sin(this.t * 3 + i) * 1.5);
+          const by = v.y + 20 - k * 36;
+          if (by < surf) continue;
+          const r = 1 + (i % 2);
+          gfx.ellipse(bx, by, r, r, 'rgba(255,250,214,' + (0.75 - k * 0.45).toFixed(2) + ')');
+        }
+        MG.sizzle(v.x, surf - 2, this.t + v.x, 3, { spread: 14, rise: 8 });
+        MG.steam(v.x, v.y - 20, this.t, { n: 2, speed: 0.4, rise: 26, alpha: 0.22, color: '255,240,210', seed: v.x, w: 3 });
+        if (!v.basket) gfx.text('OIL', v.x, v.y + 4, 'rgba(70,46,0,0.35)', { align: 'center', font: 'small' });
+      }
+      MG.tag('FRYER', 30 + fw / 2, 146, { align: 'center' });
+      // ---- hot tray under the lamp ---------------------------------------------
+      const tr = this.hotTray;
+      // lamp housing + its warm cone falling on the tray
+      gfx.rect(tr.x - 31, tr.y - 60, 3, 44, '#4a4e58');
+      gfx.rect(tr.x + 28, tr.y - 60, 3, 44, '#4a4e58');
+      gfx.vline(tr.x - 31, tr.y - 60, 44, '#787d87');
+      gfx.vline(tr.x + 28, tr.y - 60, 44, '#787d87');
+      // hood: a trapezoid shade with the lamp tube glowing under its lip
+      gfx.tri(tr.x - 20, tr.y - 66, tr.x + 20, tr.y - 66, tr.x - 30, tr.y - 56, '#5c616c');
+      gfx.tri(tr.x + 20, tr.y - 66, tr.x + 30, tr.y - 56, tr.x - 30, tr.y - 56, '#5c616c');
+      gfx.rect(tr.x - 20, tr.y - 66, 40, 3, '#787d87');
+      gfx.hline(tr.x - 20, tr.y - 67, 40, '#a9aeb8');
+      gfx.rect(tr.x - 30, tr.y - 56, 60, 3, '#3f434b');
+      gfx.rect(tr.x - 26, tr.y - 54, 52, 3, '#ffb24a');
+      gfx.hline(tr.x - 26, tr.y - 54, 52, '#ffe6a8');
+      gfx.hline(tr.x - 26, tr.y - 51, 52, '#c8781f');
+      g.globalAlpha = 0.10 + Math.sin(this.t * 2) * 0.015;
+      gfx.tri(tr.x - 22, tr.y - 51, tr.x + 22, tr.y - 51, tr.x - 34, tr.y - 16, '#ffca6a');
+      gfx.tri(tr.x + 22, tr.y - 51, tr.x + 34, tr.y - 16, tr.x - 34, tr.y - 16, '#ffca6a');
+      g.globalAlpha = 1;
+      gfx.rect(tr.x - 34, tr.y - 20, 68, 40, '#6e737e');
+      gfx.rect(tr.x - 32, tr.y - 18, 64, 36, '#9aa0aa');
+      gfx.rect(tr.x - 30, tr.y - 16, 60, 32, '#a82a22');
+      gfx.rect(tr.x - 30, tr.y - 16, 60, 28, '#c8352b');
+      gfx.rect(tr.x - 30, tr.y - 25, 60, 5, '#d9a62c');
+      gfx.rect(tr.x - 30, tr.y - 25, 60, 3, '#f2c342');
+      gfx.hline(tr.x - 30, tr.y - 26, 60, '#fbe08a');
+      g.globalAlpha = 0.3; gfx.rect(tr.x - 30, tr.y - 16, 60, 32, '#ffe080'); g.globalAlpha = 1;
+      if (tr.amount > 0) {
+        const n = Math.round(tr.amount * 12);
+        for (let i = 0; i < n; i++) { const fx = tr.x - 24 + (i % 8) * 6, fy = tr.y - 4 - Math.floor(i / 8) * 4 + (i % 2); gfx.rect(fx, fy, 2, 10, i % 2 ? '#d9a62c' : '#c88a20'); gfx.vline(fx, fy, 9, i % 2 ? '#f2c342' : '#e8a030'); gfx.px(fx, fy, '#fbe08a'); }
+        if (tr.salt > 0) for (let i = 0; i < 8; i++) gfx.px(tr.x - 22 + i * 6, tr.y - 8 + (i % 3) * 2, '#ffffff');
+        MG.steam(tr.x, tr.y - 10, this.t, { n: 3, speed: 0.4, rise: 18, alpha: 0.3, seed: 2 });
+      }
+      MG.tag('HOT TRAY', tr.x, tr.y + 20, { align: 'center' });
       // salt shaker
-      gfx.rect(178, 96, 16, 24, '#fff'); gfx.rect(178, 92, 16, 5, '#8a8a94'); gfx.text('SALT', 186, 104, '#333', { align: 'center', font: 'small' });
-      // fry box stack & cup stack & lids
-      gfx.rect(250, 220, 40, 36, '#8a8a94'); F.friesBox(g, 270, 250, 0, 'L'); F.friesBox(g, 262, 246, 0, 'M'); gfx.text('BOXES', 270, 214, '#fff', { align: 'center', font: 'small' });
-      gfx.rect(300, 190, 40, 40, '#8a8a94'); F.cup(g, 312, 226, 0, 'L'); F.cup(g, 326, 224, 0, 'M'); gfx.text('CUPS', 320, 182, '#fff', { align: 'center', font: 'small' });
-      gfx.rect(440, 120, 30, 30, '#8a8a94'); for (let i = 0; i < 4; i++) gfx.ellipse(455, 142 - i * 3, 9, 3, '#e8e8f0'); gfx.text('LIDS', 455, 112, '#fff', { align: 'center', font: 'small' });
-      // drink machine
-      gfx.rect(300, 40, 156, 70, '#c8352b'); gfx.rect(304, 44, 148, 30, '#8a1d1d'); gfx.text("DONALD'S FOUNTAIN", 378, 46, '#f5c33b', { align: 'center', font: 'small' });
-      for (const n of this.nozzles) { gfx.rect(n.x - 12, n.y - 20, 24, 20, '#5a5a66'); gfx.rect(n.x - 10, n.y - 18, 20, 12, FLAVORS[n.flavor]); gfx.text(n.flavor.toUpperCase().slice(0, 5), n.x, n.y - 14, '#fff', { align: 'center', font: 'small' }); gfx.rect(n.x - 3, n.y, 6, 8, '#333'); gfx.rect(n.x - 1, n.y + 8, 2, 4, '#555'); const held = this.ds.held; if (held && held.kind === 'cup' && Math.abs(held.x - n.x) < 12 && Math.abs(held.y - (n.y + 30)) < 16) { for (let i = 0; i < 3; i++) gfx.rect(n.x - 1, n.y + 12 + i * 6, 2, 4, FLAVORS[n.flavor]); } }
-      gfx.rect(300, 110, 156, 8, '#8a8a94'); gfx.rect(300, 118, 156, 2, '#5a5a66'); // drip tray
-      gfx.text('fill to the line ▬', 378, 125, '#333', { align: 'center', font: 'small' });
-      // pass
-      gfx.rect(this.pass.x, this.pass.y, this.pass.w, this.pass.h, '#5a5a66'); gfx.rect(this.pass.x + 4, this.pass.y + 4, this.pass.w - 8, this.pass.h - 8, '#e8e0d0'); gfx.text('→ PASS', this.pass.x + this.pass.w / 2, this.pass.y + 20, '#c8352b', { align: 'center', font: 'small' });
+      MG.ink(186, 106, 22, 34, (cx, cy) => {
+        gfx.rect(cx - 8, cy - 10, 16, 20, '#e2e0d8');
+        gfx.rect(cx - 8, cy - 10, 6, 20, '#ffffff');
+        gfx.rect(cx - 8, cy - 14, 16, 5, '#7e828c');
+        gfx.hline(cx - 8, cy - 14, 16, '#b6bac4');
+        for (let i = 0; i < 3; i++) gfx.px(cx - 4 + i * 4, cy - 13, '#3a3e47');
+        gfx.text('S', cx, cy - 3, '#3a3346', { align: 'center', font: 'small' });
+      });
+      // ---- drink fountain ------------------------------------------------------
+      gfx.rect(298, 38, 160, 74, '#8f231c');
+      gfx.rect(300, 40, 156, 70, '#c8352b');
+      gfx.hline(300, 40, 156, '#e0655a');
+      gfx.rect(304, 44, 148, 30, '#7d1a15');
+      gfx.rect(304, 44, 148, 28, '#8a1d1d');
+      gfx.hline(304, 44, 148, '#a63028');
+      gfx.text("DONALD'S FOUNTAIN", 378, 46, '#f5c33b', { align: 'center', font: 'small' });
+      gfx.text('fill to the line', 378, 54, '#e0a8a0', { align: 'center', font: 'small' });
+      for (const n of this.nozzles) {
+        const held = this.ds.held;
+        const active = held && held.kind === 'cup' && Math.abs(held.x - n.x) < 12 && Math.abs(held.y - (n.y + 30)) < 16;
+        gfx.rect(n.x - 12, n.y - 20, 24, 20, '#4a4e58');
+        gfx.rect(n.x - 11, n.y - 19, 22, 18, '#5c616c');
+        gfx.rect(n.x - 10, n.y - 18, 20, 12, FLAVORS[n.flavor]);
+        gfx.hline(n.x - 10, n.y - 18, 20, gfx.mix(FLAVORS[n.flavor], '#fff', 0.35));
+        gfx.text(n.flavor.toUpperCase().slice(0, 5), n.x, n.y - 14, '#fff', { align: 'center', font: 'small' });
+        gfx.rect(n.x - 3, n.y, 6, 8, '#2f333b');
+        gfx.vline(n.x - 3, n.y, 8, '#5c616c');
+        gfx.rect(n.x - 1, n.y + 8, 2, 4, '#4a4e58');
+        if (active) for (let i = 0; i < 4; i++) { const k = ((this.t * 3 + i * 0.25) % 1); gfx.rect(n.x - 1, n.y + 11 + k * 18, 2, 5, FLAVORS[n.flavor]); }
+      }
+      gfx.rect(300, 110, 156, 8, '#8f959f');
+      gfx.rect(300, 110, 156, 2, '#c0c6d0');
+      for (let x = 304; x < 452; x += 6) gfx.vline(x, 112, 5, '#6e737e');
+      gfx.rect(300, 118, 156, 2, '#5c616c');
+      // ---- box / cup / lid stacks ----------------------------------------------
+      gfx.rect(250, 220, 40, 36, '#8f959f');
+      gfx.rect(250, 220, 40, 3, '#c0c6d0');
+      F.friesBox(g, 270, 250, 0, 'L'); F.friesBox(g, 261, 246, 0, 'M');
+      MG.tag('BOXES', 270, 210, { align: 'center' });
+      gfx.rect(300, 190, 40, 40, '#8f959f');
+      gfx.rect(300, 190, 40, 3, '#c0c6d0');
+      F.cup(g, 312, 226, 0, 'L'); F.cup(g, 326, 224, 0, 'M');
+      MG.tag('CUPS', 320, 178, { align: 'center' });
+      gfx.rect(440, 120, 30, 30, '#8f959f');
+      gfx.rect(440, 120, 30, 3, '#c0c6d0');
+      MG.ink(455, 138, 26, 24, (cx, cy) => {
+        for (let i = 0; i < 4; i++) { gfx.ellipse(cx, cy + 4 - i * 3, 9, 3, '#d3d3dd'); gfx.ellipse(cx, cy + 3 - i * 3, 9, 2.6, '#eeeef6'); }
+      });
+      MG.tag('LIDS', 455, 152, { align: 'center' });
+      // ---- pass ---------------------------------------------------------------
+      gfx.rect(this.pass.x, this.pass.y, this.pass.w, this.pass.h, '#4a4e58');
+      gfx.rect(this.pass.x + 2, this.pass.y + 2, this.pass.w - 4, this.pass.h - 4, '#5c616c');
+      gfx.rect(this.pass.x + 4, this.pass.y + 4, this.pass.w - 8, this.pass.h - 8, '#e8e0d0');
+      g.globalAlpha = 0.2; gfx.rect(this.pass.x + 4, this.pass.y + 4, this.pass.w - 8, this.pass.h - 8, '#ffb24a'); g.globalAlpha = 1;
+      gfx.text('→ PASS', this.pass.x + this.pass.w / 2, this.pass.y + 20, '#a82a22', { align: 'center', font: 'small' });
       // tickets
       this.q.active.forEach((t, i) => { const lines = [Object.assign(new String((t.gotFries ? '✓ ' : '□ ') + t.fries + ' fries'), { done: t.gotFries })]; if (t.drink) lines.push(Object.assign(new String((t.gotDrink ? '✓ ' : '□ ') + t.drink.size + ' ' + t.drink.flavor), { done: t.gotDrink })); CH.drawTicket(g, 6 + i * 70, 158, lines, { num: t.num, timer: t.time / t.maxTime, w: 66 }); });
-      if (this.spill > 0) { g.globalAlpha = Math.min(1, this.spill); gfx.ellipse(378, 116, 40, 4, '#3a1a08'); g.globalAlpha = 1; }
+      if (this.spill > 0) { g.globalAlpha = Math.min(1, this.spill); gfx.ellipse(378, 117, 40, 4, '#2a1206'); gfx.ellipse(378, 116, 36, 3, '#3a1a08'); gfx.ellipse(370, 115, 8, 1, 'rgba(255,255,255,0.3)'); g.globalAlpha = 1; }
       this.ds.draw(g);
       this.particles.draw(g);
-      gfx.text(`Orders: ${this.q.done}/${this.q.total}  Failed: ${this.q.failed}`, 6, H - 10, '#fff', { font: 'small', outline: '#000' });
+      ordersStrip(g, this.q);
       if (this.ds.held) this.drawPaw(g, true);
       this.drawHud(g);
     }
@@ -411,33 +716,99 @@
       if (CH.pointIn(it.x, it.y, trash)) { this.ds.remove(it); this.conveyor.splice(this.conveyor.indexOf(it), 1); A.sfx('trash'); return; }
       it.onBelt = true; it.y = 110; A.sfx('back');
     }
-    drawItem(g, x, y, kind) { if (kind === 'burger') F.wrapped(g, x, y); else if (kind === 'fries') F.friesBox(g, x, y + 8, 1, 'M'); else if (kind === 'drink') F.cup(g, x, y + 8, 0.9, 'M', '#3a1a08', true); else if (kind === 'nuggets') { gfx.rect(x - 10, y - 6, 20, 12, '#c8352b'); gfx.rect(x - 9, y - 8, 18, 3, '#e04a3e'); F.nugget(g, x - 3, y); F.nugget(g, x + 4, y - 1); } else if (kind === 'pie') F.pie(g, x, y); }
+    drawItem(g, x, y, kind) {
+      if (kind === 'burger') F.wrapped(g, x, y);
+      else if (kind === 'fries') F.friesBox(g, x, y + 8, 1, 'M');
+      else if (kind === 'drink') F.cup(g, x, y + 8, 0.9, 'M', '#3a1a08', true);
+      else if (kind === 'nuggets') MG.ink(x, y, 26, 20, (cx, cy) => {
+        const m = MG.m('#c8352b', { dark: -28, light: 28 });
+        gfx.rect(cx - 10, cy - 6, 20, 12, m.base);
+        gfx.rect(cx - 10, cy - 6, 5, 12, m.l);
+        gfx.rect(cx + 7, cy - 6, 3, 12, m.d);
+        gfx.rect(cx - 9, cy - 9, 18, 4, m.l);
+        gfx.hline(cx - 9, cy - 9, 18, gfx.mix(m.l, '#fff', 0.4));
+        for (const [ox, oy] of [[-3, -1], [4, -2]]) { gfx.ellipse(cx + ox, cy + oy + 1, 4, 3, '#c08430'); gfx.ellipse(cx + ox, cy + oy, 3.8, 2.8, '#daa244'); gfx.px(cx + ox - 1, cy + oy - 1, '#f2c973'); }
+      });
+      else if (kind === 'pie') F.pie(g, x, y);
+    }
     draw(g) {
       CH.drawKitchenBackdrop(g, this.t);
-      // conveyor / pass shelf
-      gfx.rect(0, 118, 350, 12, '#5a5a66'); for (let i = 0; i < 350; i += 12) gfx.rect(i + ((this.t * 22) % 12), 120, 6, 8, '#8a8a94'); gfx.rect(0, 130, 350, 4, '#3a3a44');
-      gfx.text('← FROM KITCHEN', 8, 108, '#fff', { font: 'small' });
-      // chute
-      gfx.rect(this.chute.x, this.chute.y, this.chute.w, this.chute.h, '#5a5a66'); gfx.rect(this.chute.x + 4, this.chute.y + 4, this.chute.w - 8, this.chute.h - 8, '#222'); gfx.text('PICKUP', this.chute.x + 35, this.chute.y + 10, '#f5c33b', { align: 'center', font: 'small' }); gfx.text('CHUTE ↓', this.chute.x + 35, this.chute.y + 18, '#f5c33b', { align: 'center', font: 'small' }); gfx.text(String(this.q.done), this.chute.x + 35, this.chute.y + 36, '#8bd06a', { align: 'center' });
-      // trash
-      gfx.rect(440, 150, 40, 40, '#5a7a94'); gfx.text('TRASH', 460, 166, '#fff', { align: 'center', font: 'small' });
-      // bags with tickets
+      // ---- conveyor ------------------------------------------------------------
+      gfx.rect(0, 116, 350, 4, '#3a3e47');
+      gfx.rect(0, 118, 350, 12, '#4a4e58');
+      for (let i = 0; i < 350; i += 12) { const bx = i + ((this.t * 22) % 12); gfx.rect(bx, 119, 7, 9, '#8f959f'); gfx.hline(bx, 119, 7, '#c0c6d0'); gfx.vline(bx + 6, 119, 9, '#5c616c'); }
+      gfx.rect(0, 129, 350, 4, '#2f333b');
+      gfx.rect(0, 133, 350, 2, '#1f2228');
+      for (let i = 0; i < 6; i++) { gfx.circle(20 + i * 60, 134, 4, '#4a4e58'); gfx.circle(20 + i * 60, 134, 2, '#8f959f'); }
+      // heat lamp rack over the belt, so the wall is not a blank field
+      gfx.rect(20, 60, 300, 6, '#5c616c');
+      gfx.hline(20, 60, 300, '#949aa4');
+      for (let x = 40; x < 310; x += 60) { gfx.rect(x, 66, 3, 10, '#4a4e58'); gfx.rect(x - 14, 76, 32, 5, '#3a3e47'); gfx.rect(x - 12, 79, 28, 3, '#ffb24a'); gfx.hline(x - 12, 79, 28, '#ffe6a8'); }
+      g.globalAlpha = 0.08; gfx.rect(20, 82, 300, 32, '#ffca6a'); g.globalAlpha = 1;
+      // a clipboard of orders nobody reads
+      MG.ink(356, 96, 30, 40, (cx, cy) => {
+        gfx.rect(cx - 11, cy - 15, 22, 30, '#b98a4e');
+        gfx.rect(cx - 9, cy - 13, 18, 26, '#fdf8ea');
+        for (let i = 0; i < 5; i++) gfx.hline(cx - 7, cy - 9 + i * 5, 14 - (i % 2) * 5, '#c9bfa6');
+        gfx.rect(cx - 5, cy - 17, 10, 4, '#8f959f');
+        gfx.hline(cx - 5, cy - 17, 10, '#c6ccd6');
+      });
+      MG.tag('← FROM KITCHEN', 6, 104);
+      // ---- pickup chute --------------------------------------------------------
+      gfx.rect(this.chute.x - 2, this.chute.y - 2, this.chute.w + 4, this.chute.h + 4, '#3a3e47');
+      gfx.rect(this.chute.x, this.chute.y, this.chute.w, this.chute.h, '#5c616c');
+      gfx.hline(this.chute.x, this.chute.y, this.chute.w, '#949aa4');
+      gfx.rect(this.chute.x + 4, this.chute.y + 4, this.chute.w - 8, this.chute.h - 8, '#1a1620');
+      gfx.rect(this.chute.x + 4, this.chute.y + 4, this.chute.w - 8, 3, '#0e0b14');
+      gfx.text('PICKUP', this.chute.x + 35, this.chute.y + 10, '#f5c33b', { align: 'center', font: 'small' });
+      gfx.text('CHUTE ↓', this.chute.x + 35, this.chute.y + 18, '#f5c33b', { align: 'center', font: 'small' });
+      gfx.text(String(this.q.done), this.chute.x + 35, this.chute.y + 34, '#8bd06a', { align: 'center' });
+      // ---- trash ---------------------------------------------------------------
+      MG.ink(458, 170, 46, 48, (cx, cy) => {
+        const m = MG.m('#5a7a94', { dark: -30, darker: -48, light: 24 });
+        gfx.rect(cx - 20, cy - 20, 40, 40, m.base);
+        gfx.rect(cx - 20, cy - 20, 6, 40, m.l);
+        gfx.rect(cx + 15, cy - 20, 5, 40, m.d);
+        gfx.rect(cx - 22, cy - 24, 44, 5, m.dd);
+        gfx.rect(cx - 10, cy - 23, 20, 3, '#181320');
+        gfx.text('TRASH', cx, cy - 4, '#f3eee2', { align: 'center', font: 'small' });
+      });
+      // ---- bags ----------------------------------------------------------------
       for (const b of this.bags) {
         const t = b.ticket;
         const bx = b.dragging ? b.dx : b.x, by = b.dragging ? b.dy + 12 : b.y;
         if (t) {
           const sq = b.squash ? Math.sin(b.squash * Math.PI) * 0.15 : 0; if (b.squash) b.squash = Math.max(0, b.squash - 0.05);
-          g.save(); g.translate(bx, by); g.scale(1 + sq, 1 - sq); F.bag(g, 0, 0, t.folded < 2, t.got.filter(Boolean).length); g.restore();
-          if (t.folded === 1) gfx.rect(bx - 12, by - 27, 24, 3, '#c8a060');
-          if (t.drinks) { gfx.rect(bx + 30, by - 16, 22, 16, '#c8c8c8'); for (let i = 0; i < t.drinks; i++) { const gotD = t.items.filter((k, j) => k === 'drink' && t.got[j]).length; if (i < gotD) F.cup(g, bx + 36 + i * 10, by - 14, 0.9, 'S', '#3a1a08', true); else gfx.ellipseOutline(bx + 36 + i * 10, by - 8, 4, 2, '#888'); } }
+          MG.shadow(bx, by + 2, 14, b.dragging ? 0.18 : 0.28);
+          g.save(); g.translate(Math.round(bx), Math.round(by)); g.scale(1 + sq, 1 - sq); F.bag(g, 0, 0, t.folded < 2, t.got.filter(Boolean).length); g.restore();
+          if (t.folded === 1) { gfx.rect(bx - 12, by - 27, 24, 3, '#b8935e'); gfx.hline(bx - 12, by - 27, 24, '#dcb87e'); }
+          if (t.drinks) {
+            // drink carrier
+            MG.ink(bx + 41, by - 8, 32, 26, (cx, cy) => {
+              // moulded pulp drink carrier, two wells, seen from the front
+              gfx.rect(cx - 11, cy - 8, 22, 16, '#a9926c');
+              gfx.rect(cx - 11, cy - 8, 22, 13, '#c8ae82');
+              gfx.hline(cx - 11, cy - 8, 22, '#ddc59a');
+              gfx.ellipse(cx - 5, cy - 6, 4.4, 2.2, '#7d6849');
+              gfx.ellipse(cx + 5, cy - 6, 4.4, 2.2, '#7d6849');
+              gfx.ellipse(cx - 5, cy - 7, 4, 1.8, '#5f4e35');
+              gfx.ellipse(cx + 5, cy - 7, 4, 1.8, '#5f4e35');
+              gfx.hline(cx - 10, cy + 3, 20, '#9b8462');
+            });
+            for (let i = 0; i < t.drinks; i++) { const gotD = t.items.filter((k, j) => k === 'drink' && t.got[j]).length; if (i < gotD) F.cup(g, bx + 36 + i * 10, by - 14, 0.9, 'S', '#3a1a08', true); else gfx.ellipseOutline(bx + 36 + i * 10, by - 8, 4, 2, '#7e828c'); }
+          }
           const lines = t.items.map((k, i) => Object.assign(new String((t.got[i] ? '✓ ' : '□ ') + k), { done: t.got[i] }));
           CH.drawTicket(g, b.x - 36, 140, lines, { num: t.num, timer: t.time / t.maxTime, w: 72 });
-          if (t.got.every(Boolean) && t.folded < 2) gfx.text('click to fold', b.x, by + 4, '#f5c33b', { align: 'center', font: 'small', outline: '#000' });
-        } else { gfx.rect(b.x - 14, b.y - 22, 28, 22, 'rgba(0,0,0,0.15)'); gfx.text('(empty)', b.x, b.y - 12, '#888', { align: 'center', font: 'small' }); }
+          if (t.got.every(Boolean) && t.folded < 2) MG.tag('click to fold', b.x, by + 2, { align: 'center', face: MG.GOLD });
+        } else {
+          gfx.rect(b.x - 14, b.y - 22, 28, 22, 'rgba(20,14,26,0.14)');
+          for (let i = 0; i < 4; i++) gfx.hline(b.x - 14, b.y - 22 + i * 7, 28, 'rgba(20,14,26,0.08)');
+          gfx.text('(empty)', b.x, b.y - 12, '#7d6a58', { align: 'center', font: 'small' });
+        }
       }
       this.ds.draw(g);
       this.particles.draw(g);
-      gfx.text(`Orders: ${this.q.done}/${this.q.total}  Failed: ${this.q.failed}`, 6, H - 10, '#fff', { font: 'small', outline: '#000' });
+      ordersStrip(g, this.q);
       if (this.ds.held || this.bags.some((b) => b.dragging)) this.drawPaw(g, true);
       this.drawHud(g);
     }

@@ -20,7 +20,12 @@ const walkTo = async (x, timeout = 20000) => { const t0 = Date.now(); while (Dat
 const untilObj = async (prefix, timeout = 20000) => { const t0 = Date.now(); while (Date.now() - t0 < timeout) { const s = await state(); if (s.obj && s.obj.startsWith(prefix)) return s; if (!(await dismiss())) await page.waitForTimeout(200); } console.log('untilObj timeout', prefix); return state(); };
 
 await untilObj('Grab the mop'); await log('start');
-await walkTo(1277); await page.keyboard.press('e'); await page.waitForTimeout(500);
+// read the closet's position from the scene so moving props cannot break this
+const closetX = await page.evaluate(() => {
+  const p = CH.game.scene.props.find((q) => q.hint === 'Supply closet');
+  return p ? Math.round(p.x + p.w / 2) : 1286;
+});
+await walkTo(closetX); await page.keyboard.press('e'); await page.waitForTimeout(500);
 for (let i = 0; i < 40; i++) { const s = await state(); if (s.tasks.length) break; if (!(await dismiss())) await page.waitForTimeout(300); }
 const s1 = await log('mop taken');
 if (!s1.tasks.length) console.log('FAIL: no spill task spawned');
