@@ -19,7 +19,10 @@ python3 -m http.server 8000
 # then visit http://localhost:8000
 ```
 
-Progress auto-saves to localStorage at every chapter and after every shift.
+Progress autosaves to localStorage at every chapter and after every shift, into
+its own slot. Three more slots are yours: open the pause menu with **Esc** or
+**P** and pick Save Game. The title screen's Continue picks up whichever slot
+was written last.
 
 ## Controls
 
@@ -31,7 +34,26 @@ Progress auto-saves to localStorage at every chapter and after every shift.
 | Smartphone | I (once Chubby has it) |
 | Minigames | Mouse: click, drag, hold, wiggle |
 | Mute | M |
-| Back / menu | Esc |
+| Pause, save, load, quit | Esc or P |
+| Back / close | Esc |
+
+## Art
+
+Every sprite is assembled at run time. A drawing is composed on an offscreen
+buffer, its silhouette is dilated into a single dark ink line, and the result is
+blitted in one piece, which is what gives the cast the heavy outline of a
+hand-drawn sprite sheet without a single outline pixel being placed by hand.
+On top of that each material carries a shading ramp, and characters are built
+from parts on a local axis so one pose serves both facings.
+
+Chubby's face is assembled from a brow, an eye shape and a mouth shape, which is
+how twenty expressions come out of one head. Springs drive his belly jiggle,
+head lag and quill sweep, so landing, turning and stopping all overshoot and
+settle instead of snapping. Standing still for a few seconds gets you a look
+around, a yawn, a shuffle or a scratch.
+
+Dialogue is a comic speech bubble anchored over whoever is talking, with a tail
+that points at them, and pages itself when a line runs long.
 
 ## What's inside
 
