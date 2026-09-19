@@ -40,7 +40,7 @@
   def('bagStation', 60, 50, (g, x, y, t) => { gfx.rect(x, y - 40, 60, 40, '#8a8a94'); gfx.rect(x, y - 42, 60, 3, '#e8ecf0'); CH.FOOD.bag(g, x + 14, y - 42, true, 0); CH.FOOD.bag(g, x + 36, y - 42, true, 0); gfx.rect(x + 4, y - 70, 52, 20, '#5a5a66'); gfx.rect(x + 6, y - 68, 48, 16, '#222'); gfx.text('ORDERS', x + 30, y - 66, '#4f4', { align: 'center', font: 'small' }); });
   def('sodaMachine', 40, 60, (g, x, y, t) => { gfx.rect(x, y - 60, 40, 60, '#c8352b'); gfx.rect(x + 2, y - 58, 36, 16, '#8a1d1d'); for (let i = 0; i < 4; i++) { gfx.rect(x + 3 + i * 9, y - 40, 7, 8, ['#3a1a08', '#f0902a', '#e8e060', '#5a2a10'][i]); gfx.rect(x + 5 + i * 9, y - 32, 3, 4, '#333'); } gfx.rect(x + 2, y - 24, 36, 4, '#8a8a94'); });
   def('dtWindow', 60, 70, (g, x, y, t, st) => { gfx.rect(x, y - 70, 60, 60, '#5a5a66'); gfx.rect(x + 4, y - 66, 52, 52, '#a8b8cc'); const car = st && st.car; if (car) { const cx = x + 4 + Math.round(car.x); gfx.clip(x + 4, y - 66, 52, 52); gfx.rrect(cx, y - 36, 50, 14, 3, car.color); gfx.rrect(cx + 10, y - 46, 28, 12, 3, car.color); gfx.rect(cx + 14, y - 44, 10, 8, '#9fdcff'); gfx.circle(cx + 10, y - 22, 5, '#111'); gfx.circle(cx + 40, y - 22, 5, '#111'); gfx.unclip(); } gfx.rect(x + 28, y - 66, 3, 52, '#5a5a66'); gfx.rect(x, y - 14, 60, 4, '#c8352b'); gfx.text('DRIVE-THRU', x + 30, y - 78, '#fff', { align: 'center', font: 'small' }); gfx.rect(x + 8, y - 10, 40, 10, '#5a5a66'); });
-  def('officeDoor', 26, 58, (g, x, y) => { gfx.rect(x - 2, y - 60, 30, 60, '#5a5a66'); gfx.rect(x, y - 58, 26, 58, '#8a5a2b'); gfx.rect(x + 4, y - 50, 18, 12, '#fff'); gfx.text('OFFICE', x + 13, y - 48, '#333', { align: 'center', font: 'small' }); gfx.text('BRENDA', x + 13, y - 42, '#c8352b', { align: 'center', font: 'small' }); gfx.px(x + 22, y - 30, '#f5c33b'); });
+  def('officeDoor', 26, 58, (g, x, y) => { gfx.rect(x - 2, y - 60, 30, 60, '#5a5a66'); gfx.rect(x, y - 58, 26, 58, '#8a5a2b'); gfx.rect(x + 3, y - 52, 20, 15, '#fff'); gfx.text('OFFICE', x + 13, y - 51, '#333', { align: 'center', font: 'small' }); gfx.text('BRENDA', x + 13, y - 44, '#c8352b', { align: 'center', font: 'small' }); gfx.px(x + 22, y - 30, '#f5c33b'); });
   def('closet', 26, 58, (g, x, y, t, st) => { gfx.rect(x - 2, y - 60, 30, 60, '#5a5a66'); gfx.rect(x, y - 58, 26, 58, '#6a6a74'); for (let i = 0; i < 6; i++) gfx.rect(x + 4, y - 52 + i * 4, 18, 1, '#444'); gfx.rect(x + 6, y - 30, 14, 8, '#fff'); gfx.text('SUPPLY', x + 13, y - 28, '#333', { align: 'center', font: 'small' }); if (!(st && st.mopTaken)) { gfx.rect(x + 28, y - 50, 2, 50, '#c8a060'); gfx.rect(x + 24, y - 6, 12, 6, '#e8e0d0'); gfx.rect(x + 20, y - 12, 18, 12, '#f5c33b'); gfx.ellipse(x + 29, y - 8, 6, 3, '#6aa8ff'); } });
   def('kiosk', 30, 60, (g, x, y, t) => { gfx.rect(x, y - 60, 30, 60, '#2a3350'); gfx.rect(x + 3, y - 56, 24, 34, '#1b2238'); gfx.rect(x + 5, y - 54, 20, 30, '#3b6fd6'); for (let i = 0; i < 6; i++) gfx.rect(x + 8 + (i % 3) * 5, y - 50 + Math.floor(i / 3) * 12, 4, 8, i < 3 ? '#f5c33b' : '#6fa2ff'); gfx.text('CAREER', x + 15, y - 24, '#f5c33b', { align: 'center', font: 'small' }); gfx.text('TOWER', x + 15, y - 17, '#f5c33b', { align: 'center', font: 'small' }); if (Math.sin(t * 3) > 0) gfx.px(x + 26, y - 58, '#4f4'); });
   def('kidsCorner', 60, 50, (g, x, y, t) => { gfx.rect(x, y - 20, 60, 20, '#3b6fd6'); for (let i = 0; i < 24; i++) gfx.circle(x + 5 + (i % 12) * 5, y - 14 + Math.floor(i / 12) * 6, 2.5, ['#c8352b', '#f5c33b', '#4f9d3a', '#e8752c'][i % 4]); gfx.rect(x + 10, y - 50, 40, 30, '#f5c33b'); gfx.rect(x + 14, y - 46, 32, 22, '#fff'); CH.drawManEgg(g, x + 30, y - 32, { t }); gfx.text('PLAYPLACE', x + 30, y - 58, '#c8352b', { align: 'center', font: 'small' }); });
@@ -230,7 +230,7 @@
       this.carT -= dt; if (this.carT <= 0) { this.carT = CH.rand(8, 16); this.dt.st.car = { x: -60, color: CH.pick(['#3b6fd6', '#c8352b', '#4f9d3a', '#f5c33b', '#8a8a94']) }; }
       if (this.dt.st.car) { this.dt.st.car.x += dt * 12; if (this.dt.st.car.x > 60) this.dt.st.car = null; }
       // task patience
-      for (let i = this.tasks.length - 1; i >= 0; i--) { const t = this.tasks[i]; t.patience -= dt; if (t.patience <= 0) { this.tasks.splice(i, 1); this.complain(t); } }
+      for (const t of this.tasks) { if (t.strikes >= 2) continue; t.patience -= dt; if (t.patience <= 0) { t.strikes = (t.strikes || 0) + 1; this.complain(t); t.patience = t.maxPatience * 1.25; } }
       this.prop('orderScreen').st.num = this.orderNum;
     }
     isRush() { return (S.hour > 11.5 && S.hour < 13.5) || (S.hour > 15 && S.hour < 16); }
@@ -301,7 +301,7 @@
     spawnSpill(x) {
       x = CH.clamp(x, 110, 570);
       const kinds = Object.keys(CH.MESSES); const kind = S.day < 3 ? CH.pick(['soda', 'ketchup', 'milkshake']) : CH.pick(kinds);
-      const p = this.addProp('spill', x - 15, this.floorY + 3, { st: { mess: CH.MESSES[kind] }, layer: 'back', anim: true, id: 'spill' + Math.random() });
+      const p = this.addProp('spill', x - 15, this.floorY + 3, { st: { mess: CH.MESSES[kind] }, layer: 'back', anim: true, id: 'spill' + Math.random(), hint: CH.MESSES[kind].name, range: 24, priority: 2, interact: (pp) => this.interactSpill(pp) });
       this.addTask({ type: 'spill', x, y: this.floorY - 14, patience: 50, label: CH.MESSES[kind].name, prop: p, kind });
       A.sfx('splash');
     }
@@ -323,6 +323,7 @@
       yield* this.runTask(this.stationTask);
     }
     *interactCounter() { if (this.job === 'cashier') { yield* this.interactStation('cashier'); return; } if (this.job === 'shiftlead') { if (this.stationTask) { yield* this.runTask(this.stationTask); return; } } if (this.tasks.some((t) => t.type === 'restock')) { yield* this.runTask(this.tasks.find((t) => t.type === 'restock')); return; } yield ui.say('Tammy', CH.pick(["Hey new guy. Don't lean on the counter. Corporate has a camera.", "Six years, Chubby. Six. Nobody's been here longer except the fryer.", "You're doing fine. Better than Kevin. Kevin set the mop on fire once. Don't ask."]), { portrait: 'Tammy' }); }
+    *interactSpill(p) { const t = this.tasks.find((k) => k.type === 'spill' && k.prop === p); if (t) { yield* this.runTask(t); return; } const i = this.props.indexOf(p); if (i >= 0) this.props.splice(i, 1); }
     *interactBooth(p) { const t = this.tasks.find((k) => k.type === 'table' && k.prop === p); if (t) { yield* this.runTask(t); return; } yield ui.say('Chubby', p.occupied ? "Someone's eating. I'll wait. I'm very good at waiting." : 'Clean table. For now.'); }
     *interactBin(p) { const t = this.tasks.find((k) => k.type === 'bin'); if (t) { yield* this.runTask(t); return; } yield ui.say('Chubby', `The bin is ${Math.round(p.st.fill * 100)}% full. I know this now. I know bin percentages.`); }
     *interactBathroom(p) { const t = this.tasks.find((k) => k.type === 'bathroom'); if (t) { yield* this.runTask(t); return; } A.sfx('door'); yield ui.say('Chubby', CH.pick(["Clean enough. {p}'Enough' is a janitor's favourite word.", "Somebody wrote 'KEVIN WAS HERE' on the stall. Kevin has been gone for weeks. Kevin haunts us.", 'I check my visor in the mirror. It does not help.'])); }
@@ -393,11 +394,11 @@
       for (const t of this.tasks) {
         const x = Math.round(t.x - cx), y = Math.round(t.y) - 8 + Math.round(Math.sin(this.t * 5 + t.x) * 2);
         const p = CH.clamp(t.patience / t.maxPatience, 0, 1);
-        const col = t.type === 'station' ? '#3b6fd6' : p < 0.3 ? '#c8352b' : '#f5c33b';
+        const col = t.strikes >= 2 ? '#6a6a74' : t.type === 'station' ? '#3b6fd6' : p < 0.3 ? '#c8352b' : '#f5c33b';
         gfx.rrect(x - 8, y - 14, 16, 14, 3, col); gfx.tri(x - 3, y, x + 3, y, x, y + 4, col);
         const icon = { spill: '~', table: '■', bin: '▼', bathroom: 'WC', restock: '□', station: t.count ? String(t.count) : '!' }[t.type] || '!';
         gfx.text(icon, x, y - 11, '#fff', { align: 'center', font: 'small' });
-        gfx.rect(x - 8, y - 17, 16, 2, '#222'); gfx.rect(x - 8, y - 17, Math.round(16 * p), 2, p < 0.3 ? '#ff4040' : '#8bd06a');
+        if (!(t.strikes >= 2)) { gfx.rect(x - 8, y - 17, 16, 2, '#222'); gfx.rect(x - 8, y - 17, Math.round(16 * p), 2, p < 0.3 ? '#ff4040' : '#8bd06a'); }
         if (Math.abs(this.player.x - t.x) < 70) gfx.text(t.label, x, y - 26, '#fff', { align: 'center', font: 'small', outline: '#000' });
       }
       // shift HUD
@@ -446,4 +447,5 @@
   CH.startShift = () => { CH.game.set(new RestaurantScene()); };
   CH.SCENES.restaurant = () => { S.job = S.job || 'janitor'; S.chapter = 'career'; CH.flag('hasPhone', true); return new RestaurantScene(); };
   CH.SCENES.restaurantGrill = () => { S.job = 'grill'; S.chapter = 'career'; CH.flag('hasPhone', true); CH.flag('firstShiftDone', true); return new RestaurantScene(); };
+  for (const j of ['bagging', 'fries', 'assembly', 'cashier', 'drivethru', 'shiftlead', 'manager', 'regional', 'vp', 'cbo', 'ceo']) CH.SCENES['restaurant_' + j] = () => { S.job = j; S.chapter = 'career'; S.towerFloor = Math.max(S.towerFloor || 1, CH.JOB_INFO[j].floor); CH.flag('hasPhone', true); CH.flag('firstShiftDone', true); return new RestaurantScene(); };
 })(window.CH);

@@ -74,7 +74,7 @@
   }
   CH.MinigameScene = MinigameScene;
 
-  CH.runMinigame = (scene) => { const sig = new CH.Signal(); scene.onDone = (r) => sig.resolve(r); CH.game.push(scene); return sig; };
+  CH.runMinigame = (scene) => { const sig = new CH.Signal(); const shown = CH.ui.objectiveShown; CH.ui.objectiveShown = false; scene.onDone = (r) => { CH.ui.objectiveShown = shown; sig.resolve(r); }; CH.game.push(scene); return sig; };
 
   // ---- Scrub mask: dirt that gets erased by a tool -------------------------------------------------
   class ScrubMask {

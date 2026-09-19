@@ -66,6 +66,12 @@ Progress auto-saves to localStorage at every chapter and after every shift.
 `js/` loads as plain scripts in dependency order (see `index.html`). Test
 scenes can be opened directly, e.g. `index.html?scene=hedgehog`,
 `?scene=restaurant`, `?scene=tower`, `?scene=grill`, `?test=chubby`.
+Every position has a shift route: `?scene=restaurant_grill`,
+`?scene=restaurant_shiftlead`, `?scene=restaurant_manager`,
+`?scene=restaurant_ceo`, and so on for each job id in `CH.JOBS`.
 
 `tools/shot.mjs` and `tools/smoke.mjs` drive the game headlessly with
 Playwright for screenshots and error checks (`cd tools && npm install`).
+`tools/flow.mjs`, `tools/chain.mjs`, `tools/systems.mjs` and `tools/spill.mjs`
+are scripted playthroughs of the opening, the job hunt and first shift, the
+phone/tower/promotion/ending systems, and the janitor mop loop.
