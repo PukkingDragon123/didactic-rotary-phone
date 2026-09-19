@@ -10,6 +10,8 @@
       super();
       this.width = opts.width || 960;
       this.floorY = opts.floorY || 222;
+      this.lights = [];
+      this.ambient = opts.ambient || null;   // {color, alpha} multiply pass
       this.props = []; this.npcs = []; this.exits = [];
       this.player = new CH.Chubby(opts.playerX || 60, this.floorY);
       this.player.speed = 78;
@@ -140,6 +142,7 @@
       this.particles.draw(g);
       for (const p of this.props) if (p.layer === 'front' && !p.hidden) p.def.draw(g, p.x, p.y, t, p.st);
       this.drawForeground(g);
+      this.drawLights(g);
       // interaction prompt
       if (this.hoverProp) {
         const p = this.hoverProp;
@@ -152,6 +155,32 @@
       g.restore();
       this.drawHud(g);
     }
+    // ---- lighting ----------------------------------------------------------
+    // Scenes push {x, y, rx, ry, color, alpha, flicker, cone} onto this.lights;
+    // an ambient multiply tint goes down first, then the pools are added back.
+    // Drawn inside the camera transform, so positions are world coordinates.
+    drawLights(g) {
+      const amb = this.ambient;
+      if (amb) {
+        g.save();
+        g.globalCompositeOperation = 'multiply';
+        g.globalAlpha = amb.alpha;
+        CH.gfx.rect(this.cam.x - 4, 0, CH.W + 8, CH.H, amb.color);
+        g.restore();
+      }
+      if (!this.lights || !this.lights.length) return;
+      for (const L of this.lights) {
+        if (L.off) continue;
+        const sx = L.x - this.cam.x;
+        if (sx < -120 || sx > CH.W + 120) continue;
+        let a = L.alpha === undefined ? 0.18 : L.alpha;
+        if (L.flicker) a *= 0.82 + Math.sin(this.t * L.flicker + L.x) * 0.1 + Math.sin(this.t * L.flicker * 2.7 + L.y) * 0.06;
+        if (L.cone) CH.art.lightCone(L.x, L.y, L.cone[0], L.cone[1], L.cone[2], L.color, a);
+        else CH.art.lightPool(L.x, L.y, L.rx || 40, L.ry || 30, L.color || '#ffd08a', a);
+      }
+    }
+    addLight(L) { this.lights = this.lights || []; this.lights.push(L); return L; }
+
     drawHud(g) {
       if (!this.hud) return;
       // time

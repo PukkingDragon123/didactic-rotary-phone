@@ -487,6 +487,15 @@
       this.kevin = CH.makeKevin(870, F + 1); this.kevin.wanderRange = [850, 905]; this.kevin.arm = 'hold'; this.addNPC(this.kevin);
       this.jorge = CH.makeJorge(950, F + 1); this.jorge.arm = 'hold'; this.jorge.flip = true; this.addNPC(this.jorge);
       this.destiny = CH.makeDestiny(1040, F + 1); this.destiny.wanderRange = [1000, 1120]; this.destiny.arm = 'hold'; this.addNPC(this.destiny);
+      // ---- lighting: cold fluorescent out front, hot lamps over the line ----
+      this.ambient = { color: '#c6d2e8', alpha: 0.1 };
+      for (let x = 60; x < 780; x += 150) this.addLight({ x, y: 30, cone: [18, 150, F - 40], color: '#e8f0ff', alpha: 0.09 });
+      this.addLight({ x: 750, y: F - 52, rx: 54, ry: 26, color: '#ffb060', alpha: 0.22, flicker: 6 });   // heat lamp over the pass
+      for (let x = 840; x < 1180; x += 110) this.addLight({ x, y: 34, cone: [20, 130, F - 44], color: '#dfe8ff', alpha: 0.11 });
+      this.addLight({ x: 872, y: F - 48, rx: 40, ry: 20, color: '#ff7a30', alpha: 0.16, flicker: 9 });   // the grill itself
+      this.addLight({ x: 1179, y: F - 46, rx: 56, ry: 34, color: '#9fc8ff', alpha: 0.14 });              // daylight at the drive-thru
+      this.addLight({ x: 120, y: F - 46, rx: 70, ry: 40, color: '#bcd8ff', alpha: 0.13 });               // and at the front doors
+
       this.brenda = CH.makeBrenda(1290, F + 1); this.brenda.hidden = true; this.addNPC(this.brenda);
       if (this.job !== 'janitor') { this.newKevin = new CH.NPC({ name: 'New Kevin', species: 'raccoon', outfit: 'polo', x: 700, y: F + 1, speed: 45, hat: 'visor' }); this.newKevin.arm = 'mop'; this.addNPC(this.newKevin); }
       // idle animation coroutines for coworkers

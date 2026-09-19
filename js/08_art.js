@@ -286,9 +286,12 @@
     const ctx = gfx.cur;
     ctx.save();
     ctx.globalCompositeOperation = 'lighter';
-    for (let i = 3; i >= 1; i--) {
-      ctx.globalAlpha = alpha * (i / 3) * 0.6;
-      gfx.ellipse(x, y, rx * (i / 3), ry * (i / 3), color);
+    // enough steps that the falloff reads as a glow rather than as rings
+    const N = 6;
+    for (let i = N; i >= 1; i--) {
+      const k = i / N;
+      ctx.globalAlpha = alpha * (1 - k) * 0.5 + alpha * 0.06;
+      gfx.ellipse(x, y, rx * k, ry * k, color);
     }
     ctx.restore();
   };
@@ -297,9 +300,14 @@
     const ctx = gfx.cur;
     ctx.save();
     ctx.globalCompositeOperation = 'lighter';
-    ctx.globalAlpha = alpha;
-    gfx.tri(x - w0 / 2, y, x + w0 / 2, y, x + w1 / 2, y + h, color);
-    gfx.tri(x - w0 / 2, y, x - w1 / 2, y + h, x + w1 / 2, y + h, color);
+    // three nested cones so the beam is brightest at the fixture and fades out
+    for (let i = 3; i >= 1; i--) {
+      const k = i / 3;
+      ctx.globalAlpha = alpha * (1.1 - k) * 0.7;
+      const a0 = w0 * k, a1 = w1 * k, hh = h * (0.6 + k * 0.4);
+      gfx.tri(x - a0 / 2, y, x + a0 / 2, y, x + a1 / 2, y + hh, color);
+      gfx.tri(x - a0 / 2, y, x - a1 / 2, y + hh, x + a1 / 2, y + hh, color);
+    }
     ctx.restore();
   };
   // Multiply a tint over the frame - the cheap way to say "it is evening".
