@@ -51,8 +51,8 @@
       const think = (t) => () => ui.say('', t, { color: '#cfc8e8' });
       // ---------------- bedroom ----------------
       this.addProp('bed', 14, F, { hint: 'Bed', interact: () => this.interactBed() });
-      this.addProp('nightstand', 86, F);
-      this.alarm = this.addProp('alarmClock', 90, F - 16, { hint: 'Alarm clock', st: { ringing: false }, interact: () => this.interactAlarm(), range: 30, priority: 1 });
+      this.addProp('nightstand', 124, F);
+      this.alarm = this.addProp('alarmClock', 128, F - 16, { hint: 'Alarm clock', st: { ringing: false }, interact: () => this.interactAlarm(), range: 30, priority: 1 });
       this.addProp('poster', 24, 154, { st: { variant: 0 }, hint: 'Poster', interact: say('Blue Hedgehog 2. The greatest game ever made. I have it on three consoles.') });
       this.addProp('poster', 130, 150, { st: { variant: 1 }, hint: 'Poster', interact: say("Man Egg. The villain. Honestly kind of a fashion icon.") });
       this.addProp('gameCases', 150, F, { hint: 'Game pile', interact: say('Blue Hedgehog 1, 2, 3, Blue Hedgehog Kart, Blue Hedgehog Fishing... Blue Hedgehog Fishing was a mistake.') });

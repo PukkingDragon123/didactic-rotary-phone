@@ -77,7 +77,7 @@
       this.addProp('elevator', 16, F, { hint: 'Elevator', interact: () => this.interactElevator() });
       this.addProp('nurseDesk', 96, F, { layer: 'front', hint: 'Nurse desk', interact: () => this.interactDesk(), promptY: F - 50 });
       this.addProp('hChairs', 180, F, { hint: 'Chairs', interact: () => this.interactChairs(200), range: 40 });
-      this.addProp('hChairs', 250, F, { hint: 'Chairs', interact: () => this.interactChairs(270), range: 40 });
+      this.addProp('hChairs', 266, F, { hint: 'Chairs', interact: () => this.interactChairs(286), range: 40 });
       this.addProp('hPoster', 190, 140, { st: { variant: 0 }, hint: 'Poster', interact: say("'WASH YOUR PAWS'. A cartoon otter is winking at me. I don't trust it.") });
       this.addProp('vending', 330, F, { hint: 'Vending machine', interact: () => this.interactVending() });
       this.addProp('waterFountain', 372, F, { hint: 'Fountain', interact: () => this.interactFountain() });
@@ -93,10 +93,10 @@
       this.addProp('gurney', 710, F, { hint: 'Gurney', interact: say('An empty gurney. The sheet is still warm somehow. I hate this.') });
       this.addProp('plant', 780, F, { st: { variant: 2 }, hint: 'Plant', interact: say("A dead plant. In a hospital. {p}Nobody watered it. I get it, plant. Nobody is watering me either.") });
       this.addProp('hChairs', 800, F, { hint: 'Chairs', interact: () => this.interactChairs(820), range: 40 });
-      this.addProp('trashBin', 870, F, { hint: 'Bin', interact: say('Coffee cups. Tissue. A single glove.') });
+      this.addProp('trashBin', 886, F, { hint: 'Bin', interact: say('Coffee cups. Tissue. A single glove.') });
       this.addProp('hDoor', 900, F, { st: { label: 'EXIT' }, hint: 'Exit', interact: () => this.interactExit() });
       this.addProp('hSign', 890, 128, { st: { text: 'EXIT →' } });
-      this.addProp('ivStand', 760, F, { hint: 'IV stand', interact: say("Drip. Drip. Drip. It's counting something I can't see.") });
+      this.addProp('ivStand', 782, F, { hint: 'IV stand', interact: say("Drip. Drip. Drip. It's counting something I can't see.") });
       // NPCs
       this.nurse1 = CH.makeNurse(140, F + 2, 0); this.nurse1.wanderRange = [120, 380]; this.addNPC(this.nurse1);
       this.nurse2 = CH.makeNurse(700, F + 2, 1); this.nurse2.wanderRange = [560, 900]; this.nurse2.arm = 'clipboard'; this.addNPC(this.nurse2);
@@ -361,8 +361,8 @@
       this.addProp('curtainRail', 110, F - 30, { layer: 'back' });
       this.addProp('monitor', 150, F, { hint: 'Monitor', interact: () => ui.say('Chubby', "Beep. {p}Beep. {p}Beep. {pp}Every beep is a good beep. I keep telling myself that.", { face: 'sad' }) });
       this.bed = this.addProp('hBed', 190, F, { hint: 'Mom', interact: () => this.interactMom(), range: 50 });
-      this.addProp('ivStand', 266, F, { hint: 'IV drip' });
-      this.addProp('bedsideTable', 276, F, { hint: 'Table', interact: () => ui.say('Chubby', "Flowers from the nurses' station. A cup of water she hasn't touched. {p}Her glasses, folded.", { face: 'sad' }) });
+      this.addProp('ivStand', 292, F, { hint: 'IV drip' });
+      this.addProp('bedsideTable', 312, F, { hint: 'Table', interact: () => ui.say('Chubby', "Flowers from the nurses' station. A cup of water she hasn't touched. {p}Her glasses, folded.", { face: 'sad' }) });
       this.addProp('chair', 120, F, { hint: 'Chair', interact: () => this.interactChair() });
       this.addProp('hClock', 440, 110, { hint: 'Clock', interact: () => ui.say('Chubby', CH.timeStr() + '. {p}The clock in here is louder.', { face: 'sad' }) });
       this.addProp('sanitizer', 20, 160);
