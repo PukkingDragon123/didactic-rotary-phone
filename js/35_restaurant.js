@@ -810,13 +810,23 @@
     enter() { A.sfx('cash'); }
     update(dt) { this.t2 += dt; if (this.t2 > 1.5 && (inp.hit('interact') || inp.hit('confirm') || inp.hit('jump') || inp.mpressed)) { inp.eat(); CH.game.pop(); this.onDone(); } }
     draw(g) {
-      g.globalAlpha = 0.7; gfx.rect(0, 0, W, H, '#000'); g.globalAlpha = 1;
-      const bw = 260, bh = 170, bx = W / 2 - bw / 2, by = H / 2 - bh / 2;
-      ui.drawBox(bx, by, bw, bh, { border: '#f5c33b' });
-      gfx.text('SHIFT COMPLETE  -  DAY ' + this.res.day, W / 2, by + 8, '#f5c33b', { align: 'center' });
-      gfx.text(this.res.job, W / 2, by + 20, '#fff', { align: 'center', font: 'small' });
+      g.save(); g.globalAlpha = 0.72; gfx.rect(0, 0, W, H, '#0a0710'); g.restore();
+      const bw = 260, bh = 178, bx = W / 2 - bw / 2, by = H / 2 - bh / 2 - 4;
+      // same rounded ink panel the menus use
+      gfx.rrect(bx - 2, by - 2, bw + 4, bh + 4, 8, CH.art.INK);
+      gfx.rrect(bx, by, bw, bh, 6, '#2b2336');
+      gfx.rrect(bx + 2, by + 2, bw - 4, bh - 4, 5, '#372c46');
+      gfx.rrect(bx + 2, by + 2, bw - 4, 2, 1, '#4b3d5e');
+      {
+        const title = 'SHIFT COMPLETE  -  DAY ' + this.res.day;
+        const tw = gfx.textWidth(title) + 16, tx = Math.round(bx + (bw - tw) / 2);
+        gfx.rrect(tx - 1, by - 8, tw + 2, 15, 5, CH.art.INK);
+        gfx.rrect(tx, by - 7, tw, 13, 4, '#f5d76b');
+        gfx.text(title, tx + 8, by - 4, '#221a2c');
+      }
+      gfx.text(this.res.job, W / 2, by + 14, '#c9bfd8', { align: 'center', font: 'small' });
       const rows = [['Tasks completed', String(this.res.tasks)], ['Stars earned', '★ ' + this.res.stars], ['Customers served', String(this.res.served)], ['Complaints', String(this.res.complaints)], ['Base pay (8h)', CH.fmtMoney(this.res.base)], ['Tips', CH.fmtMoney(this.res.tips)], ['Bonus', CH.fmtMoney(this.res.bonus)]];
-      rows.forEach((r, i) => { if (this.t2 > 0.2 + i * 0.15) { gfx.text(r[0], bx + 14, by + 34 + i * 11, '#ccc', { font: 'small' }); gfx.text(r[1], bx + bw - 14, by + 34 + i * 11, r[0] === 'Complaints' && this.res.complaints ? '#ff8080' : '#fff', { align: 'right', font: 'small' }); } });
+      rows.forEach((r, i) => { if (this.t2 > 0.2 + i * 0.15) { gfx.text(r[0], bx + 14, by + 30 + i * 11, '#ccc', { font: 'small' }); gfx.text(r[1], bx + bw - 14, by + 30 + i * 11, r[0] === 'Complaints' && this.res.complaints ? '#ff8080' : '#fff', { align: 'right', font: 'small' }); } });
       if (this.t2 > 1.3) { gfx.hline(bx + 14, by + 114, bw - 28, '#f5c33b'); gfx.text('TOTAL PAY', bx + 14, by + 120, '#f5c33b'); g.save(); g.translate(bx + bw - 14, by + 118); g.scale(1.4, 1.4); gfx.text(CH.fmtMoney(this.res.pay), 0, 0, '#8bd06a', { align: 'right' }); g.restore(); }
       if (this.t2 > 1.5) { const q = this.res.quality; gfx.text(q >= 0.75 ? 'Brenda: "Solid."' : q >= 0.45 ? 'Brenda: "...Okay."' : 'Brenda: "We\'ll talk."', W / 2, by + 140, '#ccc', { align: 'center', font: 'small' }); if (Math.sin(this.t2 * 5) > 0) gfx.text('E - continue', W / 2, by + bh - 12, '#fff', { align: 'center', font: 'small' }); }
     }
