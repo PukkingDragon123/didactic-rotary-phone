@@ -1,0 +1,139 @@
+<title>Chubby the Porcupine</title>
+<style>
+  :root {
+    --ink: #0b0a0f;
+    --cabinet: #17151f;
+    --quill: #f5c33b;
+    --ketchup: #c8352b;
+    --bone: #e8e0c8;
+  }
+  html, body {
+    height: 100%;
+    margin: 0;
+    background: var(--ink);
+    color: var(--bone);
+    overflow: hidden;
+    touch-action: none;
+    -webkit-user-select: none;
+    user-select: none;
+    font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  }
+  #wrap {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: radial-gradient(ellipse at center, var(--cabinet) 0%, var(--ink) 70%);
+  }
+  canvas#game {
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+    background: #000;
+    cursor: none;
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    box-shadow: 0 0 60px rgba(0, 0, 0, 0.8);
+  }
+  /* Touch controls: only mounted on coarse pointers, never in the way on desktop. */
+  #pad {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: none;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 16px;
+    padding: 12px 16px;
+    padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+    pointer-events: none;
+  }
+  body.is-touch #pad { display: flex; }
+  #dpad {
+    display: grid;
+    grid-template-columns: repeat(3, 52px);
+    grid-template-rows: repeat(3, 52px);
+  }
+  #pad_up { grid-area: 1 / 2; }
+  #pad_left { grid-area: 2 / 1; }
+  #pad_right { grid-area: 2 / 3; }
+  #pad_down { grid-area: 3 / 2; }
+  #acts {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  #pad button {
+    pointer-events: auto;
+    -webkit-tap-highlight-color: transparent;
+    appearance: none;
+    font: inherit;
+    font-size: 13px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--bone);
+    background: rgba(23, 21, 31, 0.78);
+    border: 2px solid rgba(232, 224, 200, 0.34);
+    border-radius: 10px;
+    touch-action: none;
+  }
+  #pad button.on { background: rgba(245, 195, 59, 0.34); border-color: var(--quill); }
+  #pad button:focus-visible { outline: 2px solid var(--quill); outline-offset: 2px; }
+  #btn_jump, #btn_use {
+    width: 66px;
+    height: 66px;
+    border-radius: 50%;
+  }
+  #btn_jump { border-color: rgba(200, 53, 43, 0.75); }
+</style>
+
+<div id="wrap">
+  <canvas id="game" width="480" height="270"></canvas>
+</div>
+<div id="pad">
+  <div id="dpad">
+    <button id="pad_up" type="button" aria-label="Up">&#9650;</button>
+    <button id="pad_left" type="button" aria-label="Left">&#9664;</button>
+    <button id="pad_right" type="button" aria-label="Right">&#9654;</button>
+    <button id="pad_down" type="button" aria-label="Down">&#9660;</button>
+  </div>
+  <div id="acts">
+    <button id="btn_use" type="button" aria-label="Interact">E</button>
+    <button id="btn_jump" type="button" aria-label="Jump">Jump</button>
+  </div>
+</div>
+
+<script src="js/00_core.js"></script>
+<script src="js/01_font.js"></script>
+<script src="js/02_gfx.js"></script>
+<script src="js/03_input.js"></script>
+<script src="js/04_audio.js"></script>
+<script src="js/05_particles.js"></script>
+<script src="js/06_state.js"></script>
+<script src="js/07_ui.js"></script>
+<script src="js/10_chubby.js"></script>
+<script src="js/11_people.js"></script>
+<script src="js/12_props.js"></script>
+<script src="js/13_world.js"></script>
+<script src="js/20_cabin.js"></script>
+<script src="js/21_hedgehog.js"></script>
+<script src="js/22_emergency.js"></script>
+<script src="js/23_hospital.js"></script>
+<script src="js/24_jobs_data.js"></script>
+<script src="js/25_phone.js"></script>
+<script src="js/26_travel.js"></script>
+<script src="js/27_interview.js"></script>
+<script src="js/30_minigame_base.js"></script>
+<script src="js/31_mini_clean.js"></script>
+<script src="js/32_mini_kitchen.js"></script>
+<script src="js/33_mini_front.js"></script>
+<script src="js/34_mini_mgmt.js"></script>
+<script src="js/35_restaurant.js"></script>
+<script src="js/36_tower.js"></script>
+<script src="js/37_lifeloop.js"></script>
+<script src="js/40_title.js"></script>
+<script src="js/98_tests.js"></script>
+<script src="js/99_main.js"></script>
+<script src="shell.js"></script>

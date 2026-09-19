@@ -61,6 +61,14 @@ Progress auto-saves to localStorage at every chapter and after every shift.
 - **The life loop**: go home, eat, unwind with the Hedgehog, text Mom, visit her,
   buy things for the cabin and for her, pay down the bill, and bring her home.
 
+## Published build
+
+`artifact/` holds the pages used for the hosted build: `index.html` (the full
+game) and `arcade.html` (Blue Hedgehog on its own, booted through the
+`window.CH_BOOT` scene hook). Both pull in the same `js/` sources and add
+`artifact/shell.js`, which takes keyboard focus inside an iframe and mounts an
+on-screen d-pad on touch devices.
+
 ## Development
 
 `js/` loads as plain scripts in dependency order (see `index.html`). Test

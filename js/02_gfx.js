@@ -11,8 +11,10 @@
 
   function resize() {
     const ww = window.innerWidth, wh = window.innerHeight;
-    let k = Math.floor(Math.min(ww / CH.W, wh / CH.H));
-    if (k < 1) k = Math.min(ww / CH.W, wh / CH.H);
+    const fit = Math.min(ww / CH.W, wh / CH.H);
+    // Crisp integer pixels whenever the window is big enough for 2x or more;
+    // below that, fill the window rather than stranding a tiny 1x image in it.
+    let k = fit >= 2 ? Math.floor(fit) : fit;
     CH.scale = k;
     canvas.style.width = Math.floor(CH.W * k) + 'px';
     canvas.style.height = Math.floor(CH.H * k) + 'px';

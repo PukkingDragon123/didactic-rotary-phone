@@ -32,6 +32,8 @@
     CH.audio.unlock = () => {};
     if (params.get('load')) CH.load();
     CH.game.set(CH.SCENES[params.get('scene')]());
+  } else if (window.CH_BOOT && CH.SCENES && CH.SCENES[window.CH_BOOT]) {
+    CH.game.set(CH.SCENES[window.CH_BOOT]());
   } else if (CH.TitleScene) CH.game.set(new CH.TitleScene());
   requestAnimationFrame(frame);
 })(window.CH);
