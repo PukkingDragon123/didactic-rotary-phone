@@ -370,7 +370,7 @@
     }
     exit() { fx.vignette = 0; fx.letterboxTarget = 0; }
 
-    say(text, dur = 2) { this.msg = text; this.msgT = dur; }
+    say(text, dur = 2) { this.msg = String(text).replace(/\{[a-z]+\}/g, ' '); this.msgT = dur; }
     pop(x, y, text, opts = {}) {
       x = CH.clamp(x, 60, W - 60); y = CH.clamp(y, 40, H - 50);
       this.burst = { x, y, text, t: 0, life: opts.life || 0.8, r: opts.r || 40, fill: opts.fill || '#ffd84a', textColor: opts.textColor || '#c8352b', scale: opts.scale || 2 };
@@ -596,6 +596,9 @@
           if ((b.dir > 0 && b.x > b.stopAt) || (b.dir < 0 && b.x < b.stopAt)) {
             b.state = 'brake'; b.t = 0;
             A.sfx('back');
+            b.misses = (b.misses || 0) + 1;
+            // teach the trick the first couple of times he pulls up short
+            if (b.cracks === 0 && b.misses <= 2) this.say('He stopped short. {p}Stand by a WALL and make him commit.', 3);
           }
           break;
         }
@@ -690,7 +693,7 @@
         b.state = 'dead'; b.deadT = 0;
         A.play(null);
       } else {
-        this.say(b.cracks === 1 ? 'MY SHELL!' : 'HOW DARE YOU. AGAIN?!', 1.8);
+        this.say(b.cracks === 1 ? 'MY SHELL! {p}Two more.' : 'HOW DARE YOU. AGAIN?!', 2);
       }
     }
 
