@@ -210,6 +210,108 @@
   };
   function rx0(v, g) { return v / 2 + g; }
 
+  // ---- comic impact ----------------------------------------------------------
+  // A jagged starburst with a word in it, the way a cartoon shows a noise.
+  art.comicBurst = function (x, y, text, opts = {}) {
+    const t = opts.t === undefined ? 1 : CH.clamp(opts.t, 0, 1);      // 0..1 life
+    const grow = opts.pop === false ? 1 : CH.ease.outBack(Math.min(1, t * 3));
+    const r = (opts.r || 46) * grow;
+    const spikes = opts.spikes || 14;
+    const fill = opts.fill || '#ffd84a';
+    const ink = opts.ink || art.INK;
+    const rot = opts.rot || 0;
+    const ctx = gfx.cur;
+    ctx.save();
+    if (opts.alpha !== undefined) ctx.globalAlpha = opts.alpha;
+    for (let pass = 0; pass < 2; pass++) {
+      const col = pass ? fill : ink;
+      const pad = pass ? 0 : 2.5;
+      for (let i = 0; i < spikes; i++) {
+        const a0 = rot + (i / spikes) * Math.PI * 2;
+        const a1 = rot + ((i + 1) / spikes) * Math.PI * 2;
+        const am = (a0 + a1) / 2;
+        const inner = (r * 0.58 + pad);
+        const outer = (r + pad) * (i % 2 ? 1 : 0.82);
+        gfx.tri(x + Math.cos(a0) * inner, y + Math.sin(a0) * inner * 0.82,
+                x + Math.cos(a1) * inner, y + Math.sin(a1) * inner * 0.82,
+                x + Math.cos(am) * outer, y + Math.sin(am) * outer * 0.82, col);
+      }
+      gfx.ellipse(x, y, r * 0.62 + pad, r * 0.52 + pad, col);
+    }
+    if (text) {
+      const sc = opts.scale || 2;
+      ctx.translate(Math.round(x), Math.round(y));
+      ctx.scale(sc * grow, sc * grow);
+      gfx.text(text, 0, -4, opts.textColor || '#c8352b', { align: 'center', outline: opts.outline || '#fff' });
+    }
+    ctx.restore();
+  };
+
+  // Radiating lines: speed when they trail a mover, impact when they point out.
+  art.speedLines = function (x, y, n, len, opts = {}) {
+    const col = opts.color || 'rgba(255,255,255,0.55)';
+    const spread = opts.spread || 18;
+    const dir = opts.dir === undefined ? -1 : opts.dir;
+    for (let i = 0; i < n; i++) {
+      const yy = y + (i - (n - 1) / 2) * (spread / n) * 2 + (opts.jitter ? CH.rand(-1, 1) : 0);
+      const l = len * (0.5 + ((i * 7) % 10) / 10);
+      gfx.rect(Math.min(x, x + dir * l), yy, l, opts.thick || 1, col);
+    }
+  };
+  art.impactLines = function (x, y, n, r0, r1, opts = {}) {
+    const col = opts.color || art.INK;
+    const rot = opts.rot || 0;
+    for (let i = 0; i < n; i++) {
+      const a = rot + (i / n) * Math.PI * 2;
+      const w = opts.thick || 2;
+      const x0 = x + Math.cos(a) * r0, y0 = y + Math.sin(a) * r0 * 0.85;
+      const x1 = x + Math.cos(a) * r1, y1 = y + Math.sin(a) * r1 * 0.85;
+      gfx.tri(x0 - Math.sin(a) * w, y0 + Math.cos(a) * w, x0 + Math.sin(a) * w, y0 - Math.cos(a) * w, x1, y1, col);
+    }
+  };
+  // An expanding ring of force.
+  art.shockRing = function (x, y, r, opts = {}) {
+    const a = opts.alpha === undefined ? 0.8 : opts.alpha;
+    const col = opts.color || '#fff';
+    const ctx = gfx.cur;
+    ctx.save(); ctx.globalAlpha = a;
+    gfx.ellipseOutline(x, y, r, r * 0.42, col);
+    gfx.ellipseOutline(x, y, r - 2, r * 0.42 - 1, col);
+    ctx.restore();
+  };
+
+  // ---- lighting ----------------------------------------------------------------
+  // Additive pools of light. Scenes paint these after their world layer.
+  art.lightPool = function (x, y, rx, ry, color, alpha = 0.18) {
+    const ctx = gfx.cur;
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    for (let i = 3; i >= 1; i--) {
+      ctx.globalAlpha = alpha * (i / 3) * 0.6;
+      gfx.ellipse(x, y, rx * (i / 3), ry * (i / 3), color);
+    }
+    ctx.restore();
+  };
+  // A cone of light thrown down from a fixture.
+  art.lightCone = function (x, y, w0, w1, h, color, alpha = 0.14) {
+    const ctx = gfx.cur;
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    ctx.globalAlpha = alpha;
+    gfx.tri(x - w0 / 2, y, x + w0 / 2, y, x + w1 / 2, y + h, color);
+    gfx.tri(x - w0 / 2, y, x - w1 / 2, y + h, x + w1 / 2, y + h, color);
+    ctx.restore();
+  };
+  // Multiply a tint over the frame - the cheap way to say "it is evening".
+  art.tint = function (color, alpha) {
+    const ctx = gfx.cur;
+    ctx.save();
+    ctx.globalCompositeOperation = 'multiply';
+    ctx.globalAlpha = alpha;
+    gfx.rect(0, 0, CH.W, CH.H, color);
+    ctx.restore();
+  };
+
   // ---- shared shapes ----------------------------------------------------------
   // Soft contact shadow under an actor.
   art.shadow = function (x, y, rx, alpha = 0.3) {
