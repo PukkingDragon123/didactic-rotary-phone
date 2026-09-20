@@ -358,9 +358,7 @@
       for (const s of this.springs) if (s.t > 0) s.t -= dt;
       for (const m of this.monitors) if (m.t > 0) m.t -= dt;
       if (this.boss) this.updateBoss(dt);
-      else if (!this.opts.noBoss && this.p.x > this.bossSpawn.x - 120 && this.phase === 'play') this.startBoss();
-      // dream mode: the ground gives way at a scripted spot instead of a boss
-      if (this.opts.trapAt && !this.trapped && this.p.x > this.opts.trapAt) this.springTrap();
+      else if (this.p.x > this.bossSpawn.x - 120 && this.phase === 'play') this.startBoss();
       // camera
       const p = this.p;
       const lookahead = CH.clamp(p.vx * 0.35, -60, 60);
@@ -375,8 +373,7 @@
     }
     updatePlayer(dt) {
       const p = this.p;
-      // once the trap springs he is a passenger: the dream takes the controls away
-      const ax = this.trapped ? 0 : inp.axisX();
+      const ax = inp.axisX();
       const ACC = 620, DEC = 1500, FRIC = 700, TOP = 210, AIR = 420, GRAV = 980, JUMP = -330, DJUMP = -300;
       if (p.hurtT > 0) { p.hurtT -= dt; }
       else {
@@ -390,7 +387,7 @@
         if (ax !== 0 && (p.grounded || Math.abs(p.vx) > 20)) p.flip = ax < 0 ? true : false;
       }
       // jumping
-      if (inp.hit('jump') && !this.trapped) p.buffer = 0.1; else p.buffer -= dt;
+      if (inp.hit('jump')) p.buffer = 0.1; else p.buffer -= dt;
       if (p.grounded) { p.coyote = 0.09; p.canDouble = true; } else p.coyote -= dt;
       if (p.buffer > 0 && p.hurtT <= 0) {
         if (p.coyote > 0) { p.vy = JUMP; p.grounded = false; p.coyote = 0; p.buffer = 0; p.jumpHeld = true; p.sy = 1.25; p.sx = 0.8; A.sfx('jump'); this.particles.burst(p.x, p.y, 4, { color: ['#c8c8c8', '#fff'], speed: 30, grav: 100, life: 0.3, angle: -Math.PI / 2, spread: 2 }); }
@@ -425,10 +422,7 @@
         for (const xx of [p.x - hw + 1, p.x + hw - 1]) if (this.solidAt(xx, p.y - p.h)) { p.y = Math.ceil((p.y - p.h) / T) * T + p.h; p.vy = 0; }
       }
       // fall into pit
-      if (p.y > LVL_H + 40) {
-        if (this.trapped && this.opts.onTrap) { this.frozen = true; this.opts.onTrap(this); return; }
-        this.die();
-      }
+      if (p.y > LVL_H + 40) this.die();
       // springs
       for (const s of this.springs) {
         if (Math.abs(p.x - s.x) < 10 && p.y >= s.y - 10 && p.y <= s.y + 4 && p.vy >= 0) { p.vy = -560; p.grounded = false; p.canDouble = true; s.t = 0.3; A.sfx('spring'); p.sy = 1.4; p.sx = 0.7; }
@@ -502,24 +496,6 @@
       const n = Math.min(this.rings_n, 20);
       for (let i = 0; i < n; i++) { const a = -Math.PI / 2 + (i / n - 0.5) * Math.PI * 1.6; const sp = 120 + (i % 3) * 40; this.scattered.push({ x: p.x, y: p.y - 10, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, t: 0, life: 3.5 }); }
       this.rings_n = 0;
-    }
-    // drop another patroller onto the level at a tile column, on its ground
-    addFoe(tileX, kind) {
-      const h = this.ground[tileX] || 3;
-      this.enemies.push({ x: tileX * T + 8, y: (ROWS - h) * T, vx: kind === 'minion' ? -24 : -30, flip: true, frame: 0, alive: true, kicked: false, vy: 0, rot: 0, t: Math.random() * 3, kind });
-    }
-    // the floor opens under him and keeps opening: no jump gets him out of this
-    springTrap() {
-      this.trapped = true;
-      const p = this.p;
-      const c0 = Math.max(0, Math.floor(p.x / T) - 1), c1 = Math.min(COLS - 1, c0 + 9);
-      for (let c = c0; c <= c1; c++) for (let r = 0; r < ROWS; r++) this.grid[r][c] = 0;
-      p.grounded = false; p.vy = Math.max(p.vy, 20); p.vx *= 0.6;
-      A.sfx('crash'); A.sfx('whoosh');
-      this.hitstopT = 0.14;
-      this.showMsg('!!!', 1.4);
-      this.particles.burst(p.x, p.y + 4, 26, { color: ['#6a8a3a', '#3e6b2a', '#c8a060'], speed: 120, life: 0.9, grav: 420 });
-      if (this.opts.onTrapStart) this.opts.onTrapStart(this);
     }
     die() {
       const p = this.p;
@@ -667,9 +643,8 @@
       // enemies
       for (const e of this.enemies) {
         if (!e.alive || e.x < cx - 30 || e.x > cx + W + 30) continue;
-        const paint = (e.kind === 'minion' && CH.drawEggMinion) ? (gg, x, y, o) => CH.drawEggMinion(gg, x, y, e.t, o.kicked) : drawLadybug;
-        if (e.kicked) { g.save(); g.translate(Math.round(e.x), Math.round(e.y) - 5); g.rotate(e.rot); paint(g, 0, 5, { flip: e.vx > 0, frame: 0, kicked: true }); g.restore(); }
-        else paint(g, e.x, e.y, { flip: e.flip, frame: e.frame });
+        if (e.kicked) { g.save(); g.translate(Math.round(e.x), Math.round(e.y) - 5); g.rotate(e.rot); drawLadybug(g, 0, 5, { flip: e.vx > 0, frame: 0, kicked: true }); g.restore(); }
+        else drawLadybug(g, e.x, e.y, { flip: e.flip, frame: e.frame });
       }
       // boss
       if (this.boss && !this.boss.gone) {

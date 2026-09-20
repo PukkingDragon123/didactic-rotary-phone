@@ -16,12 +16,8 @@ const shot = (n) => canvas.screenshot({ path: `${SHOTS}/flow_${n}.png` });
 const state = () => page.evaluate(() => ({ scene: CH.game.scene && CH.game.scene.name, chapter: CH.state.chapter, obj: CH.ui.objective, dlg: CH.ui.dialog ? CH.ui.dialog.speaker + ': ' + CH.ui.dialog.text.slice(0, 50) : null, px: CH.game.scene.player ? Math.round(CH.game.scene.player.x) : null, locked: CH.game.scene.locked }));
 const pressE = async (n, gap = 300) => { for (let i = 0; i < n; i++) { await page.keyboard.press('e'); await page.waitForTimeout(gap); } };
 const walkTo = async (x, timeout = 25000) => { const t0 = Date.now(); while (Date.now() - t0 < timeout) { const s = await state(); if (s.px === null) break; if (Math.abs(s.px - x) < 8) break; if (s.dlg) { await page.keyboard.press('e'); await page.waitForTimeout(250); continue; } if (s.locked) { await page.waitForTimeout(200); continue; } const key = s.px < x ? 'ArrowRight' : 'ArrowLeft'; await page.keyboard.down(key); await page.waitForTimeout(Math.min(400, Math.abs(s.px - x) * 12)); await page.keyboard.up(key); } };
-// title -> new game. A new game opens in the dream chapter; that one has its
-// own end-to-end script (tools/dream.mjs), so this run cuts straight to the
-// cabin intro the dream would hand off to.
+// title -> new game
 await page.keyboard.press('Enter'); await page.waitForTimeout(3000);
-await page.evaluate(() => { const s = CH.game.scene; if (s && s.name === 'dream') CH.game.set(new CH.CabinScene({ mode: 'intro' })); });
-await page.waitForTimeout(1200);
 console.log('after title', await state());
 // intro: wait for alarm then stop it
 await page.waitForTimeout(9000); await pressE(3, 800);

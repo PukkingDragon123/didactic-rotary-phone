@@ -126,12 +126,9 @@
       this.menu = new CH.MenuList(items, { x: 300, y: 128, w: 150, h: 18, gap: 5, sel: info ? 0 : 1 });
     }
     newGame() {
-      // a new game opens inside the dream; the alarm at the end of it is the
-      // same alarm the cabin intro wakes him with
       const begin = () => {
         CH.resetState();
-        if (CH.startDream) CH.startDream(() => CH.game.set(new CH.CabinScene({ mode: 'intro' })));
-        else CH.game.set(new CH.CabinScene({ mode: 'intro' }));
+        CH.game.set(new CH.CabinScene({ mode: 'intro' }));
       };
       if (CH.anySave()) { CH.game.push(new ConfirmNewGame(() => this.start(begin))); return; }
       this.start(begin);

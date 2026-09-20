@@ -57,17 +57,6 @@ that points at them, and pages itself when a line runs long.
 
 ## What's inside
 
-- **The dream**: the game opens inside Chubby's head, where he is the Blue
-  Hedgehog. It is not a lookalike level - the dream hosts the arcade game
-  itself, same stage and same controls, until the floor gives way under him and
-  drops him down a shaft into **Man Egg's** laboratory. He falls in as the
-  hedgehog and lands as himself. Man Egg cannot be hurt: he floats out of
-  reach, hammers the floor with a robotic arm, and charges - straight into the
-  wall every time, because he never looks where he is going. Three bonks crack
-  his shell and the egg bursts. Then the alarm goes off. The whole chapter is
-  drawn through a haze: a blurred copy of each frame laid back over itself,
-  with a lilac and pink wash drifting across it.
-
 - **The cabin**: a single-floor log cabin with 50+ pokeable things: alarm clock,
   pancakes, fireplace, family photos, the rotary phone, Mom's rocking chair, the
   forest through frosted windows.
@@ -113,7 +102,6 @@ Every position has a shift route: `?scene=restaurant_grill`,
 
 `tools/shot.mjs` and `tools/smoke.mjs` drive the game headlessly with
 Playwright for screenshots and error checks (`cd tools && npm install`).
-`tools/dream.mjs`, `tools/flow.mjs`, `tools/chain.mjs`, `tools/systems.mjs` and
-`tools/spill.mjs` are scripted playthroughs of the dream chapter, the opening,
-the job hunt and first shift, the phone/tower/promotion/ending systems, and the
-janitor mop loop.
+`tools/flow.mjs`, `tools/chain.mjs`, `tools/systems.mjs` and `tools/spill.mjs`
+are scripted playthroughs of the opening, the job hunt and first shift, the
+phone/tower/promotion/ending systems, and the janitor mop loop.
