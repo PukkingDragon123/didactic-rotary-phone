@@ -10,11 +10,14 @@
   const gfx = CH.gfx, ui = CH.ui, fx = CH.fx, art = CH.art, A = CH.audio, inp = CH.input;
   const W = CH.W, H = CH.H;
 
-  const GROUND = 206;          // run act floor
-  const RUN_SPEED = 176;
+  const GROUND = 206;          // floor of the title card
+  // the lab act runs on the arcade game's numbers so the controls never change
+  const ACC = 620, DEC = 1500, FRIC = 700, TOP = 210, AIR = 420;
   const GRAV = 980;
-  const JUMP = -318;
-  const DJUMP = -276;
+  const JUMP = -330;
+  const DJUMP = -300;
+  const HEARTS = 5;            // he is dreaming; the dream is on his side
+  const TRAP_X = 104 * 16;     // where the arcade floor gives way
 
   // ---- dream palette ---------------------------------------------------------
   const P = {
@@ -67,6 +70,14 @@
   }
 
   // ---- run-act scenery -------------------------------------------------------
+  CH.drawEggMinion = drawMinion;
+
+  // canvas filters give a real gaussian; if this browser has none we fall back
+  // to a downscale-and-stretch, which is the same trick at lower quality
+  const CAN_BLUR = (() => {
+    try { const c = document.createElement('canvas').getContext('2d'); c.filter = 'blur(2px)'; return c.filter === 'blur(2px)'; } catch (e) { return false; }
+  })();
+
   function paintDreamSky(g, camX, t) {
     gfx.vgrad(0, 0, W, H, [P.sky0, P.sky0, P.sky1, P.sky2, P.sky3, P.sky4]);
     // stars fading toward the horizon
@@ -340,26 +351,15 @@
       this.burst = null;        // {x, y, text, t, life}
       this.flashT = 0;
 
-      // runner
-      this.p = { x: 60, y: GROUND, vx: 0, vy: 0, grounded: true, canDouble: true, inv: 0, hurt: 0, roll: 0 };
+      // the runner: the lab act moves on the same numbers as the arcade game
+      this.p = { x: 60, y: GROUND, vx: 0, vy: 0, grounded: true, canDouble: true, inv: 0, hurt: 0, roll: 0, coyote: 0, buffer: 0, jumpHeld: false, flip: false };
 
-      // run-act contents, laid out along the track
-      this.track = 2200;
-      this.foes = [];
-      for (let i = 0; i < 13; i++) {
-        const x = 380 + i * 148 + ((i * 53) % 30);
-        this.foes.push({ kind: i % 3 === 2 ? 'minion' : 'lady', x, y: GROUND, vx: (i % 3 === 2 ? -22 : -34), alive: true, t: Math.random() * 3, pop: 0 });
-      }
-      this.coins = [];
-      for (let i = 0; i < 46; i++) {
-        const x = 220 + i * 44;
-        const arc = Math.floor(i / 6) % 2 === 1;
-        this.coins.push({ x, y: arc ? GROUND - 44 - Math.sin((i % 6) / 5 * Math.PI) * 26 : GROUND - 20, got: false });
-      }
+      // act 1 is the arcade game itself, hosted inside the dream
+      this.hh = null;
 
       // boss
       this.boss = null;
-      this.hearts = 3;
+      this.hearts = HEARTS;
     }
 
     enter() {
@@ -368,7 +368,10 @@
       fx.letterboxTarget = 1;   // cinematic bars, lifted for the playable acts
       A.play('hedgehog');
     }
-    exit() { fx.vignette = 0; fx.letterboxTarget = 0; }
+    exit() {
+      if (this.hh) { this.hh.exit(); this.hh = null; }
+      fx.scanlines = false; fx.vignette = 0; fx.letterboxTarget = 0;
+    }
 
     say(text, dur = 2) { this.msg = String(text).replace(/\{[a-z]+\}/g, ' '); this.msgT = dur; }
     pop(x, y, text, opts = {}) {
@@ -394,85 +397,61 @@
       this.phase = phase; this.pt = 0;
       // bars for the cutscene beats, none while the player is in control
       fx.letterboxTarget = (phase === 'run' || phase === 'boss') ? 0 : 1;
+      if (phase !== 'run' && this.hh) { this.hh.exit(); this.hh = null; fx.scanlines = false; fx.vignette = 0.55; }
     }
 
     // ---- act 0: the title card ---------------------------------------------
     update_title(dt) {
       if (this.pt > 2.4 || inp.hit('jump') || inp.hit('confirm') || inp.hit('interact') || inp.mpressed) {
         inp.eat();
-        this.go('run');
-        this.say('HOLD RIGHT. JUMP ON THINGS.', 2.6);
+        this.startRun();
       }
     }
 
-    // ---- act 1: the run ------------------------------------------------------
+    // ---- act 1: he dreams he is inside his own favourite game ---------------
+    // Same level, same physics, same controls as the arcade cabinet: this IS
+    // the Blue Hedgehog scene, running inside the dream with the floor rigged.
+    startRun() {
+      this.go('run');
+      const self = this;
+      this.hh = new CH.HedgehogScene({
+        skipTitle: true,
+        crash: false,
+        noBoss: true,
+        hint: false,
+        trapAt: TRAP_X,
+        onTrapStart() {
+          self.pop(W / 2, 96, 'A TRAP!', { r: 40, scale: 1.8, fill: '#ff8a4a', shake: 8, stop: 0.12 });
+          fx.letterboxTarget = 1;
+        },
+        onTrap(hh) {
+          self.rings = hh.rings_n;
+          self.go('fall');
+          self.fallV = 40; self.fallY = 0;
+          A.sfx('whoosh');
+        },
+      });
+      // his dream remembers the ladybugs; it adds the egg's little helpers
+      for (const tx of [30, 56, 74, 89, 101]) this.hh.addFoe(tx, 'minion');
+      this.hh.enter();
+      // a dream is not a CRT: the arcade's scanlines come off and the haze goes on
+      fx.scanlines = false;
+      fx.vignette = 0.55;
+      this.say('RUN. {p}JUMP ON THINGS.', 2.6);
+    }
+
+    // the hosted scene is not on the scene stack, so the dream drives its clock
     update_run(dt) {
-      const p = this.p;
-      // he is dreaming, so he is fast whether he asks to be or not
-      const want = RUN_SPEED * (inp.down('left') ? 0.45 : 1) * (p.hurt > 0 ? 0.5 : 1);
-      p.vx = CH.approach(p.vx, want, dt * 340);
-      p.x += p.vx * dt;
-      // jump
-      if ((inp.hit('jump') || inp.hit('up')) && (p.grounded || p.canDouble)) {
-        if (p.grounded) { p.vy = JUMP; A.sfx('jump'); }
-        else { p.vy = DJUMP; p.canDouble = false; A.sfx('djump'); this.particles.burst(p.x, p.y - 10, 8, { color: ['#fff', '#ffd0f0'], speed: 60, grav: 20, life: 0.35 }); }
-        p.grounded = false;
-      }
-      p.vy += GRAV * dt;
-      p.y += p.vy * dt;
-      if (p.y >= GROUND) {
-        if (!p.grounded && p.vy > 200) this.particles.burst(p.x, GROUND, 6, { color: ['#39d6a0', '#f6f1e2'], speed: 50, grav: 300, life: 0.3, angle: -Math.PI / 2, spread: 2 });
-        p.y = GROUND; p.vy = 0; p.grounded = true; p.canDouble = true;
-      }
-      if (p.inv > 0) p.inv -= dt;
-      if (p.hurt > 0) p.hurt -= dt;
-      this.camX = CH.clamp(p.x - 150, 0, 1e9);
-
-      // dust and speed streaks while flat out
-      if (p.grounded && p.vx > 120 && Math.random() < dt * 30) {
-        this.particles.add({ x: p.x - 10, y: GROUND - 1, vx: -CH.rand(40, 90), vy: -CH.rand(4, 20), life: 0.32, color: '#cfe6ff', size: 1, grav: 60, drag: 0.96 });
-      }
-
-      // rings
-      for (const c of this.coins) {
-        if (c.got || Math.abs(c.x - p.x) > 16) continue;
-        if (Math.abs(c.y - (p.y - 16)) < 22) {
-          c.got = true; this.rings++; A.sfx('ring');
-          this.particles.text(c.x, c.y - 6, '+1', '#ffd84a', { life: 0.5 });
-        }
-      }
-
-      // foes
-      for (const e of this.foes) {
-        if (!e.alive) { e.pop += dt; continue; }
-        e.t += dt;
-        e.x += e.vx * dt;
-        if (Math.abs(e.x - p.x) < 15 && Math.abs(e.y - p.y) < 26) {
-          const stomping = p.vy > 40 && p.y < e.y - 6;
-          if (stomping) {
-            e.alive = false;
-            p.vy = -250; p.canDouble = true;
-            this.rings += 2;
-            A.sfx('kick');
-            this.pop(e.x - this.camX, e.y - 22, e.kind === 'lady' ? 'BONK!' : 'CLANK!', { r: 30, scale: 1.4, shake: 3, stop: 0.05 });
-            this.particles.burst(e.x, e.y - 12, 14, { color: e.kind === 'lady' ? ['#d13c3c', '#2a2028'] : ['#e8dcc0', '#9aa0b4', '#f7b32b'], speed: 90, life: 0.6 });
-          } else if (p.inv <= 0) {
-            p.inv = 1.1; p.hurt = 0.6; p.vx = -60; p.vy = -140;
-            A.sfx('hurt');
-            this.pop(p.x - this.camX, p.y - 26, 'OOF!', { r: 26, scale: 1.2, fill: '#ff9a8a', shake: 5 });
-            const lost = Math.min(this.rings, 6);
-            this.rings -= lost;
-            for (let i = 0; i < lost; i++) this.particles.add({ x: p.x, y: p.y - 16, vx: CH.rand(-90, 90), vy: CH.rand(-160, -60), life: 1, color: '#ffd84a', size: 2, grav: 340, shape: 'circle' });
-          }
-        }
-      }
-
-      // the floor runs out
-      if (p.x > this.track) {
-        this.go('fall');
-        this.fallV = 40;
-        A.sfx('whoosh');
-        this.say('', 0);
+      const hh = this.hh;
+      if (!hh) return;
+      hh.t += dt;
+      hh.update(dt);
+      hh.updateCos(dt);
+      // a step up is a wall until you jump it, so say so if he stalls on one
+      if (Math.abs(hh.p.x - (this.lastX || 0)) > 6) { this.lastX = hh.p.x; this.stuckT = 0; }
+      else {
+        this.stuckT = (this.stuckT || 0) + dt;
+        if (this.stuckT > 2.5 && this.msgT <= 0) { this.say('HOLD JUMP TO GET OVER IT.', 2.4); this.stuckT = 0; }
       }
     }
 
@@ -501,33 +480,21 @@
     startBoss() {
       this.go('boss');
       this.p.x = W / 2; this.p.y = LAB_FLOOR; this.p.vx = 0; this.p.vy = 0; this.p.inv = 1;
-      this.hearts = 3;
+      this.hearts = HEARTS;
       this.boss = {
         x: W / 2, y: 92, vx: 0, cracks: 0, state: 'idle', t: 0, flash: 0,
         armX: W / 2 + 26, armY: 96, armSide: 1, armOpen: 0, lookAt: W / 2,
         dir: 1, chargeSpeed: 0, stunT: 0, rage: 0, deadT: 0, shock: null,
       };
       A.play('boss');
-      this.say('MAN EGG. {p}He cannot be hurt. {p}But he is not careful.', 0);
+      this.say('He charges. {p}He never looks where he is going.', 3.4);
       fx.showCard('MAN EGG', 'the doctor will see you now', 2.2, '#f7b32b');
     }
 
     // ---- act 3: the boss -----------------------------------------------------
     update_boss(dt) {
       const p = this.p, b = this.boss;
-      // player
-      const ax = (inp.down('right') ? 1 : 0) - (inp.down('left') ? 1 : 0);
-      p.vx = CH.approach(p.vx, ax * 132, dt * 900);
-      p.x = CH.clamp(p.x + p.vx * dt, LAB_L + 8, LAB_R - 8);
-      if ((inp.hit('jump') || inp.hit('up')) && (p.grounded || p.canDouble)) {
-        if (p.grounded) { p.vy = JUMP * 0.92; A.sfx('jump'); }
-        else { p.vy = DJUMP * 0.92; p.canDouble = false; A.sfx('djump'); }
-        p.grounded = false;
-      }
-      p.vy += GRAV * dt;
-      p.y += p.vy * dt;
-      if (p.y >= LAB_FLOOR) { p.y = LAB_FLOOR; p.vy = 0; p.grounded = true; p.canDouble = true; }
-      if (p.inv > 0) p.inv -= dt;
+      this.movePlayer(dt);
 
       if (b.state === 'dead') { this.updateBossDeath(dt); return; }
 
@@ -545,34 +512,24 @@
 
       switch (b.state) {
         case 'idle': {
-          // drift over the player, then pick an attack
-          b.x = CH.approach(b.x, CH.clamp(p.x, LAB_L + 40, LAB_R - 40), dt * (34 + rage * 12));
-          if (b.t > Math.max(0.5, 1.3 - rage * 0.32)) {
+          // drift over the player, then pick an attack. He mostly charges,
+          // because charging is the thing that ends badly for him.
+          b.x = CH.approach(b.x, CH.clamp(p.x, LAB_L + 40, LAB_R - 40), dt * 30);
+          if (b.t > Math.max(1, 1.7 - rage * 0.2)) {
             b.t = 0;
-            const r = Math.random();
-            if (r < 0.42 + rage * 0.06) {
-              b.state = 'wind'; b.dir = p.x > b.x ? 1 : -1; A.sfx('boss');
-            } else if (r < 0.74 + rage * 0.04) {
-              b.state = 'arm'; b.armOpen = 1; A.sfx('beep');
-            } else {
-              b.state = 'sweep'; b.sweepDir = p.x > b.x ? 1 : -1;
-              b.armX = b.sweepDir > 0 ? LAB_L - 6 : LAB_R + 6;
-              b.armY = LAB_FLOOR - 34;
-              A.sfx('whoosh');
-            }
+            if (Math.random() < 0.76) { b.state = 'wind'; b.dir = p.x > b.x ? 1 : -1; A.sfx('boss'); }
+            else { b.state = 'arm'; b.armOpen = 1; A.sfx('beep'); }
           }
           break;
         }
         case 'wind': {
-          // telegraph: he pulls back away from the direction he will charge
-          b.x -= b.dir * dt * 46;
+          // telegraph: he pulls back away from the direction he will charge,
+          // long enough to read and walk out of
+          b.x -= b.dir * dt * 40;
           b.target = p.x;
-          if (b.t > Math.max(0.34, 0.7 - rage * 0.16)) {
+          if (b.t > Math.max(0.8, 1.15 - rage * 0.12)) {
             b.t = 0; b.state = 'charge';
-            b.chargeSpeed = 330 + rage * 110;
-            // he commits to a stopping point past where you were standing;
-            // only a lure close to a wall turns that into a head-first bonk
-            b.stopAt = b.target + b.dir * 96;
+            b.chargeSpeed = 230 + rage * 40;
             A.sfx('whoosh');
           }
           break;
@@ -580,62 +537,38 @@
         case 'charge': {
           b.x += b.dir * b.chargeSpeed * dt;
           this.particles.add({ x: b.x - b.dir * 18, y: b.y + CH.rand(-14, 20), vx: -b.dir * 60, vy: CH.rand(-10, 10), life: 0.3, color: 'rgba(255,255,255,0.5)', size: 1, grav: 0, drag: 0.95 });
-          // the pod is big: jumping straight up does not clear it
-          if (p.inv <= 0 && Math.abs(b.x - p.x) < 26 && p.y - 16 > b.y - 44 && p.y - 26 < b.y + 30) {
+          // the pod rides high, so only a jump into it catches you
+          if (p.inv <= 0 && Math.abs(b.x - p.x) < 24 && p.y - 26 < b.y + 28 && p.y - 12 > b.y - 40) {
             this.hitPlayer();
             b.state = 'idle'; b.t = 0;
             break;
           }
-          // met the wall
+          // he never pulls up: every charge ends in the wall
           if ((b.dir > 0 && b.x > LAB_R - 30) || (b.dir < 0 && b.x < LAB_L + 30)) {
             b.x = b.dir > 0 ? LAB_R - 30 : LAB_L + 30;
             this.bonk();
-            break;
           }
-          // ran out of momentum short of the wall: no bonk, just a sulk
-          if ((b.dir > 0 && b.x > b.stopAt) || (b.dir < 0 && b.x < b.stopAt)) {
-            b.state = 'brake'; b.t = 0;
-            A.sfx('back');
-            b.misses = (b.misses || 0) + 1;
-            // teach the trick the first couple of times he pulls up short
-            if (b.cracks === 0 && b.misses <= 2) this.say('He stopped short. {p}Stand by a WALL and make him commit.', 3);
-          }
-          break;
-        }
-        case 'brake': {
-          b.x += b.dir * CH.lerp(b.chargeSpeed, 0, Math.min(1, b.t * 4)) * dt;
-          if (b.t > 0.45) { b.state = 'idle'; b.t = 0; }
-          break;
-        }
-        case 'sweep': {
-          // the claw scythes across at head height: this one you duck by landing
-          b.armY = CH.approach(b.armY, LAB_FLOOR - 34, dt * 200);
-          b.armX += b.sweepDir * (330 + rage * 80) * dt;
-          b.armOpen = 1;
-          if (p.inv <= 0 && Math.abs(b.armX - p.x) < 14 && p.y - 26 < LAB_FLOOR - 20) this.hitPlayer();
-          this.particles.add({ x: b.armX, y: b.armY, vx: -b.sweepDir * 40, vy: 0, life: 0.25, color: 'rgba(255,220,160,0.6)', size: 1, grav: 0 });
-          if (b.armX < LAB_L - 10 || b.armX > LAB_R + 10) { b.state = 'idle'; b.t = 0; }
           break;
         }
         case 'stun': {
           b.stunT -= dt;
           b.y = CH.approach(b.y, 108, dt * 40);
           if (Math.random() < dt * 8) this.particles.steam(b.x + CH.rand(-10, 10), b.y - 46, 1, 'rgba(255,255,255,0.4)');
-          if (b.stunT <= 0) { b.state = 'idle'; b.t = 0; b.y = 92; }
+          if (b.stunT <= 0) { b.state = 'idle'; b.t = 0; b.y = 92; b.armY = 86; }
           break;
         }
         case 'arm': {
           // the claw rises, then hammers down where the player is standing
           b.armOpen = CH.approach(b.armOpen, 1, dt * 4);
-          b.armX = CH.approach(b.armX, p.x, dt * 260);
-          b.armY = CH.approach(b.armY, 56, dt * 200);
-          if (b.t > Math.max(0.5, 0.9 - rage * 0.14)) { b.t = 0; b.state = 'slam'; b.slamX = p.x; A.sfx('boss'); }
+          b.armX = CH.approach(b.armX, p.x, dt * 150);
+          b.armY = CH.approach(b.armY, 56, dt * 160);
+          if (b.t > 1.2) { b.t = 0; b.state = 'slam'; b.slamX = b.armX; A.sfx('boss'); }
           break;
         }
         case 'slam': {
           b.armOpen = CH.approach(b.armOpen, 0, dt * 8);
-          b.armY += dt * 900;
-          b.armX = CH.approach(b.armX, b.slamX, dt * 300);
+          b.armY += dt * 620;
+          b.armX = CH.approach(b.armX, b.slamX, dt * 120);
           if (b.armY >= LAB_FLOOR - 6) {
             b.armY = LAB_FLOOR - 6;
             A.sfx('explode');
@@ -650,30 +583,67 @@
 
       // the shockwave rolls outward along the floor
       if (b.shock) {
-        b.shock.r += dt * 210;
+        b.shock.r += dt * 150;
         b.shock.life -= dt;
-        if (p.inv <= 0 && p.grounded && Math.abs(Math.abs(p.x - b.shock.x) - b.shock.r) < 12) this.hitPlayer();
+        if (p.inv <= 0 && p.grounded && Math.abs(Math.abs(p.x - b.shock.x) - b.shock.r) < 8) this.hitPlayer();
         if (b.shock.life <= 0) b.shock = null;
       }
       b.x = CH.clamp(b.x, LAB_L + 30, LAB_R - 30);
     }
 
+    // exactly the arcade game's feel: run-up, skid, variable jump, double jump
+    movePlayer(dt) {
+      const p = this.p;
+      const ax = inp.axisX();
+      if (ax !== 0) {
+        if (p.grounded) {
+          if (Math.sign(p.vx) !== 0 && Math.sign(p.vx) !== ax && Math.abs(p.vx) > 60) p.vx += ax * DEC * dt;
+          else p.vx += ax * ACC * dt;
+        } else p.vx += ax * AIR * dt;
+        p.flip = ax < 0;
+      } else if (p.grounded) p.vx = CH.approach(p.vx, 0, FRIC * dt);
+      else p.vx = CH.approach(p.vx, 0, 60 * dt);
+      p.vx = CH.clamp(p.vx, -TOP, TOP);
+
+      if (inp.hit('jump') || inp.hit('up')) p.buffer = 0.1; else p.buffer -= dt;
+      if (p.grounded) { p.coyote = 0.09; p.canDouble = true; } else p.coyote -= dt;
+      if (p.buffer > 0) {
+        if (p.coyote > 0) { p.vy = JUMP; p.grounded = false; p.coyote = 0; p.buffer = 0; p.jumpHeld = true; A.sfx('jump'); }
+        else if (p.canDouble) {
+          p.vy = DJUMP; p.canDouble = false; p.buffer = 0; p.jumpHeld = true; A.sfx('djump');
+          this.particles.burst(p.x, p.y - 12, 8, { color: ['#3b6fd6', '#fff', '#9fdcff'], speed: 70, life: 0.35, shape: 'spark' });
+        }
+      }
+      if (!inp.down('jump') && p.jumpHeld && p.vy < -120) { p.vy = -120; p.jumpHeld = false; }
+      if (!inp.down('jump')) p.jumpHeld = false;
+
+      p.vy += GRAV * dt; if (p.vy > 420) p.vy = 420;
+      p.x = CH.clamp(p.x + p.vx * dt, LAB_L + 8, LAB_R - 8);
+      if (p.x <= LAB_L + 8 || p.x >= LAB_R - 8) p.vx = 0;
+      p.y += p.vy * dt;
+      if (p.y >= LAB_FLOOR) {
+        if (!p.grounded && p.vy > 200) this.particles.burst(p.x, LAB_FLOOR, 5, { color: ['#cfd6e8'], speed: 45, grav: 300, life: 0.3, angle: -Math.PI / 2, spread: 2.2 });
+        p.y = LAB_FLOOR; p.vy = 0; p.grounded = true; p.canDouble = true;
+      }
+      if (p.inv > 0) p.inv -= dt;
+      if (p.hurt > 0) p.hurt -= dt;
+    }
+
     hitPlayer() {
       const p = this.p;
-      p.inv = 1.4;
+      p.inv = 2;
       this.hearts--;
       A.sfx('hurt');
       this.pop(p.x, p.y - 30, 'OW!', { r: 28, scale: 1.3, fill: '#ff8a7a', shake: 6 });
       p.vy = -190; p.vx = (p.x < this.boss.x ? -1 : 1) * 150;
       if (this.hearts <= 0) {
-        // dream logic: you do not die, you start the nightmare over
-        this.hearts = 3;
-        this.boss.cracks = 0;
-        this.boss.state = 'idle'; this.boss.t = 0;
-        this.boss.x = W / 2;
+        // dream logic: you never lose, you just get your breath back. The
+        // cracks you already put in him stay cracked.
+        this.hearts = HEARTS;
+        this.boss.state = 'stun'; this.boss.stunT = 2; this.boss.t = 0;
         p.x = W / 2;
-        this.say('No. {p}Again.', 2.2);
-        fx.doFlash(0.7, '#ff4040');
+        this.say('Get up. {p}He is still dizzy.', 2.4);
+        fx.doFlash(0.5, '#ffd0d0');
         A.sfx('sad');
       }
     }
@@ -683,7 +653,7 @@
       b.cracks++;
       b.flash = 0.5;
       b.state = 'stun';
-      b.stunT = 1.7 - b.cracks * 0.2;
+      b.stunT = 2.6;
       A.sfx('crash'); A.sfx('bossHit'); A.sfx('glass');
       this.pop(b.x, b.y - 46, b.cracks >= 3 ? 'CRRRACK!' : 'BONK!', { r: 52, scale: 2.2, shake: 10, stop: 0.22, fill: '#fff0a0' });
       fx.doFlash(0.5, '#fff');
@@ -693,7 +663,7 @@
         b.state = 'dead'; b.deadT = 0;
         A.play(null);
       } else {
-        this.say(b.cracks === 1 ? 'MY SHELL! {p}Two more.' : 'HOW DARE YOU. AGAIN?!', 2);
+        this.say(b.cracks === 1 ? 'MY SHELL! {p}Two more like that.' : 'HOW DARE YOU. AGAIN?!', 2);
       }
     }
 
@@ -748,14 +718,84 @@
     }
 
     // ---- draw ---------------------------------------------------------------
+    // The whole dream is painted into a buffer first so the haze can be laid
+    // over the finished frame instead of over each piece of it.
     draw(g) {
+      const buf = this._buf || (this._buf = gfx.makeCanvas(W, H));
+      const bc = buf.getContext('2d');
+      bc.setTransform(1, 0, 0, 1, 0, 0);
+      bc.clearRect(0, 0, W, H);
+      gfx.pushTarget(bc);
       const sh = this.shake;
-      g.save();
-      if (sh > 0) g.translate(Math.round(CH.rand(-sh, sh)), Math.round(CH.rand(-sh, sh)));
+      bc.save();
+      if (sh > 0) bc.translate(Math.round(CH.rand(-sh, sh)), Math.round(CH.rand(-sh, sh)));
       const f = this['draw_' + this.phase];
-      if (f) f.call(this, g);
+      if (f) f.call(this, bc);
+      bc.restore();
+      this.drawOverlay(bc);
+      gfx.popTarget();
+      this.dreamHaze(g, buf);
+    }
+
+    // how soft the frame gets: playable acts stay readable, cutscenes swim
+    hazeAmt() {
+      return (this.phase === 'run' || this.phase === 'boss') ? 0.2 : 0.3;
+    }
+
+    dreamHaze(g, buf) {
+      const soft = this._soft || (this._soft = gfx.makeCanvas(W, H));
+      const sc = soft.getContext('2d');
+      sc.setTransform(1, 0, 0, 1, 0, 0);
+      sc.clearRect(0, 0, W, H);
+      if (CAN_BLUR) {
+        sc.save(); sc.filter = 'blur(3px)'; sc.drawImage(buf, 0, 0); sc.restore();
+      } else {
+        const sm = this._small || (this._small = gfx.makeCanvas(W >> 2, H >> 2));
+        const mc = sm.getContext('2d');
+        mc.imageSmoothingEnabled = true;
+        mc.clearRect(0, 0, sm.width, sm.height);
+        mc.drawImage(buf, 0, 0, sm.width, sm.height);
+        sc.imageSmoothingEnabled = true;
+        sc.drawImage(sm, 0, 0, W, H);
+      }
+      const breathe = 0.5 + Math.sin(this.t * 0.9) * 0.5;
+      const amt = this.hazeAmt();
+      g.save();
+      g.imageSmoothingEnabled = true;
+      g.drawImage(buf, 0, 0);
+      // the sharp frame, seen through a blurred copy of itself
+      g.globalAlpha = amt + breathe * 0.06;
+      g.drawImage(soft, 0, 0);
+      // a slow drift on the soft copy gives the edges a swimming fringe
+      g.globalAlpha = 0.07;
+      g.drawImage(soft, Math.sin(this.t * 0.7) * 2, Math.cos(this.t * 0.5) * 2);
+      g.drawImage(soft, -Math.sin(this.t * 0.7) * 2, -Math.cos(this.t * 0.5) * 2);
+      // only a whisper of bloom: enough for highlights to breathe, not to blow out
+      g.globalCompositeOperation = 'lighter';
+      g.globalAlpha = 0.07 + breathe * 0.04;
+      g.drawImage(soft, 0, 0);
+      // a wash that rolls between lilac and warm pink. The lab keeps most of
+      // its darkness: a washed-out dungeon just looks like fog.
+      const wash = (this.phase === 'run' || this.phase === 'title') ? 1 : 0.45;
+      g.globalCompositeOperation = 'source-over';
+      g.globalAlpha = (0.07 + breathe * 0.03) * wash;
+      gfx.rect(0, 0, W, H, '#6a3f9a', g);
+      g.globalAlpha = (0.05 + (1 - breathe) * 0.03) * wash;
+      gfx.rect(0, 0, W, H, '#ff9ad0', g);
+      // clouds of haze drifting across, never in the same place twice
+      g.globalCompositeOperation = 'lighter';
+      for (let i = 0; i < 3; i++) {
+        const x = ((this.t * (7 + i * 4) + i * 190) % (W + 200)) - 100;
+        const y = 54 + Math.sin(this.t * 0.4 + i * 2) * 46 + i * 24;
+        const r = 72 + i * 26;
+        const gr = g.createRadialGradient(x, y, 0, x, y, r);
+        gr.addColorStop(0, 'rgba(255,214,245,0.07)');
+        gr.addColorStop(1, 'rgba(255,214,245,0)');
+        g.globalAlpha = 1;
+        g.fillStyle = gr;
+        g.beginPath(); g.arc(x, y, r, 0, Math.PI * 2); g.fill();
+      }
       g.restore();
-      this.drawOverlay(g);
     }
 
     drawRunner(g, x, y, opts = {}) {
@@ -798,40 +838,7 @@
     }
 
     draw_run(g) {
-      const cam = Math.round(this.camX);
-      paintDreamSky(g, cam, this.t);
-      paintDreamGround(g, cam);
-      // rings
-      for (const c of this.coins) {
-        if (c.got) continue;
-        const sx = c.x - cam;
-        if (sx < -14 || sx > W + 14) continue;
-        const w = 2.4 + Math.abs(Math.sin(this.t * 5 + c.x * 0.05)) * 2.6;
-        gfx.ellipseOutline(sx, c.y, w, 5, '#b88a10');
-        gfx.ellipseOutline(sx, c.y, w - 0.8, 4.2, '#ffd84a');
-        gfx.px(sx, c.y - 4, '#fff6c0');
-      }
-      // foes
-      for (const e of this.foes) {
-        const sx = e.x - cam;
-        if (sx < -30 || sx > W + 30) continue;
-        if (!e.alive) continue;
-        if (e.kind === 'lady' && CH.drawLadybug) CH.drawLadybug(g, sx, e.y, { frame: e.t * 2, flip: true });
-        else drawMinion(g, sx, e.y, e.t, false);
-      }
-      // the hole at the end of the world
-      if (this.track - cam < W + 40) {
-        const hx = this.track - cam + 14;
-        gfx.rect(hx, GROUND, W, H - GROUND, '#120a1e');
-        gfx.rect(hx, GROUND, 4, H - GROUND, '#3a1550');
-        for (let i = 0; i < 5; i++) gfx.rect(hx + 4 + i * 7, GROUND + 2 + i * 3, 4, 2, '#2a1040');
-      }
-      // speed streaks behind him while flat out
-      if (this.p.vx > 130) {
-        art.speedLines(this.p.x - cam - 14, this.p.y - 22, 5, 26 + this.p.vx * 0.12, { color: 'rgba(255,255,255,0.45)', spread: 26, jitter: true });
-      }
-      const stretch = CH.clamp((this.p.vy < -120 ? 0.12 : 0) + (this.p.vx > 150 ? 0.06 : 0), 0, 0.2);
-      this.drawRunner(g, this.p.x - cam, this.p.y, { stretch, spin: !this.p.grounded && this.p.vy > 120 });
+      if (this.hh) this.hh.draw(g);
     }
 
     draw_fall(g) {
@@ -861,15 +868,25 @@
         const y = CH.wrap(i * 40 - sc * 2.2, H + 60) - 30;
         gfx.rect(x, y, 1, 22, 'rgba(255,255,255,0.35)');
       }
-      // him, tumbling
+      // him, tumbling. He falls in as the hedgehog and lands as himself:
+      // the dream cannot keep the costume on once the ground goes.
       const k = Math.min(1, this.pt / 0.4);
       const y = 70 + Math.sin(this.pt * 2) * 12;
+      const MORPH = 1.1;
       g.save();
       g.translate(W / 2, y);
       g.rotate(this.pt * 7);
-      CH.drawChubby(g, 0, 16, { face: 'scared', arm: 'both_up', noShadow: true });
+      if (this.pt < MORPH) CH.drawHedgehog(g, 0, 16, { state: 'ball', frame: this.pt * 20, noShadow: true });
+      else CH.drawChubby(g, 0, 16, { face: 'scared', arm: 'both_up', noShadow: true });
       g.restore();
-      if (this.pt > 0.3) {
+      if (this.pt >= MORPH && !this.morphed) {
+        this.morphed = true;
+        A.sfx('djump');
+        this.particles.burst(W / 2, y + 8, 22, { color: ['#fff', '#9fdcff', '#ffd0f0'], speed: 110, life: 0.6, shape: 'spark' });
+        this.particles.add({ x: W / 2, y: y + 8, life: 0.4, color: '#fff', shape: 'ring', size: 6 });
+      }
+      this.particles.draw(g);
+      if (this.pt > MORPH + 0.2) {
         const bx = W / 2 + 46, by = y - 16;
         art.bubble(bx - 22, by - 16, 50, 15, bx - 14, by + 2, { kind: 'shout' });
         gfx.text('AAAAAA', bx + 2, by - 12, '#c8352b', { align: 'center' });
@@ -907,18 +924,15 @@
       if (b && b.state === 'wind') {
         const a = 0.35 + Math.sin(this.t * 30) * 0.2;
         g.save(); g.globalAlpha = a;
-        const stop = CH.clamp((b.target || b.x) + b.dir * 96, LAB_L, LAB_R);
+        const stop = b.dir > 0 ? LAB_R : LAB_L;
         const x0 = Math.min(b.x, stop), x1 = Math.max(b.x, stop);
         gfx.rect(x0, b.y + 4, x1 - x0, 2, '#ff4a3a');
         gfx.rect(stop - 1, b.y - 6, 3, 14, '#ff4a3a');
         g.restore();
-        // and mark the wall he would actually hit
-        if ((b.dir > 0 && stop >= LAB_R - 2) || (b.dir < 0 && stop <= LAB_L + 2)) {
-          const wx = b.dir > 0 ? LAB_R : LAB_L;
-          g.save(); g.globalAlpha = 0.35 + Math.sin(this.t * 26) * 0.25;
-          gfx.rect(b.dir > 0 ? wx : wx - 26, 22, 26, LAB_FLOOR - 24, '#ff4a3a');
-          g.restore();
-        }
+        // the wall he is about to introduce himself to
+        g.save(); g.globalAlpha = 0.35 + Math.sin(this.t * 26) * 0.25;
+        gfx.rect(b.dir > 0 ? stop : stop - 26, 22, 26, LAB_FLOOR - 24, '#ff4a3a');
+        g.restore();
         art.impactLines(b.x, b.y - 30, 6, 26, 34, { color: '#ff4a3a', thick: 1, rot: this.t * 3 });
       }
       this.drawRunner(g, this.p.x, this.p.y, { spin: false, p: { face: this.hearts <= 1 ? 'scared' : 'determined', moving: Math.abs(this.p.vx) > 20 ? 1 : 0, walk: this.t * 18, arm: 'idle' } });
@@ -967,7 +981,7 @@
       const b = this.boss;
       if (!b) return;
       // hearts
-      for (let i = 0; i < 3; i++) {
+      for (let i = 0; i < HEARTS; i++) {
         const x = 12 + i * 13, y = 8;
         const on = i < this.hearts;
         gfx.ellipse(x - 2, y, 2.6, 2.4, on ? '#e8496e' : '#3a3450');
@@ -1014,14 +1028,6 @@
 
     // ---- overlay ------------------------------------------------------------
     drawOverlay(g) {
-      if (this.phase === 'run') {
-        gfx.rrect(4, 4, 74, 13, 4, 'rgba(12,8,22,0.55)');
-        gfx.ellipseOutline(14, 10, 4, 4, '#ffd84a');
-        gfx.text('x ' + this.rings, 24, 6, '#fff6d0', { font: 'small' });
-        const prog = CH.clamp(this.p.x / this.track, 0, 1);
-        gfx.rrect(W - 110, 6, 100, 8, 3, 'rgba(12,8,22,0.55)');
-        gfx.rrect(W - 109, 7, Math.round(98 * prog), 6, 2, '#39d6a0');
-      }
       if (this.msgT > 0 && this.msg) {
         const a = Math.min(1, this.msgT * 2);
         const w = gfx.textWidth(this.msg) + 18;
