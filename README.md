@@ -57,6 +57,19 @@ that points at them, and pages itself when a line runs long.
 
 ## What's inside
 
+- **Main Street**: fourteen shopfronts in a row, twelve of them businesses you
+  can walk into - Pinecone Toys, The Dripping Pine, Dog-Eared Books, Frost &
+  Flour, Bucksaw Hardware, Second Wind, Loon & Groove, Antler Pharmacy, Tackle
+  & Twine, Sparkplug Garage, The Clipped Whisker and Pixel Palace. Each has its
+  own sign colours, striped awning, window display, painted mark on a hanging
+  bracket board, sandwich board on the pavement, and a room behind the door
+  with its own fixtures and its own keeper to talk to.
+- **A street that is different every day**: who is standing where, which cars
+  and bikes go past, and which bit of street theatre is playing (a busker, a
+  snowball fight, geese crossing, a stuck car, a window cleaner in February,
+  a poutine cart) is all seeded on the in-game day. Six named villagers with
+  their own lines and their own small favours rotate through the doorways -
+  including Denny, who has once again come out in his heart-print shorts.
 - **The cabin**: a single-floor log cabin with 50+ pokeable things: alarm clock,
   pancakes, fireplace, family photos, the rotary phone, Mom's rocking chair, the
   forest through frosted windows.
@@ -90,6 +103,13 @@ game) and `arcade.html` (Blue Hedgehog on its own, booted through the
 `window.CH_BOOT` scene hook). Both pull in the same `js/` sources and add
 `artifact/shell.js`, which takes keyboard focus inside an iframe and mounts an
 on-screen d-pad on touch devices.
+
+## Key art
+
+`art/thumbnail.png` and `art/banner.png` are rendered by `tools/keyart.mjs`,
+which paints them with the game's own primitives and characters - the same
+pixels the game draws, composed for a store page. Re-render with
+`node tools/keyart.mjs art`.
 
 ## Development
 

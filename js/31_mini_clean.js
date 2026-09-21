@@ -248,12 +248,12 @@
     constructor(opts = {}) {
       super({ title: 'CLEAN THE TABLE', hint: 'Drag trash to the bin, trays to the rack. Then wipe the smears!', difficulty: opts.difficulty || 1 });
       this.ds = new CH.DragSystem(this);
-      const n = 5 + Math.round(this.difficulty * 2);
+      const n = 7 + Math.round(this.difficulty * 3);
       const kinds = ['wrapper', 'cup', 'fries', 'napkin', 'straw', 'halfburger', 'toy', 'wrapper', 'cup', 'nuggetbox', 'pie'];
-      for (let i = 0; i < n; i++) { const k = kinds[i % kinds.length]; this.ds.add({ kind: k, x: 120 + CH.rand(0, 240), y: 70 + CH.rand(0, 120), w: 22, h: 16, draw: (g, x, y, it) => this.drawItem(g, x, y, it) }); }
-      for (let i = 0; i < 1 + Math.floor(this.difficulty / 2); i++) this.ds.add({ kind: 'tray', x: 160 + i * 120, y: 130 + CH.rand(-20, 20), w: 44, h: 10, draw: (g, x, y) => F.tray(g, x, y) });
+      for (let i = 0; i < n; i++) { const k = kinds[i % kinds.length]; this.ds.add({ kind: k, x: 92 + CH.rand(0, 300), y: 56 + CH.rand(0, 152), w: 26, h: 19, draw: (g, x, y, it) => this.drawItem(g, x, y, it) }); }
+      for (let i = 0; i < 1 + Math.floor(this.difficulty / 2); i++) this.ds.add({ kind: 'tray', x: 150 + i * 150, y: 140 + CH.rand(-30, 30), w: 48, h: 12, draw: (g, x, y) => F.tray(g, x, y) });
       this.bin = this.ds.addTarget({
-        x: 34, y: 150, w: 44, h: 60, kind: 'bin', accepts: (it) => it.kind !== 'tray',
+        x: 26, y: 156, w: 40, h: 60, kind: 'bin', accepts: (it) => it.kind !== 'tray',
         onDrop: (it) => { this.ds.remove(it); A.sfx('trash'); this.particles.burst(34, 120, 6, { color: ['#aaa', '#f5c33b'], speed: 30, life: 0.4 }); this.addCombo(); return true; },
         draw: (g, t, hov) => {
           const m = MG.m(hov ? '#7a9ab4' : '#5a7a94', { dark: -30, darker: -50, light: 26 });
@@ -272,7 +272,7 @@
         },
       });
       this.rack = this.ds.addTarget({
-        x: W - 36, y: 150, w: 50, h: 60, kind: 'rack', accepts: (it) => it.kind === 'tray',
+        x: W - 28, y: 156, w: 44, h: 60, kind: 'rack', accepts: (it) => it.kind === 'tray',
         onDrop: (it) => { this.ds.remove(it); A.sfx('snap'); this.traysDone++; this.addCombo(); return true; },
         draw: (g, t, hov) => {
           const m = MG.m(hov ? '#a8a8b8' : '#8a8a94', { dark: -30, darker: -48, light: 24 });
@@ -289,10 +289,10 @@
         },
       });
       this.traysDone = 0;
-      this.mask = new CH.ScrubMask(90, 50, 300, 150, (c, w, h) => {
+      this.mask = new CH.ScrubMask(64, 38, 352, 176, (c, w, h) => {
         const rng = new CH.Rng(7 + Date.now() % 1000);
-        for (let i = 0; i < 4 + this.difficulty * 2; i++) {
-          const sx = rng.range(20, w - 20), sy = rng.range(20, h - 20), rx = rng.range(8, 20), ry = rng.range(5, 12);
+        for (let i = 0; i < 6 + this.difficulty * 3; i++) {
+          const sx = rng.range(24, w - 24), sy = rng.range(22, h - 22), rx = rng.range(10, 24), ry = rng.range(6, 15);
           const col = rng.pick(['rgba(180,40,40,0.9)', 'rgba(230,200,80,0.9)', 'rgba(120,80,40,0.8)']);
           gfx.ellipse(sx, sy, rx + 1, ry + 1, 'rgba(60,30,20,0.45)');
           gfx.ellipse(sx, sy, rx, ry, col);
@@ -396,15 +396,15 @@
       for (let x = 0; x < W; x += 20) gfx.vline(x, 0, H, '#5c4d3f');
       MG.crumbs(0, 0, W, H, 40, ['#7d6a56', '#5f5044'], 9);
       // table: dark rim, laminate top, chrome edge highlight
-      gfx.rect(78, 38, 324, 176, '#241a10');
-      gfx.rect(80, 40, 320, 170, '#3a2a1a');
-      gfx.rect(86, 46, 308, 158, '#e8c890');
-      for (let i = 0; i < 20; i++) gfx.hline(90, 52 + i * 8, 300, '#e0bc80');
-      for (let i = 0; i < 26; i++) gfx.hline(88 + (i % 3), 50 + i * 6, 290 - (i % 4) * 20, 'rgba(198,158,104,0.35)');
-      gfx.rect(86, 46, 308, 2, '#f8e0b0');
-      gfx.rect(86, 202, 308, 2, '#cfa66c');
-      gfx.vline(86, 46, 158, '#f4dba8'); gfx.vline(393, 46, 158, '#cfa66c');
-      MG.crumbs(92, 52, 296, 146, 26, ['#c9a26a', '#f4e6c8'], 4);
+      gfx.rect(52, 26, 376, 200, '#241a10');
+      gfx.rect(54, 28, 372, 194, '#3a2a1a');
+      gfx.rect(60, 34, 360, 182, '#e8c890');
+      for (let i = 0; i < 23; i++) gfx.hline(64, 40 + i * 8, 352, '#e0bc80');
+      for (let i = 0; i < 30; i++) gfx.hline(62 + (i % 3), 38 + i * 6, 342 - (i % 4) * 22, 'rgba(198,158,104,0.35)');
+      gfx.rect(60, 34, 360, 2, '#f8e0b0');
+      gfx.rect(60, 214, 360, 2, '#cfa66c');
+      gfx.vline(60, 34, 182, '#f4dba8'); gfx.vline(419, 34, 182, '#cfa66c');
+      MG.crumbs(66, 40, 348, 170, 34, ['#c9a26a', '#f4e6c8'], 4);
       this.mask.draw(g);
       this.ds.draw(g);
       this.particles.draw(g);
@@ -651,9 +651,9 @@
       this.tasks.weird = !this.weirdItem;
       this.ds = new CH.DragSystem(this);
       // scrub masks: toilet + sink
-      this.grime = new CH.ScrubMask(60, 110, 120, 90, (c, w, h) => { const rng = new CH.Rng(99 + Date.now() % 999); for (let i = 0; i < 6 + d * 3; i++) { const sx = rng.range(10, w - 10), sy = rng.range(10, h - 10), rx = rng.range(6, 14), ry = rng.range(4, 9); gfx.ellipse(sx, sy, rx + 1, ry + 1, 'rgba(60,48,26,0.6)'); gfx.ellipse(sx, sy, rx, ry, rng.pick(['rgba(120,100,60,0.85)', 'rgba(90,80,50,0.85)', 'rgba(160,140,90,0.8)'])); gfx.ellipse(sx - rx * 0.3, sy - ry * 0.4, rx * 0.25, ry * 0.2, 'rgba(255,240,190,0.25)'); } });
-      this.sinkGrime = new CH.ScrubMask(300, 120, 110, 50, (c, w, h) => { const rng = new CH.Rng(5 + Date.now() % 777); for (let i = 0; i < 4 + d * 2; i++) { const sx = rng.range(10, w - 10), sy = rng.range(8, h - 8); gfx.ellipse(sx, sy, rng.range(6, 12), rng.range(3, 6), 'rgba(100,140,120,0.8)'); gfx.px(sx, sy - 2, 'rgba(220,255,240,0.4)'); } });
-      this.mirrorGrime = new CH.ScrubMask(300, 40, 110, 60, (c, w, h) => { const rng = new CH.Rng(3 + Date.now() % 555); for (let i = 0; i < 5; i++) gfx.ellipse(rng.range(10, w - 10), rng.range(8, h - 8), rng.range(5, 10), rng.range(4, 8), 'rgba(200,200,220,0.7)'); gfx.text('WASH ME', w / 2, h / 2 - 3, 'rgba(80,80,100,0.8)', { align: 'center', font: 'small' }); });
+      this.grime = new CH.ScrubMask(52, 100, 140, 104, (c, w, h) => { const rng = new CH.Rng(99 + Date.now() % 999); for (let i = 0; i < 6 + d * 3; i++) { const sx = rng.range(10, w - 10), sy = rng.range(10, h - 10), rx = rng.range(6, 14), ry = rng.range(4, 9); gfx.ellipse(sx, sy, rx + 1, ry + 1, 'rgba(60,48,26,0.6)'); gfx.ellipse(sx, sy, rx, ry, rng.pick(['rgba(120,100,60,0.85)', 'rgba(90,80,50,0.85)', 'rgba(160,140,90,0.8)'])); gfx.ellipse(sx - rx * 0.3, sy - ry * 0.4, rx * 0.25, ry * 0.2, 'rgba(255,240,190,0.25)'); } });
+      this.sinkGrime = new CH.ScrubMask(292, 116, 126, 58, (c, w, h) => { const rng = new CH.Rng(5 + Date.now() % 777); for (let i = 0; i < 4 + d * 2; i++) { const sx = rng.range(10, w - 10), sy = rng.range(8, h - 8); gfx.ellipse(sx, sy, rng.range(6, 12), rng.range(3, 6), 'rgba(100,140,120,0.8)'); gfx.px(sx, sy - 2, 'rgba(220,255,240,0.4)'); } });
+      this.mirrorGrime = new CH.ScrubMask(296, 38, 124, 64, (c, w, h) => { const rng = new CH.Rng(3 + Date.now() % 555); for (let i = 0; i < 5; i++) gfx.ellipse(rng.range(10, w - 10), rng.range(8, h - 8), rng.range(5, 10), rng.range(4, 8), 'rgba(200,200,220,0.7)'); gfx.text('WASH ME', w / 2, h / 2 - 3, 'rgba(80,80,100,0.8)', { align: 'center', font: 'small' }); });
       this.radius = has('brush2') ? 13 : 9; this.lastM = null;
       // TP roll item + holder target
       this.ds.add({
@@ -746,6 +746,18 @@
       gfx.rect(0, 30, 6, 160, '#4e6c85'); gfx.rect(1, 30, 4, 160, '#5a7a94');
       gfx.rect(180, 30, 6, 160, '#4e6c85'); gfx.rect(181, 30, 4, 160, '#5a7a94');
       gfx.rect(0, 30, 186, 4, '#5a7a94'); gfx.hline(0, 30, 186, '#7799b4');
+      // the middle of the room: a radiator, a dryer nobody uses, a sad drain
+      gfx.rect(200, 108, 56, 34, '#b8bcc4'); gfx.rect(202, 110, 52, 30, '#d4d8e0');
+      for (let i = 0; i < 7; i++) gfx.rect(205 + i * 7, 112, 3, 26, '#aab0ba');
+      gfx.rect(198, 142, 60, 4, '#9aa0aa'); gfx.rect(204, 146, 4, 8, '#8a9098'); gfx.rect(248, 146, 4, 8, '#8a9098');
+      gfx.rect(212, 46, 34, 40, '#e6e8ee'); gfx.rect(214, 48, 30, 36, '#f4f6fa');
+      gfx.rect(218, 78, 22, 6, '#c4c8d2'); gfx.rect(222, 84, 14, 3, '#9aa0aa');
+      gfx.text('DRY', 229, 58, '#8a9098', { align: 'center', font: 'small' });
+      gfx.ellipse(232, 196, 12, 5, '#7a8a8c'); gfx.ellipse(232, 196, 9, 3.4, '#5a6a6c');
+      for (let i = 0; i < 4; i++) gfx.rect(226 + i * 4, 194, 2, 5, '#44514f');
+      gfx.rect(262, 170, 22, 24, '#c8a83a'); gfx.rect(264, 172, 18, 20, '#e0c45a');
+      gfx.ellipse(273, 170, 11, 3, '#8a7a2a'); gfx.rect(272, 148, 2, 24, '#8a6a3a');
+      gfx.ellipse(273, 146, 5, 3, '#d8d8e0');
       // toilet: porcelain, outlined so it reads as an object in the stall
       const clog = this.needPlunge && !this.tasks.plunge;
       MG.shadow(110, 190, 26, 0.25);

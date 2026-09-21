@@ -279,8 +279,42 @@
       // icicles
       for (let i = 0; i < 9; i++) gfx.tri(ox + 4 + i * 14, oy - 83, ox + 7 + i * 14, oy - 83, ox + 5 + i * 14, oy - 77 - (i % 3) * 2, 'rgba(206,234,246,0.85)');
       if (st.sign) { gfx.rect(ox + 74, oy - 42, 32, 13, '#f6f2e6'); gfx.frame(ox + 74, oy - 42, 32, 13, '#8a7a5a'); gfx.text(st.sign, ox + 90, oy - 39, '#c8352b', { align: 'center', font: 'small' }); }
+      // whatever this particular shop keeps in its windows
+      if (st.display) { st.display(ox + 10, oy - 20, t); st.display(ox + 72, oy - 20, t, true); }
+      // a striped awning over the glass
+      if (st.awning) {
+        const [a1, a2] = st.awning;
+        for (const [wx, ww] of [[ox + 4, 50], [ox + 66, 48]]) {
+          gfx.rect(wx, oy - 52, ww, 3, gfx.shade(a1, -34));
+          for (let i = 0; i < ww; i += 8) {
+            gfx.tri(wx + i, oy - 49, wx + i + 8, oy - 49, wx + i + 4, oy - 42, i % 16 ? a1 : a2);
+            gfx.tri(wx + i, oy - 49, wx + i + 8, oy - 49, wx + i + 4, oy - 44, gfx.shade(i % 16 ? a1 : a2, 16));
+          }
+          gfx.rect(wx, oy - 49, ww, 1, 'rgba(255,255,255,0.3)');
+          gfx.rect(wx, oy - 43, ww, 1, gfx.shade(a1, -40));
+        }
+      }
+      // hanging bracket sign with the shop's own mark on it
+      if (st.logo) {
+        const sx = ox + 100, sy = oy - 40;
+        gfx.rect(sx + 10, oy - 56, 14, 2, '#3a3440');
+        gfx.rect(sx + 22, oy - 56, 2, 8, '#3a3440');
+        gfx.rect(sx + 4, oy - 50, 24, 24, art.INK);
+        gfx.rect(sx + 5, oy - 49, 22, 22, st.logoBg || '#f6f2e6');
+        gfx.rect(sx + 5, oy - 49, 22, 1, '#fffdf4');
+        st.logo(sx + 16, oy - 38, t);
+      }
     });
     if (st.windowDraw) st.windowDraw(g, x, y, t);
+    if (st.board) {
+      art.blit(x + 122, y, 26, 30, 4, 26, () => {
+        gfx.tri(4, 26, 16, 26, 11, 6, '#6b4a2a');
+        gfx.rect(2, 4, 18, 18, art.INK); gfx.rect(3, 5, 16, 16, '#2f2a22');
+        const lines = String(st.board).split('|');
+        for (let i = 0; i < lines.length; i++) gfx.text(lines[i], 11, 8 + i * 6, i ? '#f6e7b0' : '#ffd84a', { align: 'center', font: 'small' });
+        gfx.rect(1, 24, 20, 2, '#e9f1f7');
+      });
+    }
     // snowbank piled against the wall
     gfx.ellipse(x + 8, y, 20, 5, LP.snow); gfx.ellipse(x + 112, y, 18, 4, LP.snow);
     gfx.ellipse(x + 6, y - 2, 12, 3, LP.snowHi);
@@ -359,7 +393,7 @@
 
   class TravelScene extends CH.WorldScene {
     constructor(opts = {}) {
-      super({ width: 2700, floorY: 214, playerX: opts.playerX || 40 });
+      super({ width: 3560, floorY: 214, playerX: opts.playerX || 40 });
       this.name = 'travel'; this.dest = opts.dest || 'donalds'; this.direction = opts.direction || 1;
       this.timeScale = 1 / 30; // 1 game hour per 30 s
       // the light of the whole walk is fixed at the moment it starts
@@ -477,8 +511,8 @@
       }, 0, F, 90, 100, { id: 'cabinExt', anim: true, hint: 'Home', interact: say("Home. {p}I'll be back. With a job. Hopefully.") });
       this.addProp('boots', 60, F);
       // forest
-      for (let x = 110; x < 1400; x += 55) { this.addProp('pine', x + (x % 3) * 7, F + 2 - (x % 5), { st: { h: 50 + (x % 4) * 10, c: ['#2f6a24', '#3a7a2c', '#25551c'][x % 3] } }); if (x % 4 === 0) this.addProp('birch', x + 30, F); }
-      for (let x = 130; x < 1450; x += 130) this.addProp('snowbank', x, F + 2);
+      for (let x = 110; x < 940; x += 55) { this.addProp('pine', x + (x % 3) * 7, F + 2 - (x % 5), { st: { h: 50 + (x % 4) * 10, c: ['#2f6a24', '#3a7a2c', '#25551c'][x % 3] } }); if (x % 4 === 0) this.addProp('birch', x + 30, F); }
+      for (let x = 130; x < 960; x += 130) this.addProp('snowbank', x, F + 2);
       this.addProp('mailbox', 100, F, { w: 10, h: 26, hint: 'Mailbox', interact: say("Our mailbox. Full of flyers. One says 'You may already be a winner!' {p}I may already be a loser, flyer.") });
       this.addProp('snowman', 300, F, { w: 16, h: 30, hint: 'Snowman', interact: say("A snowman. Somebody gave him a Donald's hat. {p}Everybody's hiring except the snowman.") });
       this.addProp('mooseSign', 560, F, { w: 16, h: 40, hint: 'Sign', interact: say("'MOOSE CROSSING'. {p}They mean it.") });
@@ -498,18 +532,33 @@
         gfx.line(x + 108, y - 12, x + 88, y - 5, '#3a3630'); gfx.rect(x + 106, y - 14, 4, 4, '#2a4f9e');
         for (let i = 0; i < 3; i++) { const k = (t * 0.4 + i * 0.33) % 1; gfx.ellipse(x + 102, y - 16 - k * 12, 1.5 + k * 2, 1 + k * 1.5, `rgba(238,244,248,${(0.4 - k * 0.4).toFixed(2)})`); }
         if (Math.sin(t * 0.7) > 0.9) gfx.text('...', x + 100, y - 40, p.night ? '#cfd8e8' : '#333', { font: 'small' });
-      }, 700, F + 4, 200, 20, { id: 'lake', anim: true, hint: 'Frozen lake', interact: say("Old Bartleby, ice fishing. He's been out there since 1994. {p}He waves. I wave. That's our whole relationship."), range: 60 });
-      this.addCustom((g, x, y) => { gfx.rect(x, y - 3, 14, 3, '#221f2a'); gfx.rect(x + 2, y - 4, 10, 1, '#100e16'); gfx.rect(x - 2, y - 1, 18, 1, gfx.shade(this.pal.road, 16)); }, 1000, F + 16, 14, 4, { id: 'pothole', anim: false });
-      this.addProp('busStop', 1300, F, { w: 30, h: 50, hint: 'Bus stop', interact: () => this.interactBus() });
-      this.addProp('donaldsRoadSign', 1400, F);
-      this.addProp('townSign', 1466, F);
-      // town
-      this.addProp('lamppost', 1520, F); this.addProp('lamppost', 1760, F); this.addProp('lamppost', 2000, F); this.addProp('lamppost', 2240, F);
-      this.addProp('storefront', 1560, F, { w: 120, h: 90, st: { color: '#8a5a2b', name: 'GENERAL STORE', sign: 'JOB BOARD' }, hint: 'General store', interact: () => this.interactStore() });
-      this.addProp('storefront', 1720, F, { w: 120, h: 90, st: { color: '#a03a2a', name: 'TAM HORTONS', textColor: '#fff', sign: 'TIMBITS' }, hint: 'Tam Hortons', interact: say("Tam Hortons. The smell of coffee and doughnuts. {p}I have $" + Math.floor(S.money) + ". {p}Focus, Chubby.") });
-      this.addProp('storefront', 1880, F, { w: 120, h: 90, st: { color: '#4a5a8a', name: 'MOOSE HOLLOW ARENA', textColor: '#fff', sign: 'GO MALLARDS' }, hint: 'Arena', interact: say("The arena. Dad played here. {p}Rick still hasn't fixed the Zamboni.") });
-      this.addProp('hydrant', 1700, F); this.addProp('hydrant', 2060, F);
-      this.addProp('car', 1640, F + 24, { st: { color: '#3b6fd6' } }); this.addProp('car', 1960, F + 24, { st: { color: '#c8a060' } });
+      }, 620, F + 4, 200, 20, { id: 'lake', anim: true, hint: 'Frozen lake', interact: say("Old Bartleby, ice fishing. He's been out there since 1994. {p}He waves. I wave. That's our whole relationship."), range: 60 });
+      this.addCustom((g, x, y) => { gfx.rect(x, y - 3, 14, 3, '#221f2a'); gfx.rect(x + 2, y - 4, 10, 1, '#100e16'); gfx.rect(x - 2, y - 1, 18, 1, gfx.shade(this.pal.road, 16)); }, 900, F + 16, 14, 4, { id: 'pothole', anim: false });
+      this.addProp('busStop', 856, F, { w: 30, h: 50, hint: 'Bus stop', interact: () => this.interactBus() });
+      this.addProp('donaldsRoadSign', 926, F);
+      this.addProp('townSign', 966, F);
+      // ---- Main Street ---------------------------------------------------
+      // Fourteen fronts in a row: the two the story needs, and the twelve
+      // businesses that make the place a town instead of a corridor.
+      const GAP = 148;
+      let sx = 1020;
+      const front = (opts) => { const pr = this.addProp('storefront', sx, F, Object.assign({ w: 120, h: 90 }, opts)); sx += GAP; return pr; };
+      front({ st: { color: '#8a5a2b', name: 'GENERAL STORE', sign: 'JOB BOARD', board: 'JOB|BOARD', awning: ['#a8722f', '#e8d0a0'] }, hint: 'General store', interact: () => this.interactStore() });
+      for (const sh of (CH.SHOPS || [])) {
+        front({
+          hint: sh.name,
+          st: { color: sh.color, name: sh.name, textColor: sh.text, sign: sh.sign, awning: sh.awning, logo: sh.logo, logoBg: sh.logoBg, display: sh.display, board: sh.board },
+          interact: () => { const back = this.player.x; CH.enterShop(sh.id, () => { this.player.x = back; this.cam.x = CH.clamp(back - W / 2, 0, this.width - W); }); },
+        });
+      }
+      front({ st: { color: '#4a5a8a', name: 'MOOSE HOLLOW ARENA', textColor: '#fff', sign: 'GO MALLARDS', awning: ['#3a4a7a', '#dce4f4'] }, hint: 'Arena', interact: say("The arena. Dad played here. {p}Rick still hasn't fixed the Zamboni.") });
+      this.townX0 = 1020; this.townX1 = sx;
+      for (let x = 1148; x < sx; x += GAP * 2) this.addProp('lamppost', x, F);
+      for (let x = 1296; x < sx; x += GAP * 4) this.addProp('hydrant', x, F);
+      this.addProp('car', 1172, F + 24, { st: { color: '#3b6fd6' } });
+      this.addProp('car', 1764, F + 24, { st: { color: '#c8a060' } });
+      this.addProp('car', 2504, F + 24, { st: { color: '#4a8a5a' } });
+      this.addProp('car', 2948, F + 24, { st: { color: '#b2452f' } });
       this.addCustom((g, x, y) => {
         art.blit(x, y, 40, 44, 5, 40, () => {
           gfx.rect(5, 6, 30, 32, '#5a5a66'); gfx.rect(5, 6, 30, 2, '#7c7c88');
@@ -519,9 +568,9 @@
           gfx.text('12', 20, 28, '#9fdcff', { align: 'center', font: 'small' });
           gfx.rect(4, 3, 32, 3, '#e9f1f7');
         });
-      }, 2100, F, 30, 30, { id: 'townBus', anim: false });
-      this.donalds = this.addProp('donaldsExterior', 2380, F, { hint: "Donald's Burgers", interact: () => this.interactDonalds(), range: 60, offsetX: 20 });
-      this.addProp('pine', 2620, F, { st: { h: 60 } });
+      }, 2226, F, 30, 30, { id: 'townBus', anim: false });
+      this.donalds = this.addProp('donaldsExterior', 3180, F, { hint: "Donald's Burgers", interact: () => this.interactDonalds(), range: 60, offsetX: 20 });
+      this.addProp('pine', 3420, F, { st: { h: 60 } });
       // kids sledding on a hill (animated)
       this.addCustom((g, x, y, t) => {
         const p = this.pal, F = this.floorY;
@@ -537,13 +586,225 @@
         CH.drawCritter(g, sx + 10, surf(sx) - 3, { species: 'rabbit', outfit: 'winter', pose: 'sit', noShadow: true, height: 0.7, width: 0.8, face: 'happy' });
         gfx.unclip();
         if (k > 0.9) gfx.text('WHEEE', sx + 10, surf(sx) - 28, p.night ? '#e8ecf4' : '#333', { font: 'small', align: 'center' });
-      }, 1120, F - 8, 140, 40, { id: 'hill', anim: true });
+      }, 360, F - 8, 140, 40, { id: 'hill', anim: true });
       // moose
       this.moose = new CH.NPC({ name: 'Moose', species: 'moose', outfit: 'casual', x: 620, y: F + 12, speed: 20, height: 1.6, width: 1.5, outfitOverride: { top: '#5b3d24', topD: '#3a2414', bottom: '#5b3d24' } });
       this.moose.hidden = true; this.addNPC(this.moose);
-      // townsfolk
-      const tf = CH.makeCustomer(1800, F + 1); tf.wanderRange = [1600, 2000]; this.addNPC(tf);
-      const tf2 = CH.makeCustomer(2200, F + 1); tf2.wanderRange = [2150, 2350]; this.addNPC(tf2);
+      this.addVillagers();
+      this.addCrowd();
+      this.addEvents();
+      this.initTraffic();
+    }
+    // ---- the people of Moose Hollow --------------------------------------
+    // Who is out today, and where they are standing, is seeded on the day, so
+    // no two walks into town put the same faces in the same doorways.
+    addVillagers() {
+      const F = this.floorY, rng = new CH.Rng(9001 + S.day * 7);
+      const folk = [
+        { name: 'Denny', species: 'deer', outfit: 'hearts', height: 1.15,
+          lines: ["Cold? {p}A bit. {p}Around the edges.",
+                  "I have trousers. {p}I have several trousers. {p}That is not the issue here.",
+                  "Everyone keeps looking at my shorts. {p}They're my lucky shorts. {p}I've had a lovely week."],
+          favour: "Don't tell Constable Furrow. {p}He writes me up every winter. {p}Same joke, same ticket, every year." },
+        { name: 'Mrs. Pell', species: 'goose', outfit: 'coat', height: 0.95,
+          lines: ["Your mother shovels my walk. {p}Every storm. Never asks.",
+                  "I heard about the accident. {p}I've been lighting a candle. {p}It's not much. It's what I've got.",
+                  "Eat something hot today. {p}I can see from here that you haven't."],
+          favour: "When she's home, you tell her Ruth Pell is bringing soup. {p}Not asking. Telling." },
+        { name: 'Hal', species: 'bear', outfit: 'winter',
+          lines: ["Plough went through at five. {p}Buried my truck. Again.",
+                  "Twenty-two years at the mill. {p}Then no mill. {p}You'll be fine, though. You're young and you're stubborn.",
+                  "Don't take the night shift if they offer it. {p}Take it if you need it. {p}Just know what it costs."],
+          favour: "You need a reference, you say Hal Brumby. {p}I'll tell them you're reliable. {p}Then you be reliable." },
+        { name: 'Tilly', species: 'squirrel', outfit: 'winter', height: 0.72,
+          lines: ["I'm not lost! {p}I'm doing a LOOP.",
+                  "Do you have a job yet? {p}My dad says everyone needs a job. {p}I'm going to be a Zamboni.",
+                  "That deer isn't wearing PANTS."],
+          favour: "If you find a mitten, it's mine. {p}It's red. {p}It's been mine since Tuesday." },
+        { name: 'Constable Furrow', species: 'dog', outfit: 'security',
+          lines: ["Morning. {p}Roads are bad. {p}Everything's bad. Have a good one.",
+                  "I'm not going to ticket the deer. {p}I say that every year. {p}I ticket the deer.",
+                  "You're the Chubb kid. {p}Sorry about your mum. {p}Genuinely."],
+          favour: "If you're walking this road at night, walk facing traffic. {p}That's not a rule. That's me asking." },
+        { name: 'Merle', species: 'raccoon', outfit: 'suit',
+          lines: ["Got the job at the mall. {p}Six weeks. Then they restructured.",
+                  "The suit's from Second Wind. {p}Pearl pressed it. {p}Best five dollars I ever spent.",
+                  "Keep going in person. {p}Websites don't hire anybody. People hire people."],
+          favour: "Interview tip, free: {p}when they ask your weakness, don't be clever. {p}Be honest and then say what you're doing about it." },
+      ];
+      const slots = [];
+      for (let x = this.townX0 + 70; x < this.townX1; x += 148) slots.push(x + rng.int(-24, 24));
+      const picked = [];
+      for (const f of folk) if (rng.chance(0.72) || f.name === 'Denny') picked.push(f);
+      for (const f of picked) {
+        if (!slots.length) break;
+        const x = slots.splice(rng.int(0, slots.length - 1), 1)[0];
+        const npc = new CH.NPC({ name: f.name, species: f.species, outfit: f.outfit, x, y: F + 1, speed: 12, height: f.height || 1 });
+        npc.wanderRange = [x - 26, x + 26];
+        this.addNPC(npc);
+        const state = { i: 0 };
+        this.addCustom(() => {}, x - 22, F, 44, 40, {
+          id: 'villager_' + f.name, anim: false, hint: f.name, range: 34, promptY: F - 52,
+          interact: () => (function* () {
+            npc.face = 'happy'; npc.doEmote('!', 0.6);
+            const key = 'metVillager_' + f.name.replace(/[^a-z]/gi, '');
+            if (!CH.flag(key)) { CH.flag(key, true); yield ui.say(f.name, f.lines[0], { voice: 'blip' }); yield ui.say(f.name, f.favour, { voice: 'blip' }); }
+            else { yield ui.say(f.name, f.lines[state.i % f.lines.length], { voice: 'blip' }); state.i++; }
+            npc.face = 'normal';
+          })(),
+        });
+      }
+    }
+    // background pedestrians: never the same crowd twice
+    addCrowd() {
+      const F = this.floorY, rng = new CH.Rng(4400 + S.day * 31);
+      const n = 4 + rng.int(0, 4);
+      for (let i = 0; i < n; i++) {
+        const x = rng.range(this.townX0, this.townX1);
+        const c = CH.makeCustomer(x, F + 1);
+        c.speed = rng.range(14, 26);
+        c.wanderRange = [Math.max(this.townX0 - 40, x - rng.range(60, 180)), Math.min(this.townX1 + 60, x + rng.range(60, 180))];
+        this.addNPC(c);
+      }
+    }
+    // ---- one-off street theatre ------------------------------------------
+    addEvents() {
+      const F = this.floorY, rng = new CH.Rng(1300 + S.day * 17);
+      const spot = () => rng.range(this.townX0 + 40, this.townX1 - 40);
+      const say = (t, o) => () => ui.say('Chubby', t, Object.assign({ face: 'normal' }, o));
+      const EVENTS = [
+        // a busker who is not having a good day
+        (x) => {
+          const npc = new CH.NPC({ name: 'Busker', species: 'fox', outfit: 'winter', x, y: F + 1, speed: 0 });
+          npc.arm = 'hold'; this.addNPC(npc);
+          this.addCustom((g, bx, by, t) => {
+            gfx.ellipse(bx + 2, by - 16, 7, 9, '#a8722f'); gfx.ellipse(bx + 2, by - 16, 6, 8, '#c8934a');
+            gfx.ellipse(bx + 2, by - 16, 2.4, 2.4, '#3a2a1a');
+            gfx.rect(bx + 8, by - 30, 14, 3, '#7a4a22');
+            gfx.rect(bx - 12, by - 5, 16, 5, '#3a3440'); gfx.rect(bx - 10, by - 4, 12, 3, '#6b5a3a');
+            for (let i = 0; i < 3; i++) { const k = (t * 0.6 + i * 0.33) % 1; gfx.text(['\u266a', '\u266b'][i % 2], bx + 14 + k * 12, by - 34 - k * 16, 'rgba(255,240,200,' + (0.9 - k * 0.9).toFixed(2) + ')', { font: 'small' }); }
+          }, x + 14, F, 30, 40, { id: 'busker', hint: 'Busker', range: 34, interact: say("He's playing for a hat with two loonies in it. {p}He looks happier than everyone in the tower.") });
+        },
+        // geese, crossing, entirely unbothered
+        (x) => this.addCustom((g, bx, by, t) => {
+          for (let i = 0; i < 5; i++) {
+            const gx = bx + i * 15 + Math.sin(t * 1.2 + i) * 3, gy = by + 18;
+            gfx.ellipse(gx, gy - 5, 6, 4.5, '#f2ece0'); gfx.ellipse(gx, gy - 5, 5, 3.6, '#fbf7ee');
+            gfx.rect(gx + 3, gy - 12, 2.4, 7, '#2f2a24'); gfx.ellipse(gx + 4, gy - 13, 2.6, 2.2, '#2f2a24');
+            gfx.tri(gx + 6, gy - 14, gx + 6, gy - 12, gx + 9, gy - 13, '#e8a030');
+            gfx.rect(gx - 1, gy - 1, 1, 3, '#e8a030'); gfx.rect(gx + 2, gy - 1, 1, 3, '#e8a030');
+          }
+        }, x, F, 80, 30, { id: 'geese', anim: true, hint: 'Geese', range: 50, interact: say("Five geese, crossing at their own speed. {p}Two cars are waiting. {p}Nobody honks. You don't honk at geese.") }),
+        // somebody's car is stuck and the whole street is helping
+        (x) => {
+          const helper = new CH.NPC({ name: 'Neighbour', species: 'moose', outfit: 'winter', x: x + 44, y: F + 14, speed: 0 });
+          helper.arm = 'push'; this.addNPC(helper);
+          this.addCustom((g, bx, by, t) => {
+            CH.PROPS.car.draw(g, bx, by, t, { color: '#7a6a8a' });
+            for (let i = 0; i < 5; i++) { const k = (t * 1.6 + i * 0.2) % 1; gfx.ellipse(bx + 44 + k * 14, by - 4 - Math.sin(k * 3) * 6, 2 + k * 3, 1.4 + k * 2, 'rgba(232,240,248,' + (0.5 - k * 0.5).toFixed(2) + ')'); }
+          }, x, F + 24, 50, 24, { id: 'stuck', anim: true, hint: 'Stuck car', range: 44, interact: say("Wheels spinning, snow flying, three people pushing. {p}It'll take four. {p}It always takes four.") });
+        },
+        // a snowball fight, ongoing, no known cause
+        (x) => this.addCustom((g, bx, by, t) => {
+          const k = (t * 0.8) % 2, out = k < 1;
+          const a = { x: bx, y: by }, b = { x: bx + 70, y: by };
+          CH.drawCritter(g, a.x, a.y, { species: 'rabbit', outfit: 'winter', height: 0.7, width: 0.85, face: 'happy', arm: out ? 'both_up' : 'idle' });
+          CH.drawCritter(g, b.x, b.y, { species: 'squirrel', outfit: 'winter', height: 0.7, width: 0.85, face: out ? 'shock' : 'happy', flip: true, arm: out ? 'idle' : 'both_up' });
+          const p = out ? k : 1 - (k - 1);
+          gfx.ellipse(CH.lerp(a.x + 8, b.x - 8, out ? p : 1 - p), by - 22 - Math.sin(p * Math.PI) * 16, 3, 3, '#f2f8ff');
+        }, x, F, 80, 40, { id: 'snowfight', anim: true, hint: 'Snowball fight', range: 46, interact: say("A snowball fight with no visible beginning and no planned end. {p}I respect it.") }),
+        // the plough has been and gone, and buried three cars
+        (x) => this.addCustom((g, bx, by) => {
+          gfx.ellipse(bx + 30, by + 6, 46, 14, '#e9f1f7');
+          gfx.ellipse(bx + 24, by + 2, 34, 10, '#ffffff');
+          gfx.ellipse(bx + 50, by + 5, 24, 8, '#dfe8f2');
+          gfx.rect(bx + 18, by - 6, 3, 8, '#c8452f');
+          gfx.text('!', bx + 19, by - 14, '#c8452f', { font: 'small', align: 'center' });
+        }, x, F + 20, 76, 16, { id: 'ploughbank', anim: false, hint: 'Snowbank', range: 40, interact: say("The plough came through at five. {p}Somewhere under this is a Corolla. {p}Its owner does not know yet.") }),
+        // a dog walker being walked
+        (x) => {
+          const npc = new CH.NPC({ name: 'Walker', species: 'cat', outfit: 'coat', x, y: F + 1, speed: 16 });
+          npc.wanderRange = [x - 90, x + 90]; this.addNPC(npc);
+          this.addCustom((g, bx, by, t) => {
+            for (let i = 0; i < 3; i++) {
+              const dx = npc.x + 22 + i * 13 + Math.sin(t * 4 + i) * 2;
+              CH.drawCritter(g, dx, F + 1, { species: 'dog', outfit: 'casual', height: 0.5, width: 0.7, face: 'happy', walk: t * 22, moving: 1, noShadow: false });
+              gfx.line(npc.x + 6, F - 18, dx - 4, F - 8, '#c8452f');
+            }
+          }, x, F, 10, 10, { id: 'dogs', anim: true, layer: 'front' });
+        },
+        // window cleaner, in February, by choice
+        (x) => this.addCustom((g, bx, by, t) => {
+          gfx.rect(bx, by - 54, 3, 54, '#a8722f'); gfx.rect(bx + 16, by - 54, 3, 54, '#a8722f');
+          for (let i = 0; i < 5; i++) gfx.rect(bx, by - 48 + i * 10, 19, 2, '#c8934a');
+          CH.drawCritter(g, bx + 10, by - 40, { species: 'raccoon', outfit: 'vest', height: 0.9, width: 0.9, arm: 'up', noShadow: true });
+          gfx.rect(bx + 18, by - 50 + Math.sin(t * 3) * 4, 8, 2, '#b8bcc8');
+        }, x, F, 20, 56, { id: 'cleaner', anim: true, hint: 'Window cleaner', range: 36, interact: say("He is washing a window. {p}In February. {p}In a blizzard. {p}Sir, you are a hero or you are in trouble.") }),
+        // a poutine cart, steaming against the odds
+        (x) => this.addCustom((g, bx, by, t) => {
+          gfx.rect(bx, by - 26, 44, 22, '#c8452f'); gfx.rect(bx + 2, by - 24, 40, 18, '#e0674a');
+          gfx.rect(bx - 2, by - 30, 48, 5, '#f6f2e6'); gfx.rect(bx - 2, by - 30, 48, 2, '#fffdf4');
+          gfx.text('POUTINE', bx + 22, by - 20, '#fff3d8', { align: 'center', font: 'small' });
+          gfx.text('$6', bx + 22, by - 12, '#ffd84a', { align: 'center', font: 'small' });
+          gfx.circle(bx + 8, by - 2, 4, '#3a3440'); gfx.circle(bx + 36, by - 2, 4, '#3a3440');
+          for (let i = 0; i < 3; i++) { const k = (t * 0.5 + i * 0.33) % 1; gfx.ellipse(bx + 34, by - 32 - k * 12, 1.6 + k * 3, 1.2 + k * 2, 'rgba(240,236,224,' + (0.5 - k * 0.5).toFixed(2) + ')'); }
+        }, x, F, 44, 30, { id: 'poutine', anim: true, hint: 'Poutine cart', range: 40, interact: say("Six dollars for poutine. {p}I have " + CH.fmtMoney(S.money) + ". {p}The maths is cruel but it is simple.") }),
+      ];
+      const order = [0, 1, 2, 3, 4, 5, 6, 7];
+      for (let i = order.length - 1; i > 0; i--) { const j = rng.int(0, i); const tmp = order[i]; order[i] = order[j]; order[j] = tmp; }
+      const n = 2 + rng.int(0, 1);
+      for (let i = 0; i < n && i < order.length; i++) EVENTS[order[i]](spot());
+    }
+    // ---- traffic ----------------------------------------------------------
+    initTraffic() {
+      const rng = new CH.Rng(2600 + S.day * 11);
+      this.traffic = [];
+      const n = 3 + rng.int(0, 2);
+      for (let i = 0; i < n; i++) this.traffic.push(this.newVehicle(rng, true));
+    }
+    newVehicle(rng, spread) {
+      const dir = rng.chance(0.5) ? 1 : -1;
+      const bike = rng.chance(0.3);
+      const x = spread ? rng.range(-200, this.width + 200) : (dir > 0 ? -120 : this.width + 120);
+      return {
+        x, dir, bike,
+        speed: bike ? rng.range(34, 52) : rng.range(70, 120),
+        color: rng.pick(['#3b6fd6', '#c8452f', '#4a8a5a', '#c8a060', '#7a6a8a', '#e8a030']),
+        species: rng.pick(['bear', 'fox', 'raccoon', 'goose', 'moose', 'rabbit']),
+        bob: rng.range(0, 6),
+      };
+    }
+    updateTraffic(dt) {
+      if (!this.traffic) return;
+      const rng = this._trng || (this._trng = new CH.Rng(77 + CH.state.day * 5));
+      for (let i = 0; i < this.traffic.length; i++) {
+        const v = this.traffic[i];
+        v.x += v.dir * v.speed * dt;
+        if (v.x < -260 || v.x > this.width + 260) this.traffic[i] = this.newVehicle(rng, false);
+      }
+    }
+    drawTraffic(g) {
+      if (!this.traffic) return;
+      const F = this.floorY, t = this.t;
+      for (const v of this.traffic) {
+        if (v.x < this.cam.x - 120 || v.x > this.cam.x + W + 120) continue;
+        g.save();
+        if (v.dir < 0) { g.translate(Math.round(v.x * 2 + (v.bike ? 26 : 50)), 0); g.scale(-1, 1); }
+        const x = Math.round(v.x);
+        if (v.bike) {
+          const wob = Math.sin(t * 8 + v.bob) * 0.6;
+          gfx.circle(x + 5, F + 30, 5, '#241f30'); gfx.circle(x + 5, F + 30, 2, '#8a8f9c');
+          gfx.circle(x + 23, F + 30, 5, '#241f30'); gfx.circle(x + 23, F + 30, 2, '#8a8f9c');
+          gfx.line(x + 5, F + 30, x + 15, F + 22, v.color); gfx.line(x + 23, F + 30, x + 15, F + 22, v.color);
+          gfx.line(x + 15, F + 22, x + 21, F + 18, v.color); gfx.line(x + 21, F + 18, x + 24, F + 20, '#3a3440');
+          gfx.rect(x + 12, F + 20, 6, 2, '#3a3440');
+          CH.drawCritter(g, x + 14, F + 20 + wob, { species: v.species, outfit: 'winter', height: 0.9, width: 0.9, pose: 'sit', arm: 'hold', noShadow: true });
+        } else {
+          CH.PROPS.car.draw(g, x, F + 34, t, { color: v.color });
+          for (let i = 0; i < 2; i++) { const k = (t * 1.2 + i * 0.5) % 1; gfx.ellipse(x - 4, F + 26 - k * 8, 2 + k * 4, 1.6 + k * 3, 'rgba(226,236,246,' + (0.35 - k * 0.35).toFixed(2) + ')'); }
+        }
+        g.restore();
+      }
     }
     enter() {
       A.play('town', 2); fx.setFade(1);
@@ -564,12 +825,12 @@
       if (c !== 0) return;
       if (S.money < 3.5) { yield ui.say('Chubby', "I can't afford the bus. {p}I can't afford the BUS.", { face: 'sad' }); return; }
       this.locked = true;
-      yield this.walkTo(1320); this.player.flip = false;
+      yield this.walkTo(880); this.player.flip = false;
       yield ui.say('Chubby', 'Waiting.', { auto: 1.5 }); S.hour += 0.3; yield ui.say('Chubby', 'Waiting...', { auto: 1.5 }); S.hour += 0.3;
       A.sfx('bus'); yield 1.5;
       CH.addMoney(-3.5);
       yield fx.fadeOut(0.8);
-      this.player.x = 2100; this.cam.x = 1860; S.hour += 0.2;
+      this.player.x = 2300; this.cam.x = 2060; S.hour += 0.2;
       yield fx.fadeIn(0.8);
       yield ui.say('Chubby', "The bus driver asked if I was 'the burger guy'. {p}I said 'not yet'. {p}He nodded like that meant something.", { face: 'normal' });
       this.locked = false;
@@ -592,6 +853,7 @@
     }
     update(dt) {
       super.update(dt);
+      this.updateTraffic(dt);
       const pl = this.player, F = this.floorY;
       // wind comes in gusts
       this.gustT -= dt;
@@ -653,6 +915,7 @@
       this.locked = false;
     }
     drawForeground(g) {
+      this.drawTraffic(g);
       const p = this.pal, F = this.floorY;
             if (p.lamp > 0.2) for (const x of [1520, 1760, 2000, 2240]) {
         glow(x + 5, F - 58, 40, '#ffd27a', 0.34 * p.lamp);

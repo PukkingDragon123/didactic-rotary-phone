@@ -412,7 +412,12 @@
       const x = Math.round(L.x + (L.w - w) / 2);
       const y = Math.round(L.y + (L.h - h));
       const kind = d.opts.kind || (d.opts.shaky ? 'shout' : 'say');
-      art.bubble(x, y, w, h, Math.round(L.anchor.x), Math.round(L.anchor.y), {
+      // A bubble that has been pushed down to the foot of the screen is no
+      // longer pointing at anybody, so it drops the tail and reads as a box.
+      const lowDown = y + h > CH.H - 52;
+      const tx = lowDown ? -1000 : Math.round(L.anchor.x);
+      const ty = lowDown ? -1000 : Math.round(L.anchor.y);
+      art.bubble(x, y, w, h, tx, ty, {
         kind, fill: d.opts.bubbleFill || '#fbf6ea',
       });
       if (appear < 0.85) return;

@@ -4,7 +4,7 @@
 (function (CH) {
   const gfx = CH.gfx, ui = CH.ui, fx = CH.fx, A = CH.audio, inp = CH.input, S = CH.state, P = CH.PAL;
   const W = CH.W, H = CH.H;
-  const SHIFT_SECONDS = 270; // real seconds for an 8-hour shift
+  const SHIFT_SECONDS = 165; // real seconds for an 8-hour shift
 
   // ---- restaurant props ----------------------------------------------------------------------
   const def = (n, w, h, d) => { CH.PROPS[n] = { name: n, w, h, draw: d }; };

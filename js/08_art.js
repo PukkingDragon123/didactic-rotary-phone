@@ -168,9 +168,14 @@
     const ink = opts.ink || art.INK;
     const r = opts.radius !== undefined ? opts.radius : 5;
     const kind = opts.kind || 'say';
+    // No speaker to point at (or the caller asked for none): draw a plain box.
+    // Without this a far-off tail point drags a long ink sliver over the panel.
+    const noTail = opts.tail === false ||
+      tailX < -20 || tailX > CH.W + 20 || tailY < -20 || tailY > CH.H + 20;
     if (kind === 'think') {
       gfx.rrect(x - 1, y - 1, w + 2, h + 2, r + 1, ink);
       gfx.rrect(x, y, w, h, r, fill);
+      if (noTail) return;
       let cx = tailX, cy = y + h;
       for (let i = 0; i < 3; i++) {
         const rr = 3 - i;
@@ -202,6 +207,7 @@
     }
     gfx.rrect(x - 1, y - 1, w + 2, h + 2, r + 1, ink);
     gfx.rrect(x, y, w, h, r, fill);
+    if (noTail) return;
     // tail: a triangle from the bubble's bottom edge to the speaker
     const bx = CH.clamp(tailX, x + 5, x + w - 9);
     const by = y + h;

@@ -81,6 +81,8 @@
     vest: { kind: 'vest', top: '#ff8800', topD: '#b85f00', bottom: '#3a3a48', stripe: '#e8e8b0', shirt: '#5a6270' },
     flannel: { kind: 'flannel', top: '#a8412f', topD: '#6e2418', bottom: '#3d4a5c' },
     sweater: { kind: 'sweater', top: '#4f7a5a', topD: '#2f5239', bottom: '#4a4256' },
+    // somebody in town has, once again, left the house without his trousers
+    hearts: { kind: 'hearts', top: '#f7f4ec', topD: '#d3cec0', bottom: '#f7f4ec', bareLegs: true, undies: '#eaf2ff', undiesD: '#c3d2ea', heart: '#e8496e' },
     overalls: { kind: 'overalls', top: '#4a6fa8', topD: '#2d4a78', bottom: '#4a6fa8', shirt: '#e2d6c0' },
     tracksuit: { kind: 'track', top: '#2f3a52', topD: '#1a2234', bottom: '#2f3a52', stripe: '#e8e8f0' },
     apronDress: { kind: 'cardigan', top: '#7a6ea8', topD: '#514a78', bottom: '#4a4256', apron: '#efe6d2', blouse: '#f3e6d8' },
@@ -828,7 +830,7 @@
       else E(-sxo - 0.4, shY + 4.2 * H, 2.6 * Wd, 3.2 * H, TOP.dd);
 
       // ---- LEGS --------------------------------------------------------------
-      const legM = skirted ? F : BOT;
+      const legM = (skirted || of.bareLegs) ? F : BOT;
       const legW = 3.4 * Wd * H;
       if (!m.sitting) {
         const draw1 = (sgn, sw, front) => {
@@ -1228,6 +1230,25 @@
           R(-0.8, neckY, 1.6, hipY, TOP.dd);
           R(-bw * 0.74, bcy - 3.5, -bw * 0.74 + 4, bcy - 0.5, C.gold);
           R(-bw + 1.4, hipY - 1.4, bw - 1.4, hipY - 0.2, TOP.dd);
+          break;
+        }
+        case 'hearts': {
+          // a plain undershirt, and underwear covered in little hearts
+          const UN = M(of.undies || '#eaf2ff', 'cloth');
+          E(bw * 0.8, shY + 4.2 * H, 2.5 * Wd, 3.2 * H, TOP.d);
+          E(-bw * 0.8, shY + 4.2 * H, 2.4 * Wd, 3.0 * H, TOP.dd);
+          E(0.4, neckY + 0.2, 3.0, 1.5, TOP.d);
+          E(0.4, neckY - 0.2, 2.4, 1.1, F.d);
+          R(-bw + 1.4, hipY - 5.5, bw - 1.4, hipY - 4.2, TOP.dd);   // hem of the shirt
+          R(-bw * 0.94, hipY - 4.6, bw * 0.94, hipY + 1.6, UN.base); // the shorts
+          R(-bw * 0.94, hipY - 4.6, bw * 0.94, hipY - 3.2, UN.d);    // waistband
+          R(-bw * 0.94, hipY + 0.6, bw * 0.94, hipY + 1.6, UN.d);    // leg openings
+          for (let i = -1; i <= 1; i++) {                            // the hearts
+            const hx = i * 3.6, hy = hipY - 1.6 + (i & 1 ? 0.9 : 0);
+            E(hx - 0.9, hy - 0.5, 1.0, 0.9, of.heart || '#e8496e');
+            E(hx + 0.9, hy - 0.5, 1.0, 0.9, of.heart || '#e8496e');
+            T(hx - 1.8, hy - 0.1, hx + 1.8, hy - 0.1, hx, hy + 1.8, of.heart || '#e8496e');
+          }
           break;
         }
         default: {
