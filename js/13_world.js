@@ -156,6 +156,9 @@
           g.save(); g.transform(1, 0, -sk, 1, sk * p.y, 0); p.def.draw(g, p.x, p.y, t, p.st); g.restore();
         } else p.def.draw(g, p.x, p.y, t, p.st);
       }
+      // speech bubbles are interface: collect them now, draw them on the UI layer
+      const bubbles = [];
+      CH._bubbleSink = bubbles;
       // actors sorted by y
       const actors = [...this.npcs.filter((n) => !n.hidden).map((n) => ({ y: n.y + (n.depth || 0), d: () => n.draw(g) }))];
       if (!this.player.hidden) actors.push({ y: this.player.y + this.py * 0 + 0.5, d: () => this.player.draw(g) });
@@ -168,17 +171,26 @@
       for (const p of this.props) if (p.layer === 'front' && !p.hidden) p.def.draw(g, p.x, p.y, t, p.st);
       this.drawForeground(g);
       this.drawLights(g);
-      // interaction prompt
-      if (this.hoverProp) {
-        const p = this.hoverProp;
-        const px = Math.round(p.x + p.w / 2 + p.offsetX), py = p.promptY !== undefined ? p.promptY : p.y - p.h - 6;
-        const bob = Math.round(Math.sin(this.t * 6) * 1.5);
-        gfx.rrect(px - 5, py - 10 + bob, 11, 10, 2, '#fff'); gfx.rect(px - 1, py + bob, 3, 1, '#fff');
-        gfx.text('E', px + 1, py - 8 + bob, '#1a1420', { align: 'center' });
-        if (p.hint) { const w = gfx.textWidth(p.hint, 'small') + 6; gfx.rrect(px - w / 2, py - 20 + bob, w, 8, 2, 'rgba(0,0,0,0.75)'); gfx.text(p.hint, px, py - 18 + bob, '#fff', { align: 'center', font: 'small' }); }
-      }
+      CH._bubbleSink = null;
       g.restore();
-      this.drawHud(g);
+      // ---- interface, over the lit world (and never lit itself) ----------------
+      CH.drawUI(g, (u) => {
+        for (const b of bubbles) { const sp = this.worldToScreen(b.x, b.y); b.npc.drawBubbleAt(u, sp.x, sp.y); }
+        this.drawPrompt(u);
+        this.drawHud(u);
+      });
+    }
+    // the E prompt over whatever is in reach, placed in screen space
+    drawPrompt(g) {
+      if (!this.hoverProp) return;
+      const p = this.hoverProp;
+      const wy = p.promptY !== undefined ? p.promptY : p.y - p.h - 6;
+      const sp = this.worldToScreen(p.x + p.w / 2 + p.offsetX, wy);
+      const px = Math.round(sp.x), py = Math.round(CH.clamp(sp.y, 22, CH.H - 8));
+      const bob = Math.round(Math.sin(this.t * 6) * 1.5);
+      gfx.rrect(px - 5, py - 10 + bob, 11, 10, 2, '#fff'); gfx.rect(px - 1, py + bob, 3, 1, '#fff');
+      gfx.text('E', px + 1, py - 8 + bob, '#1a1420', { align: 'center' });
+      if (p.hint) { const w = gfx.textWidth(p.hint, 'small') + 6; gfx.rrect(px - w / 2, py - 20 + bob, w, 8, 2, 'rgba(0,0,0,0.75)'); gfx.text(p.hint, px, py - 18 + bob, '#fff', { align: 'center', font: 'small' }); }
     }
     // ---- lighting ----------------------------------------------------------
     // Scenes push {x, y, rx, ry, color, alpha, flicker, cone} onto this.lights;

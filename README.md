@@ -65,7 +65,10 @@ that points at them, and pages itself when a line runs long.
   The finished frame then goes through a WebGL shader: a two-pass bloom off
   lamps, windows and snow glare, warm-light / cool-shade grading, a lens
   vignette and quiet film grain. Slow machines drop back to the plain image on
-  their own; F8 flips it, `?noshader` turns it off.
+  their own; F8 flips it, `?noshader` turns it off. The interface - clock and
+  money, dialogue, speech bubbles, button prompts, minigame HUDs, menus, fades
+  and the cursor - is drawn on its own layer above the world, so the lamps,
+  night tint, bloom and grading never touch it and it stays sharp and readable.
 - **Wind, snow and things to kick**: one shared wind with gusts leans the
   trees, blows powder off the roofs and carries loose things down the street.
   Ground snow is a live height field - flakes land and pile up, feet plough
@@ -135,10 +138,12 @@ on-screen d-pad on touch devices.
 
 `art/gifs/` holds a looping GIF of every character in the game dancing on a
 disco floor, plus `_party.gif` with the cast in a row; `node tools/gifs.mjs`
-re-renders them (the encoder in `tools/gif.mjs` has no dependencies).
+re-renders them (the encoder in `tools/gif.mjs` has no dependencies and stores
+only the pixels that change from one frame to the next).
 
-`art/thumbnail.png`, the animated `art/thumbnail.gif` (Chubby dancing one
-four-beat loop, no text) and `art/banner.png` are rendered by `tools/keyart.mjs`,
+`art/thumbnail.png`, the animated `art/thumbnail.gif` (Chubby on the late shift
+at Donald's, mopping the checker floor in a two-stroke loop, no text) and
+`art/banner.png` are rendered by `tools/keyart.mjs`,
 which paints them with the game's own primitives and characters - the same
 pixels the game draws, composed for a store page. Re-render with
 `node tools/keyart.mjs art`.

@@ -777,6 +777,11 @@
     // ---------------------------------------------------------------- draw ----
     draw(g) {
       super.draw(g);
+      CH.drawUI(g, (u) => this.drawShiftUI(u));
+      // rush tint
+      if (this.isRush()) { g.globalAlpha = 0.06 + Math.sin(this.t * 4) * 0.02; gfx.rect(0, 0, W, H, '#ff4020'); g.globalAlpha = 1; }
+    }
+    drawShiftUI(g) {
       // task icons
       for (const t of this.tasks) {
         const sp = this.worldToScreen(t.x, t.y);
@@ -805,8 +810,6 @@
       gfx.text(`${CH.JOB_INFO[this.job].title}  -  Day ${S.day}`, 6, 36, '#f5c33b', { font: 'small', outline: '#000' });
       gfx.text(`Tasks ${this.tasksDone}  ★${this.stars}  Complaints ${this.complaints}`, 6, 44, '#fff', { font: 'small', outline: '#000' });
       if (this.job !== 'janitor' && this.jobIdx <= 6) gfx.text(`Orders waiting: ${this.pendingOrders}`, 6, 52, this.pendingOrders > 3 ? '#ff8080' : '#fff', { font: 'small', outline: '#000' });
-      // rush tint
-      if (this.isRush()) { g.globalAlpha = 0.06 + Math.sin(this.t * 4) * 0.02; gfx.rect(0, 0, W, H, '#ff4020'); g.globalAlpha = 1; }
     }
   }
   CH.RestaurantScene = RestaurantScene;

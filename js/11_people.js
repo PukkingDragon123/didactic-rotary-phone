@@ -1375,10 +1375,22 @@
     draw(g, camX = 0, camY = 0, extra) {
       if (this.hidden) return;
       drawCritter(g, this.x - camX, this.y - camY, this.params(extra));
-      if (this.bubble) {
-        const mm = metrics(this.params());
-        const hxs = Math.round(this.x - camX);
-        const hys = Math.round(this.y - camY) + Math.round((mm.hy - mm.hr) * (this.sy || 1)) - 3;
+      this.bubbleOut(g, camX, camY);
+    }
+    // where this character's speech bubble hangs: into the scene's UI queue if
+    // it is collecting them, otherwise straight onto the picture being drawn
+    bubbleOut(g, camX = 0, camY = 0) {
+      if (!this.bubble) return;
+      const mm = metrics(this.params());
+      const hx = this.x - camX, hy = this.y - camY + (mm.hy - mm.hr) * (this.sy || 1) - 3;
+      if (CH._bubbleSink && camX === 0 && camY === 0) CH._bubbleSink.push({ npc: this, x: hx, y: hy });
+      else this.drawBubbleAt(g, hx, hy);
+    }
+    drawBubbleAt(g, sx, sy) {
+      if (!this.bubble) return;
+      {
+        const hxs = Math.round(sx);
+        const hys = Math.round(sy);
         const lines = gfx.wrap(this.bubble, 104, 'small');
         const w = Math.max(...lines.map((l) => gfx.textWidth(l, 'small'))) + 11;
         const h = lines.length * 7 + 7;

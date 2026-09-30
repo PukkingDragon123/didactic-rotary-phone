@@ -3,7 +3,7 @@
 // ============================================================================
 (function (CH) {
   const g = CH.g, gfx = CH.gfx;
-  let last = performance.now();
+  let last = performance.now(), frameN = 0;
 
   function frame(now) {
     requestAnimationFrame(frame);
@@ -19,7 +19,14 @@
       if (inp2.hit('pause') || (inWorld && inp2.hit('cancel'))) { inp2.eat(); CH.openPause(); }
     }
     CH.game.update(dt);
-    // draw
+    // draw: the UI layer starts clear every frame
+    const u = CH.uiCtx;
+    if (u) {
+      u.setTransform(CH.RES || 1, 0, 0, CH.RES || 1, 0, 0);
+      u.globalAlpha = 1; u.globalCompositeOperation = 'source-over';
+      u.clearRect(0, 0, CH.W, CH.H);
+    }
+    if (CH.placeUI && (++frameN % 30 === 0)) CH.placeUI();
     g.setTransform(CH.RES || 1, 0, 0, CH.RES || 1, 0, 0);
     // A scene that forgets to restore alpha would otherwise fade every frame
     // drawn after it, menus included.
@@ -31,9 +38,11 @@
     CH.ui.cursor = 'arrow';
     CH.game.draw(g);
     g.restore();
-    CH.ui.drawCursor(g);
+    CH.drawUI(g, (uu) => {
+      CH.ui.drawCursor(uu);
+      if (CH.DEBUG) gfx.text('fps ' + Math.round(1 / Math.max(dt, 0.001)), 2, CH.H - 8, '#0f0', { font: 'small' });
+    });
     CH.input.endFrame();
-    if (CH.DEBUG) gfx.text('fps ' + Math.round(1 / Math.max(dt, 0.001)), 2, CH.H - 8, '#0f0', { font: 'small' });
     if (CH.post && CH.post.render) CH.post.render();
   }
 

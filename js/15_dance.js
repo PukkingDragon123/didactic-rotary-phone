@@ -61,6 +61,7 @@
       const p = this.params(extra);
       CH.drawCritter(g, x, y, Object.assign(p, { arm: d.arm, face: d.face, flip: d.flip !== p.flip ? !p.flip : p.flip, sx: (p.sx || 1) * d.sx, sy: (p.sy || 1) * d.sy, walk: d.walk || p.walk, moving: d.moving || p.moving }));
     });
+    this.bubbleOut(g, camX, camY);
   };
 
   // ---- Chubby ----------------------------------------------------------------

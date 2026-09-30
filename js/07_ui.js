@@ -49,8 +49,8 @@
     }
     CH.fxParticles.update(dt);
   };
-  fx.draw = (g) => {
-    CH.fxParticles.draw(g);
+  // lighting-type effects belong to the world and are drawn under the UI
+  fx.drawWorld = (g) => {
     if (fx.tint) { g.globalAlpha = fx.tint.alpha; gfx.rect(0, 0, CH.W, CH.H, fx.tint.color); g.globalAlpha = 1; }
     if (fx.vignette > 0) {
       if (!fx._vig) {
@@ -66,6 +66,11 @@
       }
       g.globalAlpha = fx.vignette; g.drawImage(fx._vig, 0, 0); g.globalAlpha = 1;
     }
+    if (fx.scanlines) { g.globalAlpha = 0.12; for (let y = 0; y < CH.H; y += 2) gfx.hline(0, y, CH.W, '#000'); g.globalAlpha = 1; }
+  };
+  // screen effects go over everything, the UI included
+  fx.drawTop = (g) => {
+    CH.fxParticles.draw(g);
     if (fx.letterbox > 0) {
       const h = Math.round(28 * fx.letterbox);
       gfx.rect(0, 0, CH.W, h, '#000'); gfx.rect(0, CH.H - h, CH.W, h, '#000');
@@ -92,8 +97,8 @@
       if (c.sub2) gfx.text(c.sub2, CH.W / 2, y + 23, '#aaa', { align: 'center', font: 'small' });
       g.globalAlpha = 1;
     }
-    if (fx.scanlines) { g.globalAlpha = 0.12; for (let y = 0; y < CH.H; y += 2) gfx.hline(0, y, CH.W, '#000'); g.globalAlpha = 1; }
   };
+  fx.draw = (g) => { fx.drawWorld(g); fx.drawTop(g); };
 
   // ---------------------------------------------------------------- UI --------
   const ui = (CH.ui = {

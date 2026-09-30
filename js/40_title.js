@@ -243,6 +243,9 @@
       gfx.line(186, 200, 150, 208, '#2a2530');
       gfx.line(150, 208, 118, 202, '#2a2530');
 
+      CH.drawUI(g, (u) => this.drawTitleUI(u));
+    }
+    drawTitleUI(g) {
       // ---- logo --------------------------------------------------------------
       const ly = 40 + Math.round(Math.sin(this.logoT * 1.4) * 2);
       const lx = 300;

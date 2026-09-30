@@ -39,6 +39,7 @@
   /* Touch controls: only mounted on coarse pointers, never in the way on desktop. */
   #pad {
     position: fixed;
+    z-index: 5;   /* above the game, the shader layer and the UI layer */
     left: 0;
     right: 0;
     bottom: 0;

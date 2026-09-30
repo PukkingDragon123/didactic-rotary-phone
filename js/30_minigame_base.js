@@ -203,7 +203,8 @@
     onTimeout() { this.finish(this.progress ? this.progress() : 0, { timeout: true }); }
     onCancel() { ui.toast("Can't quit a task halfway. Brenda is watching.", '#fff', 2); }
     step(dt) {}
-    drawHud(g) {
+    drawHud(g) { CH.drawUI(g, (u) => this.drawHudLayer(u)); }
+    drawHudLayer(g) {
       // ---- top bar: ink band with a gold rule under it ------------------------
       gfx.rect(0, 0, W, 13, '#1b1526');
       gfx.hline(0, 0, W, '#2e2440');

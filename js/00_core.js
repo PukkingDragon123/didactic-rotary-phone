@@ -198,12 +198,18 @@ window.CH = window.CH || {};
       CH.ui.update(dt);
     },
     draw(g) {
-      // draw from the lowest non-overlay scene up
+      // the lowest non-overlay scene is the world; overlays above it are interface
       let i = this.stack.length - 1;
       while (i > 0 && this.stack[i].overlay) i--;
-      for (; i < this.stack.length; i++) this.stack[i].draw(g);
-      CH.ui.draw(g);
-      CH.fx.draw(g);
+      const base = this.stack[i];
+      if (base) { if (base.uiScene) CH.drawUI(g, (u) => base.draw(u)); else base.draw(g); }
+      // world-only effects: these are lighting, so the interface skips them
+      if (CH.fx.drawWorld) CH.fx.drawWorld(g);
+      CH.drawUI(g, (u) => {
+        for (let j = i + 1; j < this.stack.length; j++) this.stack[j].draw(u);
+        CH.ui.draw(u);
+        if (CH.fx.drawTop) CH.fx.drawTop(u); else CH.fx.draw(u);
+      });
     },
   };
 

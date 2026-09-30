@@ -77,7 +77,7 @@
 
   // ---- shared chrome ----------------------------------------------------------
   function dim(alpha = 0.62) {
-    const g = CH.g;
+    const g = gfx.cur;
     g.save(); g.globalAlpha = alpha; gfx.rect(0, 0, W, H, '#0a0710'); g.restore();
   }
   function panel(x, y, w, h, title) {
@@ -134,7 +134,7 @@
       return;
     }
     // a thumbnail of Chubby in the outfit he was wearing
-    const g = CH.g;
+    const g = gfx.cur;
     g.save();
     g.beginPath(); g.rect(x + w - 34, y + 2, 32, h - 4); g.clip();
     g.translate(x + w - 18, y + h - 3);

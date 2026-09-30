@@ -9,6 +9,24 @@
   CH.g = g;
   CH.scale = 1;
 
+  // ---- the UI layer -------------------------------------------------------------
+  // A transparent canvas stacked on top of the game. HUD, dialogue, prompts,
+  // speech bubbles, menus and screen fades draw here, so neither the scene
+  // lighting nor the post shader underneath ever touches them.
+  const uiCanvas = document.createElement('canvas');
+  uiCanvas.id = 'gameUI';
+  uiCanvas.setAttribute('aria-hidden', 'true');
+  uiCanvas.style.cssText = 'position:fixed;left:0;top:0;pointer-events:none;image-rendering:pixelated;z-index:2;';
+  canvas.parentNode.insertBefore(uiCanvas, canvas.nextSibling);
+  const ug = uiCanvas.getContext('2d');
+  CH.uiCanvas = uiCanvas;
+  CH.uiCtx = ug;
+  CH.placeUI = () => {
+    const r = canvas.getBoundingClientRect();
+    uiCanvas.style.left = r.left + 'px'; uiCanvas.style.top = r.top + 'px';
+    uiCanvas.style.width = r.width + 'px'; uiCanvas.style.height = r.height + 'px';
+  };
+
   function resize() {
     const ww = window.innerWidth, wh = window.innerHeight;
     const fit = Math.min(ww / CH.W, wh / CH.H);
@@ -28,6 +46,11 @@
       canvas.width = CH.W * B; canvas.height = CH.H * B;
       g.imageSmoothingEnabled = false;
     }
+    if (uiCanvas.width !== canvas.width || uiCanvas.height !== canvas.height) {
+      uiCanvas.width = canvas.width; uiCanvas.height = canvas.height;
+      ug.imageSmoothingEnabled = false;
+    }
+    CH.placeUI();
     CH.RES = B;
     // ~1.5x closer, rounded so one game pixel is a whole number of device pixels
     CH.ZOOM = Math.max(1, Math.floor(1.5 * B) / B);
@@ -41,6 +64,13 @@
   gfx.target = (ctx) => { gfx.cur = ctx || g; };
   gfx.pushTarget = (ctx) => { gfx._targets.push(gfx.cur); gfx.cur = ctx || g; };
   gfx.popTarget = () => { gfx.cur = gfx._targets.length ? gfx._targets.pop() : g; };
+  // Draw interface onto the UI layer - but only for the real frame. Offscreen
+  // renders (the TV zoom, previews) keep everything in their one picture.
+  CH.drawUI = (ctx, fn) => {
+    if (ctx !== g || !CH.uiCtx) return fn(ctx);
+    gfx.pushTarget(CH.uiCtx);
+    try { return fn(CH.uiCtx); } finally { gfx.popTarget(); }
+  };
 
   gfx.makeCanvas = (w, h) => {
     const c = document.createElement('canvas');

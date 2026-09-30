@@ -533,7 +533,7 @@
 
       }
       this.drawRod(g, tip);
-      this.drawHud(g);
+      CH.drawUI(g, (u) => this.drawHud(u));
     }
     dot(x, y, z, col, sz) {
       const r3 = this.r3, p = r3.project([x, y, z]);

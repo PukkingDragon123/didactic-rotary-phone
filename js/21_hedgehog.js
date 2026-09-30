@@ -668,8 +668,7 @@
       // water at bottom (foreground shimmer)
       const wy = LVL_H - cy + 8;
       if (wy < H) { gfx.rect(0, wy, W, H - wy, '#2f7fd6'); for (let x = 0; x < W; x += 12) gfx.hline(x + ((Math.floor(this.t * 10) + x / 12) % 3) * 4, wy + 1, 6, '#8fd0ff'); }
-      this.drawHud(g);
-      if (this.phase === 'title') this.drawTitle(g);
+      CH.drawUI(g, (u) => { this.drawHud(u); if (this.phase === 'title') this.drawTitle(u); });
     }
     drawDeco(g, d) {
       const x = d.x, y = d.y;
