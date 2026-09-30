@@ -428,13 +428,8 @@
         gfx.rect(cx - 5, cy - 25, 9, 3, MG.RED);
         gfx.hline(cx - 4, cy - 25, 7, '#e0655a');
         if (it.state !== 'empty') {
-          const c = it.state === 'raw' ? '#f0e8c0' : burnt ? '#3a2010' : gfx.mix('#f0e0a0', '#e8a030', Math.min(1, it.cook));
-          const cl = gfx.mix(c, '#fff8d8', 0.4), cd = gfx.shade(c, -26);
-          for (let i = 0; i < 7; i++) {
-            const fx = cx - 10 + i * 3, fy = cy - 6 + (i % 2);
-            gfx.rect(fx, fy, 2, 9, cd);
-            gfx.vline(fx, fy, 8, i % 2 ? c : cl);
-          }
+          const pal = CH.PIX.fryPal(it.state === 'raw' ? 0 : Math.round(it.cook * 10) / 10, burnt);
+          for (let i = 0; i < 7; i++) CH.PIX.draw('fryShort', cx - 9 + i * 3, cy - 7 + (i % 2), { remap: pal });
         }
       });
       if (it.inVat) {
@@ -532,7 +527,8 @@
       gfx.rect(24, 44, 52, 32, '#c3d4e0');
       gfx.rect(24, 44, 52, 2, '#e8f2fa');
       g.globalAlpha = 0.3; gfx.rect(24, 44, 14, 32, '#ffffff'); g.globalAlpha = 1;
-      for (let i = 0; i < 14; i++) { const fx = 27 + (i % 7) * 7, fy = 50 + Math.floor(i / 7) * 11 + (i % 3); gfx.rect(fx, fy, 2, 10, '#ded6ac'); gfx.vline(fx, fy, 9, '#f4eecd'); }
+      const frozen = CH.PIX.fryPal('frozen');
+      for (let i = 0; i < 14; i++) CH.PIX.draw('fry', 28 + (i % 7) * 7, 49 + Math.floor(i / 7) * 11 + (i % 3), { remap: frozen, flip: i % 2 === 1 });
       for (let i = 0; i < 12; i++) gfx.px(26 + (i * 13) % 48, 46 + (i * 7) % 28, 'rgba(255,255,255,0.8)');   // frost
       MG.tag('FROZEN FRIES', 50, 28, { align: 'center' });
       // ---- fryer ---------------------------------------------------------------
@@ -597,7 +593,7 @@
       g.globalAlpha = 0.3; gfx.rect(tr.x - 30, tr.y - 16, 60, 32, '#ffe080'); g.globalAlpha = 1;
       if (tr.amount > 0) {
         const n = Math.round(tr.amount * 12);
-        for (let i = 0; i < n; i++) { const fx = tr.x - 24 + (i % 8) * 6, fy = tr.y - 4 - Math.floor(i / 8) * 4 + (i % 2); gfx.rect(fx, fy, 2, 10, i % 2 ? '#d9a62c' : '#c88a20'); gfx.vline(fx, fy, 9, i % 2 ? '#f2c342' : '#e8a030'); gfx.px(fx, fy, '#fbe08a'); }
+        for (let i = 0; i < n; i++) CH.PIX.draw('fryShort', tr.x - 23 + (i % 8) * 6, tr.y - 5 - Math.floor(i / 8) * 4 + (i % 2), { flip: i % 2 === 1 });
         if (tr.salt > 0) for (let i = 0; i < 8; i++) gfx.px(tr.x - 22 + i * 6, tr.y - 8 + (i % 3) * 2, '#ffffff');
         MG.steam(tr.x, tr.y - 10, this.t, { n: 3, speed: 0.4, rise: 18, alpha: 0.3, seed: 2 });
       }

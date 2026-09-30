@@ -332,23 +332,7 @@
             for (let i = 0; i < 4; i++) gfx.rect(cx - 1, cy - 8 + i * 5, 3, 2, '#c8352b');
           });
           break;
-        case 'halfburger':
-          MG.ink(x, y, 30, 22, (cx, cy) => {
-            const bm = MG.m('#d09343', { dark: -32, light: 24 });
-            const pm = MG.m('#57301a', { dark: -24, light: 22 });
-            gfx.ellipse(cx, cy + 5, 12, 3.6, bm.d);
-            gfx.rect(cx - 12, cy + 1, 25, 4, bm.base);
-            gfx.ellipse(cx, cy + 1, 12, 2.4, bm.l);
-            gfx.ellipse(cx, cy - 1, 11, 3.4, pm.d);
-            gfx.ellipse(cx, cy - 2, 11, 3.2, pm.base);
-            // a bite taken out of the top bun
-            gfx.ellipse(cx - 3, cy - 6, 10, 4.6, bm.d);
-            gfx.ellipse(cx - 3, cy - 7, 10, 4.4, bm.base);
-            gfx.ellipse(cx - 5, cy - 8, 5, 2, bm.l);
-            gfx.ellipse(cx + 7, cy - 6, 4, 3.4, bm.dd);
-            for (const [sx, sy] of [[-7, -9], [-2, -10], [2, -9]]) { gfx.rect(cx + sx, cy + sy, 2, 1, '#fff5de'); }
-          });
-          break;
+        case 'halfburger': CH.PIX.draw('burgerBitten', x, y + 8); break;
         case 'toy':
           MG.ink(x, y, 18, 22, (cx, cy) => {
             const m = MG.m('#e8dcc0', { dark: -26, light: 18 });

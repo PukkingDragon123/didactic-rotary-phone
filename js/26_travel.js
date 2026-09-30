@@ -74,31 +74,12 @@
   const inked = (n, w, h, bw, bh, ax, ay, fn) =>
     def(n, w, h, (g, x, y, t, st) => art.blit(x, y, bw, bh, ax, ay, () => fn(ax, ay, t || 0, st || {})));
 
-  inked('pine', 30, 70, 38, 96, 4, 92, (ox, oy, t, st) => {
-    const h = st.h || 60, c = st.c || '#2f6a24';
-    const d = gfx.shade(c, -20), l = gfx.shade(c, 18);
-    gfx.rect(ox + 12, oy - 12, 6, 12, '#452a16'); gfx.rect(ox + 12, oy - 12, 2, 12, '#5d3b20');
-    const cx = ox + 15, tiers = 5, span = (h - 10) / tiers;
-    for (let k = 0; k < tiers; k++) {
-      const by = oy - 9 - k * span, ty = by - span - 9;
-      const hw = 15 - k * 2.3;
-      gfx.tri(cx - hw, by, cx + hw, by, cx, ty, k % 2 ? c : d);
-      gfx.tri(cx - hw * 0.5, by - 1, cx + hw * 0.12, by - 1, cx - 1.5, ty + 3, l);
-      gfx.tri(cx - hw * 0.5, by - span * 0.55, cx + hw * 0.5, by - span * 0.55, cx, ty + 1, '#e9f1f7');
-      gfx.tri(cx - hw * 0.3, by - span * 0.55, cx + hw * 0.12, by - span * 0.55, cx - 1, ty + 3, '#ffffff');
-    }
+  // hand-drawn pixel trees (js/09_pixelart.js)
+  def('pine', 30, 70, (g, x, y, t, st) => {
+    st = st || {};
+    CH.PIX.pine(x + 15, y, st.h || 60, { c: st.c || '#2f6a24', seed: st.seed || ((x * 13) & 1023) + 1, flip: st.flip, snow: LP.snowHi, snowShade: LP.snowSh });
   });
-  inked('birch', 16, 60, 26, 78, 5, 74, (ox, oy) => {
-    gfx.rect(ox + 5, oy - 58, 5, 58, '#dfe2e2'); gfx.rect(ox + 5, oy - 58, 2, 58, '#f2f4f2');
-    gfx.rect(ox + 9, oy - 58, 1, 58, '#b6bcbc');
-    for (let i = 0; i < 7; i++) gfx.rect(ox + 5 + (i % 2) * 2, oy - 52 + i * 7, 3, 1, '#3a3630');
-    for (const b of [[-40, 13, -50], [-32, 1, -41], [-52, 14, -60], [-46, 0, -54]]) {
-      gfx.line(ox + 7, oy + b[0], ox + b[1], oy + b[2], '#cfd4d4');
-      gfx.line(ox + b[1], oy + b[2], ox + b[1] + (b[1] > 7 ? 4 : -4), oy + b[2] - 5, '#b6bcbc');
-    }
-    gfx.line(ox + 7, oy - 58, ox + 12, oy - 68, '#dfe2e2'); gfx.line(ox + 7, oy - 58, ox + 2, oy - 66, '#dfe2e2');
-    for (const s2 of [[13, -50], [1, -41], [14, -60], [12, -68], [2, -66]]) gfx.px(ox + s2[0], oy + s2[1] - 1, '#ffffff');
-  });
+  def('birch', 16, 60, (g, x, y, t, st) => CH.PIX.draw('birch', x + 7, y, { flip: st && st.flip }));
   def('snowbank', 40, 10, (g, x, y) => {
     gfx.ellipse(x + 20, y - 2, 21, 6, LP.snow);
     gfx.ellipse(x + 17, y - 4, 12, 5, LP.snowHi);
@@ -511,7 +492,7 @@
       }, 0, F, 90, 100, { id: 'cabinExt', anim: true, hint: 'Home', interact: say("Home. {p}I'll be back. With a job. Hopefully.") });
       this.addProp('boots', 60, F);
       // forest
-      for (let x = 110; x < 940; x += 55) { this.addProp('pine', x + (x % 3) * 7, F + 2 - (x % 5), { anim: true, sway: 1 + (x % 3) * 0.3, st: { h: 50 + (x % 4) * 10, c: ['#2f6a24', '#3a7a2c', '#25551c'][x % 3] } }); if (x % 4 === 0) this.addProp('birch', x + 30, F, { anim: true, sway: 0.8 }); }
+      for (let x = 110; x < 940; x += 55) { this.addProp('pine', x + (x % 3) * 7, F + 2 - (x % 5), { anim: true, sway: 1 + (x % 3) * 0.3, st: { h: 50 + (x % 4) * 10, c: ['#2f6a24', '#3a7a2c', '#25551c'][x % 3], seed: x, flip: x % 2 === 0 } }); if (x % 4 === 0) this.addProp('birch', x + 30, F, { anim: true, sway: 0.8 }); }
       for (let x = 130; x < 960; x += 130) this.addProp('snowbank', x, F + 2);
       this.addProp('mailbox', 100, F, { w: 10, h: 26, hint: 'Mailbox', interact: say("Our mailbox. Full of flyers. One says 'You may already be a winner!' {p}I may already be a loser, flyer.") });
       this.addProp('snowman', 300, F, { w: 16, h: 30, hint: 'Snowman', interact: say("A snowman. Somebody gave him a Donald's hat. {p}Everybody's hiring except the snowman.") });
@@ -580,7 +561,7 @@
         });
       }, 2226, F, 30, 30, { id: 'townBus', anim: false });
       this.donalds = this.addProp('donaldsExterior', 3180, F, { hint: "Donald's Burgers", interact: () => this.interactDonalds(), range: 60, offsetX: 20 });
-      this.addProp('pine', 3420, F, { anim: true, sway: 1.1, st: { h: 60 } });
+      this.addProp('pine', 3420, F, { anim: true, sway: 1.1, st: { h: 60, seed: 7 } });
       // kids sledding on a hill (animated)
       this.addCustom((g, x, y, t) => {
         const p = this.pal, F = this.floorY;
@@ -1056,25 +1037,27 @@
       }
       gfx.rect(0, 188, W, 6, haze(gfx.mix(p.mtn, p.snow, 0.5), 0.3));
       // ---- distant treeline ------------------------------------------------------
+      // hand-drawn silhouettes, recoloured to the hour
+      const PXd = CH.PIX.draw;
       gfx.rect(0, 190, W, 12, p.far);
+      const farR = { a: p.far, b: gfx.mix(p.far, p.snowHi, 0.22) };
       for (let i = 0; i < 70; i++) {
-        const x = CH.wrap(i * 17 - cx * 0.14, W + 40) - 20, hh = 9 + ((i * 5) % 5) * 4;
-        gfx.tri(x - 5, 192, x + 5, 192, x, 192 - hh, p.far);
+        const x = CH.wrap(i * 17 - cx * 0.14, W + 40) - 20;
+        PXd('farPine', x, 193 - ((i * 5) % 5), { remap: farR, flip: i % 2 === 1 });
       }
       // ---- mid treeline ----------------------------------------------------------
       gfx.rect(0, 196, W, 12, p.mid);
+      const midR = { a: p.mid, b: gfx.mix(p.mid, p.snowHi, 0.3) };
       for (let i = 0; i < 54; i++) {
-        const x = CH.wrap(i * 23 - cx * 0.3, W + 60) - 30, hh = 15 + ((i * 11) % 4) * 7;
-        gfx.tri(x - 8, 198, x + 8, 198, x, 198 - hh, p.mid);
-        gfx.tri(x - 4, 198 - hh * 0.45, x + 4, 198 - hh * 0.45, x, 198 - hh, gfx.mix(p.mid, p.snowHi, 0.3));
+        const x = CH.wrap(i * 23 - cx * 0.3, W + 60) - 30;
+        PXd('midPine', x, 199 + ((i * 11) % 4) - 2, { remap: midR, flip: i % 2 === 0 });
       }
       // ---- near treeline ----------------------------------------------------------
       gfx.rect(0, 206, W, 10, p.near);
+      const nearR = { a: p.near, b: gfx.mix(p.near, p.snowHi, 0.18), c: gfx.mix(p.near, p.snowHi, 0.4) };
       for (let i = 0; i < 40; i++) {
-        const x = CH.wrap(i * 34 - cx * 0.55, W + 80) - 40, hh = 24 + ((i * 13) % 4) * 10;
-        gfx.tri(x - 12, 210, x + 12, 210, x, 210 - hh, p.near);
-        gfx.tri(x - 6, 210 - hh * 0.4, x + 6, 210 - hh * 0.4, x, 210 - hh, gfx.mix(p.near, p.snowHi, 0.34));
-        gfx.tri(x - 10, 210 - hh * 0.14, x + 10, 210 - hh * 0.14, x, 210 - hh * 0.5, gfx.mix(p.near, p.snowHi, 0.18));
+        const x = CH.wrap(i * 34 - cx * 0.55, W + 80) - 40;
+        PXd('nearPine', x, 211 + ((i * 13) % 4) * 2 - 3, { remap: nearR, flip: i % 3 === 0 });
       }
       // ---- world -------------------------------------------------------------------
       super.draw(g);

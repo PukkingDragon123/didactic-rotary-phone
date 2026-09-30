@@ -253,15 +253,10 @@
     }
     // ================== DONALD'S BURGERS: the loud ad unit ==================
     drawBurger(cx, cy, t, sc = 1) {
+      // the hand-drawn burger, turning on the spot
       const spin = Math.cos(t * 2.2);
-      const rx = Math.max(4 * sc, 8 * sc * Math.abs(spin) + 2.5);
-      gfx.ellipse(cx, cy - 4 * sc, rx + 1.5, 9 * sc, CH.art.INK);
-      gfx.ellipse(cx, cy, rx, 2.2 * sc, '#d9a05b');
-      gfx.ellipse(cx, cy - 2.4 * sc, rx * 0.98, 1.8 * sc, '#5a3320');
-      gfx.ellipse(cx, cy - 4.4 * sc, rx * 1.06, 1.3 * sc, '#4f9d3a');
-      gfx.ellipse(cx, cy - 6 * sc, rx * 1.0, 1.2 * sc, '#f5c33b');
-      gfx.ellipse(cx, cy - 8.6 * sc, rx, 3.4 * sc, '#e8b166');
-      for (let i = 0; i < 3; i++) { const ph = t * 2.2 + i * 2.1, sx2 = Math.cos(ph); if (sx2 > -0.1 && rx > 5) gfx.px(cx + Math.round(sx2 * rx * 0.5), cy - Math.round(10 * sc) - (i % 2), '#fff6dc'); }
+      const sx = Math.max(0.25, Math.round(Math.abs(spin) * 8) / 8);
+      CH.PIX.draw('burger', cx, cy + 4, { sx, flip: spin < 0 });
     }
     bigD(x, y, sc = 2) {
       const ctx = gfx.cur; ctx.save(); ctx.translate(x, y); ctx.scale(sc, sc);

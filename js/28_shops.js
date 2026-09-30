@@ -210,9 +210,12 @@
       R(196, F - 30, 8, 12, '#6a6f7c'); R(214, F - 30, 8, 12, '#6a6f7c');
       E(200, F - 16, 4, 2, '#3a2a1a'); E(218, F - 16, 4, 2, '#3a2a1a');
       R(190, F - 52, 36, 4, '#5a5f6a');
-      for (let i = 0; i < 4; i++) E(196 + i * 10, F - 56, 3, 3, '#f2ece0');
+
       R(250, F - 30, 40, 30, '#7a5230'); R(252, F - 28, 36, 26, '#96683c');
-      for (let i = 0; i < 3; i++) E(262 + i * 10, F - 34, 4, 4, '#c98a3a');
+      CH.PIX.draw('muffin', 259, F - 30); CH.PIX.draw('croissant', 281, F - 30);
+      // beans by the bag, cups by the stack
+      for (let i = 0; i < 3; i++) CH.PIX.draw('jar', 70 + i * 16, F - 1, { remap: { r: ['#6a3a1c', '#3a2414', '#8a4a24'][i], R: '#a8703a', w: '#e8dcbc' } });
+      for (let i = 0; i < 4; i++) CH.PIX.draw('mug', 196 + i * 10, F - 52, { remap: { r: ['#c8352b', '#3a6ba8', '#4a8a5a', '#e0a83a'][i] } });
     },
     books: (g, F, ac) => {
       for (let s = 0; s < 4; s++) {
@@ -232,10 +235,10 @@
       for (let s = 0; s < 3; s++) {
         const sy = F - 24 - s * 16;
         R(44, sy, 122, 3, '#8a5a2b');
-        for (let i = 0; i < 6; i++) { E(54 + i * 20, sy - 4, 7, 4, '#c98a3a'); E(54 + i * 20, sy - 5, 7, 4, '#e8b45a'); E(51 + i * 20, sy - 7, 3, 2, '#f6d89a'); }
+        for (let i = 0; i < 6; i++) CH.PIX.draw(['bread', 'croissant', 'cinnamon'][s], 54 + i * 20, sy, { flip: i % 2 === 1 });
       }
       R(190, F - 40, 70, 40, '#e8e2d2'); R(192, F - 38, 66, 36, '#c8dce8');
-      for (let i = 0; i < 8; i++) { E(200 + i * 8, F - 30, 3.4, 3, '#e8c06a'); E(200 + i * 8, F - 18, 3.4, 3, '#d8a35a'); }
+      for (let i = 0; i < 4; i++) { CH.PIX.draw(i % 2 ? 'donut' : 'muffin', 202 + i * 16, F - 24); CH.PIX.draw(i % 2 ? 'pretzel' : 'cookie', 202 + i * 16, F - 6); }
       R(188, F - 44, 74, 5, '#f6f2e6');
       gfx.text('BUNS  TARTS  RYE', 225, F - 43, '#7a5230', { align: 'center', font: 'small' });
     },
@@ -356,7 +359,7 @@
       R(22, F - 104, 62, 46, '#3a3440');
       gfx.vgrad(25, F - 101, 56, 40, ['#8fb4d8', '#c8dcec']);
       R(25, F - 78, 56, 18, '#e9f1f7');
-      for (let i = 0; i < 3; i++) T(30 + i * 20, F - 78, 44 + i * 20, F - 78, 37 + i * 20, F - 92, '#2f6a24');
+      for (let i = 0; i < 3; i++) CH.PIX.draw('tinyPine', 33 + i * 20, F - 76, { flip: i === 1 });
       R(52, F - 101, 2, 40, '#3a3440'); R(25, F - 82, 56, 2, '#3a3440');
       // wallpaper above the picture rail, so the top of the room is not dead
       for (let x = 0; x < w; x += 16) {
@@ -369,7 +372,7 @@
       R(322, F - 150, 26, 26, '#3a3440'); E(335, F - 137, 11, 11, '#f6f2e6');
       gfx.line(335, F - 137, 335, F - 144, '#3a3440'); gfx.line(335, F - 137, 340, F - 135, '#3a3440');
       R(112, F - 152, 44, 32, '#6b4630'); R(115, F - 149, 38, 26, '#a8c8dc');
-      R(115, F - 132, 38, 9, '#e9f1f7'); T(120, F - 132, 136, F - 132, 128, F - 144, '#2f6a24');
+      R(115, F - 132, 38, 9, '#e9f1f7'); CH.PIX.draw('tinyPine', 124, F - 131); CH.PIX.draw('tinyPine', 140, F - 132, { flip: true });
       // ceiling lamps
       for (const lx of [180, 380]) { R(lx - 1, 0, 2, 16, '#3a3440'); E(lx, 18, 12, 6, '#3a3440'); E(lx, 17, 11, 5, '#ffe6a8'); }
       // the shop's own board over the counter

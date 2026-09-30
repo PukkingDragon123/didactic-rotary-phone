@@ -69,6 +69,14 @@ that points at them, and pages itself when a line runs long.
   money, dialogue, speech bubbles, button prompts, minigame HUDs, menus, fades
   and the cursor - is drawn on its own layer above the world, so the lamps,
   night tint, bloom and grading never touch it and it stays sharp and readable.
+- **Hand-drawn pixel sprites**: the food and the trees are drawn pixel by
+  pixel as little text grids in `js/09_pixelart.js`, each with its own
+  hand-placed outline in a dark shade of itself. That covers every burger
+  layer, which browns as it cooks; the whole burger; fries, nuggets and pies;
+  the bakery's bread, croissants, cinnamon buns, muffins, donuts, pretzels and
+  cookies; pancakes, coffee and more. Pines are built from hand-drawn snowy
+  bough clumps laid in drooping tiers, and the far treelines are hand-drawn
+  silhouettes recoloured to the hour.
 - **Wind, snow and things to kick**: one shared wind with gusts leans the
   trees, blows powder off the roofs and carries loose things down the street.
   Ground snow is a live height field - flakes land and pile up, feet plough

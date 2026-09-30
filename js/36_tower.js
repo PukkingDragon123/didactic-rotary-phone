@@ -214,17 +214,13 @@
   }
 
   // a solid gold burger the size of a small car
+  const GOLD = { k: '#6a4a08', d: '#b0821c', m: '#e0aa2a', l: '#f5c33b', h: '#ffe9a8', s: '#fff8d8', g: '#c8961e', G: '#f5d060', y: '#f5c33b', Y: '#fff0b0', p: '#a0741a', P: '#c8961e', c: '#ffe9a8', r: '#d8a024' };
   function burgerStatue(x, y, t) {
-    art.blit(x, y, 44, 42, 22, 40, () => {
-      const G = '#f5c33b', GD = '#b0821c', GL = '#ffe9a8';
-      gfx.rect(6, 32, 32, 8, '#4a5372'); gfx.rect(6, 32, 32, 1, '#727c9c'); gfx.rect(6, 39, 32, 1, '#2b3350');
-      gfx.rect(10, 27, 24, 5, '#5d6684'); gfx.rect(10, 27, 24, 1, '#7a849f');
-      gfx.ellipse(22, 25, 15, 3.6, GD); gfx.ellipse(22, 24, 14, 3, G);
-      gfx.rect(8, 19, 28, 5, GD); gfx.ellipse(22, 19, 15, 2.6, '#d59b26');
-      gfx.ellipse(22, 12, 16, 8, GD); gfx.ellipse(22, 11, 15, 7, G);
-      gfx.ellipse(17, 8, 7, 3, GL);
-      for (const p of [[12, 9], [20, 5], [28, 9], [25, 13]]) gfx.px(p[0], p[1], GL);
+    art.blit(x, y, 44, 12, 22, 10, () => {
+      gfx.rect(6, 2, 32, 8, '#4a5372'); gfx.rect(6, 2, 32, 1, '#727c9c'); gfx.rect(6, 9, 32, 1, '#2b3350');
+      for (let i = 0; i < 4; i++) gfx.px(9 + i * 8, 5, '#5d6684');
     });
+    CH.PIX.draw('burger', x, y - 9, { remap: GOLD });
     art.effect('spark', x + 6, y - 32, t, 0.8);
   }
 

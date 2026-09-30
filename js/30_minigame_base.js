@@ -498,159 +498,27 @@
   const F = (CH.FOOD = {});
 
   // ---- burger parts ----------------------------------------------------------
+  // Hand-drawn sprites (js/09_pixelart.js). The patty's ramp follows the cook.
+  const PX = CH.PIX;
   F.patty = (g, x, y, cook = 1) => {
-    const raw = '#bd4f5c', seared = '#8a4b2a', done = '#57301a', char = '#241712';
-    const base = cook < 0.35 ? gfx.mix(raw, seared, cook / 0.35)
-      : cook < 1 ? gfx.mix(seared, done, (cook - 0.35) / 0.65)
-        : gfx.mix(done, char, Math.min(1, (cook - 1) / 0.55));
-    const m = MG.m(base, { dark: -24, darker: -44, light: 22 });
-    MG.ink(x, y, 28, 18, (cx, cy) => {
-      cy -= 1;
-      // the slab has real thickness: a dark under-edge, a body, a lit top face
-      gfx.ellipse(cx, cy + 2, 11.4, 4.4, m.dd);
-      gfx.ellipse(cx, cy + 1, 11.4, 4.4, m.d);
-      gfx.ellipse(cx, cy - 1, 11.2, 4.2, m.base);
-      // torn, hand-pressed rim
-      for (let i = 0; i < 9; i++) {
-        const a = (i / 9) * Math.PI * 2 + 0.5;
-        gfx.ellipse(cx + Math.cos(a) * 9.4, cy - 1 + Math.sin(a) * 3.2, 2.3, 1.5, i % 2 ? m.base : m.d);
-      }
-      gfx.ellipse(cx, cy - 2, 9.6, 3.1, cook < 0.35 ? gfx.shade(m.base, 10) : m.base);
-      if (cook < 0.4) {
-        // raw: wet, marbled, heavy
-        gfx.ellipse(cx - 2, cy - 3, 4.6, 1.7, m.l);
-        for (const [fx, fy] of [[-6, -2], [-1, -3], [4, -2], [6, 0], [-4, 0], [1, 0]]) gfx.px(cx + fx, cy + fy, gfx.mix(m.l, '#ffe9e2', 0.5));
-        MG.gloss(cx, cy - 2, 7, 2.6, 'rgba(255,230,230,0.35)');
-      } else {
-        // seared: grill bars burned across the face, crusty edge
-        const bar = cook > 1 ? '#150e0c' : gfx.shade(m.dd, -8);
-        for (let i = -1; i <= 1; i++) {
-          const yy = cy - 2 + i * 2;
-          gfx.rect(cx - 7 + i, yy, 14, 1, bar);
-          gfx.px(cx - 8 + i, yy, bar); gfx.px(cx + 7 + i, yy, bar);
-        }
-        gfx.ellipse(cx - 3, cy - 3, 3.4, 1.1, gfx.mix(m.l, '#ffd9a0', 0.4));
-      }
-      if (cook > 1.1) {
-        // charred: black blisters and a couple of live embers at the rim
-        for (const [bx2, by2] of [[-6, -2], [2, -3], [6, 0], [-2, 1]]) gfx.ellipse(cx + bx2, cy + by2, 2, 1.2, '#120b0e');
-        gfx.px(cx - 9, cy, '#e8752c'); gfx.px(cx + 9, cy - 1, '#f5a13b');
-      }
-    });
+    if (cook < 0.3) { PX.draw('pattyRaw', x, y); return; }
+    const q = Math.round(cook * 20) / 20;
+    const seared = '#9a5a30', done = '#5e331c', char = '#2a1a14';
+    const base = q < 1 ? gfx.mix(seared, done, (q - 0.3) / 0.7) : gfx.mix(done, char, Math.min(1, (q - 1) / 0.55));
+    const r = PX.ramp(base, { k: -58, d: -24, l: 20, h: 42 });
+    r.g = gfx.shade(base, q > 1 ? -60 : -40); r.f = r.h;
+    PX.draw('patty', x, y, { remap: r });
+    if (q > 1.1) { gfx.px(x - 12, y, '#e8752c'); gfx.px(x + 11, y - 1, '#f5a13b'); }
   };
-
-  F.bunBottom = (g, x, y) => {
-    const m = MG.m('#d09343', { dark: -32, darker: -54, light: 24 });
-    MG.ink(x, y, 30, 18, (cx, cy) => {
-      gfx.ellipse(cx, cy, 12, 4, m.d);
-      gfx.rect(cx - 12, cy - 4, 25, 5, m.base);
-      gfx.ellipse(cx, cy - 4, 12, 2.6, m.l);          // cut face
-      gfx.ellipse(cx, cy - 4, 9.5, 1.7, gfx.mix(m.l, '#fff3d8', 0.45));
-      gfx.hline(cx - 12, cy + 1, 25, m.dd);           // resting shadow line
-      for (let i = -10; i <= 10; i += 5) gfx.px(cx + i, cy - 2, m.d);   // crumb
-      gfx.px(cx - 6, cy - 5, '#fff3d8'); gfx.px(cx + 5, cy - 5, '#fff3d8');
-    });
-  };
-
-  F.bunTop = (g, x, y) => {
-    const m = MG.m('#dfa24c', { dark: -34, darker: -56, light: 22 });
-    MG.ink(x, y, 30, 20, (cx, cy) => {
-      gfx.ellipse(cx, cy + 1, 12, 5.6, m.d);
-      gfx.ellipse(cx, cy - 1, 12, 5.4, m.base);
-      gfx.ellipse(cx, cy - 2.6, 9.6, 3.8, m.l);
-      MG.gloss(cx + 1, cy - 2, 9, 4, gfx.mix(m.rim, '#fff', 0.3));
-      gfx.hline(cx - 11, cy + 5, 23, m.dd);
-      for (const [sx, sy] of [[-7, -3], [-2, -5], [3, -4], [7, -1], [-4, 0], [1, -1], [6, -5]]) {
-        gfx.rect(cx + sx, cy + sy, 2, 1, '#fff5de');
-        gfx.px(cx + sx, cy + sy + 1, m.d);
-      }
-    });
-  };
-
-  F.cheese = (g, x, y) => {
-    const m = MG.m('#f2b933', { dark: -30, darker: -50, light: 26 });
-    MG.ink(x, y, 32, 14, (cx, cy) => {
-      gfx.rect(cx - 12, cy - 2, 25, 4, m.base);
-      gfx.hline(cx - 12, cy - 2, 25, m.l);
-      gfx.hline(cx - 12, cy + 1, 25, m.d);
-      // melted corners drooping over the patty
-      gfx.tri(cx - 13, cy - 2, cx - 13, cy + 4, cx - 8, cy + 1, m.base);
-      gfx.tri(cx + 12, cy - 2, cx + 13, cy + 3, cx + 8, cy + 1, m.base);
-      gfx.px(cx - 13, cy + 3, m.d); gfx.px(cx + 12, cy + 2, m.d);
-      gfx.rect(cx - 8, cy - 2, 6, 1, gfx.mix(m.l, '#fff', 0.5));
-    });
-  };
-
-  F.lettuce = (g, x, y) => {
-    const m = MG.m('#69bf50', { dark: -30, light: 26 });
-    MG.ink(x, y, 28, 14, (cx, cy) => {
-      for (let i = -10; i <= 10; i += 4) {
-        const yy = cy - (Math.abs(i) % 3) - 1;
-        gfx.ellipse(cx + i, yy + 1, 3, 2, m.d);
-        gfx.ellipse(cx + i, yy, 2.8, 1.8, i % 8 === 0 ? m.base : m.l);
-        gfx.px(cx + i - 1, yy - 1, gfx.mix(m.l, '#f2ffdf', 0.5));
-      }
-    });
-  };
-
-  F.tomato = (g, x, y) => {
-    const m = MG.m('#d13c3c', { dark: -28, light: 28 });
-    MG.ink(x, y, 28, 12, (cx, cy) => {
-      for (const sx of [-5, 5]) {
-        gfx.ellipse(cx + sx, cy + 1, 6, 2.6, m.d);
-        gfx.ellipse(cx + sx, cy, 6, 2.4, m.base);
-        gfx.ellipse(cx + sx, cy - 0.4, 4, 1.4, m.l);        // pulp
-        gfx.px(cx + sx - 2, cy - 1, '#ffd9c8'); gfx.px(cx + sx + 2, cy, '#ffd9c8');
-      }
-    });
-  };
-
-  F.pickle = (g, x, y) => {
-    const m = MG.m('#5a8a2a', { dark: -28, light: 32 });
-    MG.ink(x, y, 24, 12, (cx, cy) => {
-      for (const sx of [-5, 5]) {
-        gfx.ellipse(cx + sx, cy + 1, 4.4, 2.2, m.d);
-        gfx.ellipse(cx + sx, cy, 4.2, 2, m.base);
-        gfx.ellipse(cx + sx, cy - 0.4, 2.6, 1.1, m.l);
-        gfx.px(cx + sx - 1, cy, '#d8e8a0'); gfx.px(cx + sx + 1, cy - 1, '#d8e8a0');
-        for (let i = 0; i < 4; i++) gfx.px(cx + sx - 3 + i * 2, cy + (i % 2 ? 1 : -1), m.d);  // bumpy skin
-      }
-    });
-  };
-
-  F.onion = (g, x, y) => {
-    MG.ink(x, y, 26, 12, (cx, cy) => {
-      for (const sx of [-4, 4]) {
-        gfx.ellipseOutline(cx + sx, cy + 1, 5, 2.2, '#c9b3d8');
-        gfx.ellipseOutline(cx + sx, cy, 5, 2.2, '#f2e7f8');
-        gfx.ellipseOutline(cx + sx, cy, 2.6, 1.2, '#e4d4ee');
-      }
-    });
-  };
-
-  F.bacon = (g, x, y) => {
-    MG.ink(x, y, 26, 12, (cx, cy) => {
-      for (let i = 0; i < 2; i++) {
-        const bx = cx - 9 + i * 10;
-        for (let k = 0; k < 9; k++) {
-          const wave = Math.round(Math.sin(k * 1.1 + i) * 1.2);
-          gfx.rect(bx + k, cy - 1 + wave, 1, 3, '#9d3324');
-          gfx.px(bx + k, cy - 1 + wave, k % 3 ? '#c4553c' : '#f0b49c');
-          if (k % 3 === 1) gfx.px(bx + k, cy + 1 + wave, '#f0b49c');
-        }
-      }
-    });
-  };
-
-  F.sauce = (g, x, y, c = '#d13c3c') => {
-    const m = MG.m(c, { dark: -30, light: 34 });
-    MG.ink(x, y, 26, 10, (cx, cy) => {
-      gfx.ellipse(cx, cy + 0.5, 9, 1.8, m.d);
-      gfx.ellipse(cx, cy - 0.3, 8.6, 1.5, m.base);
-      gfx.px(cx - 4, cy - 1, m.l); gfx.px(cx + 3, cy - 1, m.l); gfx.px(cx - 1, cy - 1, m.l);
-      gfx.px(cx - 10, cy + 1, m.base); gfx.px(cx + 10, cy, m.base);   // drips
-    });
-  };
+  F.bunBottom = (g, x, y) => PX.draw('bunBottom', x, y);
+  F.bunTop = (g, x, y) => PX.draw('bunTop', x, y);
+  F.cheese = (g, x, y) => PX.draw('cheese', x, y);
+  F.lettuce = (g, x, y) => PX.draw('lettuce', x, y);
+  F.tomato = (g, x, y) => PX.draw('tomato', x, y);
+  F.pickle = (g, x, y) => PX.draw('pickle', x, y);
+  F.onion = (g, x, y) => PX.draw('onion', x, y);
+  F.bacon = (g, x, y) => PX.draw('bacon', x, y);
+  F.sauce = (g, x, y, c = '#d13c3c') => PX.draw('sauce', x, y, { remap: { c, h: gfx.shade(c, 40), k: gfx.shade(c, -64) } });
 
   // ---- packaging --------------------------------------------------------------
   F.wrapper = (g, x, y, open = true) => {
@@ -664,42 +532,13 @@
     });
   };
 
-  F.wrapped = (g, x, y) => {
-    const m = MG.m('#f2c13b', { dark: -32, light: 20 });
-    MG.ink(x, y, 32, 20, (cx, cy) => {
-      gfx.ellipse(cx, cy + 1, 13, 7, m.d);
-      gfx.ellipse(cx, cy - 1, 12.6, 6.4, m.base);
-      gfx.ellipse(cx - 3, cy - 3, 6, 2.4, m.l);
-      // pinched paper folds
-      for (const fx of [-10, -5, 0, 5, 10]) gfx.line(cx + fx, cy - 5, cx + fx * 0.6, cy + 4, m.d);
-      gfx.rect(cx - 5, cy + 3, 10, 3, MG.RED);          // seal tape
-      gfx.hline(cx - 5, cy + 3, 10, '#e0655a');
-      gfx.text('D', cx, cy - 5, MG.RED, { align: 'center' });
-    });
-  };
+  F.wrapped = (g, x, y) => PX.draw('wrapped', x, y);
 
   F.friesBox = (g, x, y, fill = 1, size = 'M') => {
     const w = size === 'L' ? 14 : size === 'S' ? 9 : 11;
-    const m = MG.m('#c8352b', { dark: -28, light: 28 });
-    const fr = MG.m('#f2c342', { dark: -28, light: 24 });
-    MG.ink(x, y, 26, 40, (cx, cy) => {
-      if (fill > 0) {
-        const n = Math.round(fill * 7);
-        for (let i = 0; i < n; i++) {
-          const fx = cx - w / 2 + 1 + i * (w / 7), fy = cy - 14 - (i % 3) * 2;
-          gfx.rect(fx, fy, 2, 13, i % 2 ? fr.d : gfx.shade(fr.base, -10));
-          gfx.vline(fx, fy, 12, i % 2 ? fr.base : fr.l);
-          gfx.px(fx, fy, gfx.mix(fr.l, '#fff6d0', 0.5));
-        }
-      }
-      // carton: tapered, with the chevron front panel
-      gfx.rect(cx - w / 2, cy - 8, w, 10, m.d);
-      gfx.rect(cx - w / 2 + 1, cy - 8, w - 2, 9, m.base);
-      gfx.rect(cx - w / 2 - 1, cy - 9, w + 2, 2, m.l);
-      gfx.hline(cx - w / 2 - 1, cy - 10, w + 2, gfx.mix(m.l, '#fff', 0.4));
-      gfx.vline(cx - w / 2 + 1, cy - 7, 8, gfx.mix(m.base, '#fff', 0.2));
-      gfx.text('D', cx, cy - 6, '#f5c33b', { align: 'center', font: 'small' });
-    }, { ax: 13, ay: 32 });
+    const n = Math.round(Math.max(0, fill) * 7);
+    for (let i = 0; i < n; i++) PX.draw('fry', x - w / 2 + 1 + i * (w / 7), y - 14 - (i % 3) * 2);
+    PX.draw('carton' + (size === 'L' ? 'L' : size === 'S' ? 'S' : 'M'), x, y + 2);
   };
 
   F.cup = (g, x, y, fill = 0, size = 'M', color = '#5a2a10', lid = false) => {
@@ -766,24 +605,6 @@
     });
   };
 
-  F.nugget = (g, x, y) => {
-    const m = MG.m('#daa244', { dark: -28, light: 26 });
-    MG.ink(x, y, 12, 10, (cx, cy) => {
-      gfx.ellipse(cx, cy + 0.5, 4.2, 3.2, m.d);
-      gfx.ellipse(cx, cy, 4, 3, m.base);
-      gfx.ellipse(cx - 1, cy - 1, 2, 1.2, m.l);
-      gfx.px(cx + 2, cy + 1, m.d); gfx.px(cx - 2, cy + 1, m.d);
-    });
-  };
-
-  F.pie = (g, x, y) => {
-    const m = MG.m('#d59a48', { dark: -30, light: 24 });
-    MG.ink(x, y, 20, 12, (cx, cy) => {
-      gfx.rect(cx - 8, cy - 3, 16, 6, m.d);
-      gfx.rect(cx - 8, cy - 3, 16, 5, m.base);
-      gfx.hline(cx - 8, cy - 3, 16, m.l);
-      for (let i = 0; i < 3; i++) gfx.rect(cx - 4 + i * 4, cy - 2, 2, 1, '#8a3020');   // vents
-      gfx.px(cx - 6, cy + 1, m.d); gfx.px(cx + 5, cy + 1, m.d);
-    });
-  };
+  F.nugget = (g, x, y) => PX.draw('nugget', x, y);
+  F.pie = (g, x, y) => PX.draw('pie', x, y);
 })(window.CH);

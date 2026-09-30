@@ -746,19 +746,12 @@
     rect(x, y + h - 9, w, 9, night ? '#7e88a6' : '#eef4f8');
     hl(x, y + h - 9, w, night ? '#98a2bc' : '#fff');
     for (let i = 0; i < w; i += 7) ell(x + i, y + h - 9, 4, 1.6, night ? '#8a94b0' : '#fbfdff');
-    // pines
+    // pines, hand-drawn
     const R = new CH.Rng((x * 7 + 3) >>> 0 || 1);
+    const tp = night ? { k: '#060c10', g: '#10201a', l: '#18302a', s: '#6a7898', S: '#465470', t: '#0d1a14' } : null;
     for (let i = 0; i < 8; i++) {
-      const tx = x + 1 + i * (w / 8) + R.int(0, 3), th = R.int(14, 26), ty = y + h - 7;
-      const c = night ? '#10201a' : R.pick(['#2f6a24', '#3a7a2c', '#25551c', '#356e28']);
-      rect(tx - 1, ty - 3, 2, 4, night ? '#0d1a14' : '#4a2e18');
-      for (let k = 0; k < 4; k++) {
-        const ly = ty - 2 - k * (th / 5);
-        tri(tx - 5 + k, ly, tx + 5 - k, ly, tx, ly - th / 3.4, c);
-        tri(tx - 4 + k, ly, tx + 2 - k, ly, tx - 1, ly - th / 4.4, shade(c, 14));
-      }
-      hl(tx - 3, ty - 5 - (th / 5), 5, night ? '#465470' : '#fff');
-      hl(tx - 2, ty - 6 - (th / 2.5), 4, night ? '#465470' : '#eef4f8');
+      const tx = x + 1 + i * (w / 8) + R.int(0, 3), ty = y + h - 6 - R.int(0, 2);
+      CH.PIX.draw('tinyPine', tx, ty, { remap: tp || { g: R.pick(['#2f6a24', '#3a7a2c', '#25551c', '#356e28']) }, flip: R.chance(0.5) });
     }
     // falling snow, two depths
     for (let i = 0; i < 16; i++) {
@@ -926,26 +919,20 @@
 
   def('pancakes', 18, 10, (g, x, y, t, st) => {
     const eaten = st && st.eaten;
+    if (!eaten) {
+      // a hand-drawn stack, with steam curling off it
+      CH.PIX.draw('pancakes', x + 9, y + 1);
+      if (t !== undefined) for (let i = 0; i < 3; i++) {
+        const k = (t * 0.5 + i * 0.33) % 1;
+        px(x + 5 + i * 4 + Math.round(Math.sin(t * 2 + i) * 1), y - 13 - k * 11, 'rgba(255,255,255,' + (0.7 - k * 0.7).toFixed(2) + ')');
+      }
+      return;
+    }
     ink(g, x, y, 18, 10, (bx, by) => {
       // plate
       ell(bx + 9, by - 1, 9, 2.4, M.linen.d); ell(bx + 9, by - 2, 9, 2.4, M.linen.base);
       hl(bx + 2, by - 3, 14, '#fff');
-      if (!eaten) {
-        for (let i = 0; i < 4; i++) {
-          const ry = by - 4 - i * 2.4;
-          ell(bx + 9, ry, 7 - i * 0.3, 1.9, i % 2 ? '#c98d3e' : '#e0a557');
-          ell(bx + 9, ry - 0.6, 6.4 - i * 0.3, 1.3, i % 2 ? '#e0a557' : '#f0bd70');
-        }
-        rect(bx + 7, by - 15, 5, 3, '#f5c33b'); hl(bx + 7, by - 15, 5, '#ffe89a'); px(bx + 11, by - 13, '#d8a62a');
-        // syrup running down the stack
-        px(bx + 3, by - 8, '#8a4a1a'); px(bx + 3, by - 7, '#8a4a1a'); px(bx + 4, by - 6, '#a05a20');
-        px(bx + 14, by - 7, '#8a4a1a'); px(bx + 15, by - 6, '#8a4a1a'); px(bx + 15, by - 5, '#a05a20');
-        ell(bx + 9, by - 3, 6, 1, '#a05a20');
-        if (t !== undefined) for (let i = 0; i < 3; i++) {
-          const k = (t * 0.5 + i * 0.33) % 1;
-          px(bx + 5 + i * 4 + Math.round(Math.sin(t * 2 + i) * 1), by - 17 - k * 11, 'rgba(255,255,255,' + (0.7 - k * 0.7).toFixed(2) + ')');
-        }
-      } else {
+      {
         px(bx + 6, by - 3, '#8a4a1a'); px(bx + 10, by - 3, '#e0a557'); px(bx + 9, by - 4, '#8a4a1a');
         ell(bx + 9, by - 3, 4, 1, '#c08a4a');
         // fork left on the plate
