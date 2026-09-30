@@ -98,10 +98,23 @@ that points at them, and pages itself when a line runs long.
 - **Main Street**: fourteen shopfronts in a row, twelve of them businesses you
   can walk into - Pinecone Toys, The Dripping Pine, Dog-Eared Books, Frost &
   Flour, Bucksaw Hardware, Second Wind, Loon & Groove, Antler Pharmacy, Tackle
-  & Twine, Sparkplug Garage, The Clipped Whisker and Pixel Palace. Each has its
-  own sign colours, striped awning, window display, painted mark on a hanging
-  bracket board, sandwich board on the pavement, and a room behind the door
-  with its own fixtures and its own keeper to talk to.
+  & Twine, Sparkplug Garage, The Clipped Whisker and Pixel Palace. Every
+  building has its own architecture (`js/29_streetfronts.js`): brick blocks
+  with cornices and arched windows, wooden false fronts with porches, gabled
+  fronts with bay windows, fieldstone and half-timber, flat modern fronts, a
+  quonset arena. They have lit windows at night, goods in the display glass,
+  pixel awnings, planters with little pines, snow on every ledge, icicles, and
+  a barber pole, neon and chimney smoke that move. Behind the street is a row
+  of detailed houses, and Donald's has diners eating in the windows.
+- **Shops worth walking into**: every room behind those doors is fully
+  furnished (`js/29_shoprooms.js`, built on the interior kit in
+  `js/29_interiors.js`): its own walls, floor and ceiling (exposed brick,
+  beadboard, glazed tile, pressed tin, pegboard, knotty pine, arcade carpet),
+  shelves stocked with hand-drawn goods, lamps and daylight, a window onto the
+  snowy street, things that move (a toy train on the high shelf, the bakery's
+  oven fire, a turntable, fish in the minnow tank, attract-mode arcade screens,
+  a claw machine, a sleeping shop cat), a customer or two with their own lines,
+  and odd things worth a look.
 - **A street that is different every day**: who is standing where, which cars
   and bikes go past, and which bit of street theatre is playing (a busker, a
   snowball fight, geese crossing, a stuck car, a window cleaner in February,
@@ -110,7 +123,9 @@ that points at them, and pages itself when a line runs long.
   including Denny, who has once again come out in his heart-print shorts.
 - **The cabin**: a single-floor log cabin with 50+ pokeable things: alarm clock,
   pancakes, fireplace, family photos, the rotary phone, Mom's rocking chair, the
-  forest through frosted windows.
+  forest through frosted windows. Every window in the game looks out on a view
+  painted for the hour: sky, a jagged ridge, far treelines, the hand-drawn
+  pines, houses across the street, falling snow and the odd car going by.
 - **Blue Hedgehog**: a real playable retro platformer inside the TV, entered
   through a seamless zoom. Momentum movement, jump + double jump, kickable
   ladybugs, rings, springs, item monitors, checkpoints and a boss fight against

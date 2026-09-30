@@ -342,7 +342,10 @@
       this.line = 0;
       this.build();
     }
+    get room() { return CH.SHOP_ROOMS && CH.SHOP_ROOMS[this.shop.id]; }
     drawRoom(g) {
+      // every shop has its own fully furnished room (29_shoprooms.js)
+      if (this.room) { CH.paintShopRoom(this, this.room); return; }
       const sh = this.shop, F = this.floorY, w = this.width;
       // wall, wainscot and a warm pool of shop light
       gfx.vgrad(0, 0, w, F, [gfx.shade(sh.wall, 14), sh.wall, gfx.shade(sh.wall, -12)]);
@@ -384,6 +387,7 @@
       R(400 - nw / 2 + 4, F - 158, 2, 6, '#3a3440'); R(400 + nw / 2 - 6, F - 158, 2, 6, '#3a3440');
     }
     build() {
+      if (this.room) { CH.buildShopRoom(this, this.room); return; }
       const sh = this.shop, F = this.floorY, self = this;
       // the counter, drawn in front so the keeper stands behind it
       this.addCustom((g, x, y) => {

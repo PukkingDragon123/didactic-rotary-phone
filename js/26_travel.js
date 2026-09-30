@@ -61,6 +61,8 @@
   }
   // the live palette, so prop painters can read it without threading it through
   let LP = palAt(8);
+  // shared with window views everywhere, so a window shows the same hour as the street
+  CH.skyAt = palAt;
   const glow = (x, y, r, col, a) => {
     const g = gfx.cur, o = g.globalAlpha;
     for (let i = 4; i >= 1; i--) { g.globalAlpha = a * (0.22 + 0.78 * Math.pow(1 - (i - 1) / 4, 2)); gfx.ellipse(x, y, (r * i) / 4, (r * 0.85 * i) / 4, col); }
@@ -381,7 +383,7 @@
       this.mood = opts.mood || (this.dest === 'home' ? 'tired' : 'nervous');
       this.pal = palAt(opts.hour !== undefined ? opts.hour : S.hour);
       if (this.mood === 'tired') { this.pal.tintA = Math.min(0.42, this.pal.tintA + 0.1); this.pal.tint = gfx.mix(this.pal.tint, '#5c6390', 0.4); }
-      LP = this.pal;
+      LP = this.pal; CH.curPal = LP;
       this.prints = []; this.lastPrint = -999; this.puffs = []; this.breathT = 0.4;
       this.build();
       this.player.outfit = S.outfit; this.player.stepSfx = 'step'; this.player.speed = 82;
@@ -421,7 +423,8 @@
       for (let x = 1506; x < w; x += 36) gfx.ellipse(x, F + 2, 8, 2, p.snowHi);
       // back row of houses behind the main street
       const r3 = new CH.Rng(91);
-      for (let x = 1490; x < w; x += r3.int(52, 80)) {
+      if (CH.paintBackRow) CH.paintBackRow(1490, w, F, p);
+      else for (let x = 1490; x < w; x += r3.int(52, 80)) {
         const bh = r3.int(46, 70), bw = r3.int(46, 66);
         const bc = gfx.mix(['#6b5a72', '#5a6a80', '#74625a', '#5c6a5c'][r3.int(0, 3)], p.sky[3], 0.48);
         gfx.rect(x, F - 6 - bh, bw, bh, bc);
@@ -468,6 +471,7 @@
       // cabin exterior at start
       this.addCustom((g, x, y) => {
         const p = this.pal;
+        if (CH.paintCabinExterior) { CH.paintCabinExterior(g, x, y, this.t, p); return; }
         art.blit(x, y, 130, 126, 14, 122, () => {
           const ox = 14, oy = 122;
           gfx.rect(ox, oy - 62, 90, 62, P.wood1);
@@ -533,16 +537,16 @@
       // businesses that make the place a town instead of a corridor.
       const GAP = 148;
       let sx = 1020;
-      const front = (opts) => { const pr = this.addProp('storefront', sx, F, Object.assign({ w: 120, h: 90 }, opts)); sx += GAP; return pr; };
-      front({ st: { color: '#8a5a2b', name: 'GENERAL STORE', sign: 'JOB BOARD', board: 'JOB|BOARD', awning: ['#a8722f', '#e8d0a0'] }, hint: 'General store', interact: () => this.interactStore() });
+      const front = (opts) => { const pr = this.addProp('storefront', sx, F, Object.assign({ w: 120, h: 90 }, opts)); if (CH.frontLive) CH.frontLive(this, pr); sx += GAP; return pr; };
+      front({ st: { id: 'general', color: '#8a5a2b', name: 'GENERAL STORE', sign: 'JOB BOARD', board: 'JOB|BOARD', awning: ['#a8722f', '#e8d0a0'] }, hint: 'General store', interact: () => this.interactStore() });
       for (const sh of (CH.SHOPS || [])) {
         front({
           hint: sh.name,
-          st: { color: sh.color, name: sh.name, textColor: sh.text, sign: sh.sign, awning: sh.awning, logo: sh.logo, logoBg: sh.logoBg, display: sh.display, board: sh.board },
+          st: { id: sh.id, color: sh.color, name: sh.name, textColor: sh.text, sign: sh.sign, awning: sh.awning, logo: sh.logo, logoBg: sh.logoBg, display: sh.display, board: sh.board },
           interact: () => { const back = this.player.x; CH.enterShop(sh.id, () => { this.player.x = back; this.cam.x = CH.clamp(back - this.viewW / 2, 0, this.width - this.viewW); }); },
         });
       }
-      front({ st: { color: '#4a5a8a', name: 'MOOSE HOLLOW ARENA', textColor: '#fff', sign: 'GO MALLARDS', awning: ['#3a4a7a', '#dce4f4'] }, hint: 'Arena', interact: say("The arena. Dad played here. {p}Rick still hasn't fixed the Zamboni.") });
+      front({ st: { id: 'arena', color: '#4a5a8a', name: 'MOOSE HOLLOW ARENA', textColor: '#fff', sign: 'GO MALLARDS', awning: ['#3a4a7a', '#dce4f4'] }, hint: 'Arena', interact: say("The arena. Dad played here. {p}Rick still hasn't fixed the Zamboni.") });
       this.townX0 = 1020; this.townX1 = sx;
       for (let x = 1148; x < sx; x += GAP * 2) this.addProp('lamppost', x, F);
       for (let x = 1296; x < sx; x += GAP * 4) this.addProp('hydrant', x, F);
@@ -790,7 +794,7 @@
       if (w && w.gust > 0.55 && CH.chance(dt * 6 * w.gust)) {
         const fronts = this.props.filter((p) => p.name === 'storefront' && p.x + 130 > this.cam.x && p.x < this.cam.x + this.viewW);
         if (fronts.length) {
-          const f = CH.pick(fronts), x0 = f.x + CH.rand(0, 120), y0 = this.floorY - 97;
+          const f = CH.pick(fronts), x0 = f.x + CH.rand(0, 120), y0 = this.floorY - (f.roofH || 97);
           for (let i = 0; i < 10; i++) this.particles.add({ x: x0 + CH.rand(-6, 6), y: y0 + CH.rand(-2, 2), vx: w.x * CH.rand(0.6, 1.4), vy: CH.rand(-10, 14), life: CH.rand(0.8, 1.6), color: 'rgba(255,255,255,0.9)', size: CH.chance(0.3) ? 2 : 1, grav: 60, drag: 0.99 });
         }
       }

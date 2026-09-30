@@ -307,20 +307,9 @@
       const wx = 330, wy = 66;
       gfx.rect(wx - 4, wy - 4, 98, 70, '#eef3f2');
       gfx.rect(wx - 3, wy - 3, 96, 68, '#cfdad8');
-      gfx.rect(wx, wy, 90, 62, '#161d38');
-      for (let i = 0; i < 14; i++) {
-        const bx = wx + 3 + i * 6.3, bh = 10 + ((i * 7) % 26);
-        gfx.rect(bx, wy + 62 - bh - 6, 5, bh + 6, '#232f52');
-        gfx.rect(bx, wy + 62 - bh - 6, 5, 1, '#2e3c66');
-        for (let k = 0; k < bh / 5; k++) if ((i + k) % 3) gfx.px(bx + 1 + (k % 2) * 2, wy + 62 - bh - 2 + k * 5, k % 4 ? '#f2d48a' : '#9fdcff');
-      }
-      gfx.rect(wx, wy + 54, 90, 8, '#2b3a5e');
-      for (let i = 0; i < 26; i++) gfx.px(wx + (i * 37) % 90, wy + (i * 13) % 34, i % 4 ? '#93a6d0' : '#fff');
-      // snow drifting past the glass
-      for (let i = 0; i < 16; i++) {
-        const k = ((this.t * 6 + i * 21) % 70);
-        gfx.px(wx + 4 + (i * 11) % 82, wy + k, 'rgba(255,255,255,0.7)');
-      }
+      // the town at night: houses with a light or two still on, the pines, snow
+      if (CH.IK) CH.IK.view('street', g, wx, wy, 90, 62, this.t, { hour: 23, seed: 61 });
+      else gfx.rect(wx, wy, 90, 62, '#161d38');
       gfx.rect(wx + 43, wy, 3, 62, '#e6ecea');
       gfx.rect(wx, wy + 30, 90, 2, '#e6ecea');
       // reflection of the room in the dark glass

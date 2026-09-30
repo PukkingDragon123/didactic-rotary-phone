@@ -76,7 +76,7 @@
       this.addProp('fridge', 420, F, { hint: 'Fridge', interact: () => this.interactFridge() });
       this.stove = this.addProp('stove', 456, F, { hint: 'Stove', st: { pan: true, steam: true }, interact: say('The pancake pan. Still warm. Still perfect.') });
       this.addProp('kitchenCounter', 492, F, { hint: 'Counter', interact: say('Dishes from last night. Mom did most of them. I did... one. A spoon.') });
-      this.addProp('window', 522, 150, { hint: 'Window', st: { outside: (g, x, y, w, h, t) => CH.drawForestView(g, x, y, w, h, t, this.night) }, interact: say("Snow. Trees. A very smug squirrel. Nature is out there and I respect its decision to stay there.") });
+      this.addProp('window', 522, 150, { hint: 'Window', st: { outside: (g, x, y, w, h, t) => CH.drawForestView(g, x, y, w, h, t, this.night, { seed: 4 }) }, interact: say("Snow. Trees. A very smug squirrel. Nature is out there and I respect its decision to stay there.") });
       this.addProp('cereal', 578, F - 32, { hint: 'Cereal', interact: say("Choco Quills. The mascot is a porcupine. Representation matters.") });
       this.addProp('table', 606, F, { hint: 'Table' });
       this.pancakes = this.addProp('pancakes', 626, F - 26, { hint: 'Pancakes', st: { eaten: false }, interact: () => this.interactPancakes(), range: 40, priority: 2 });
@@ -96,7 +96,7 @@
       this.addProp('hockeyStick', 828, F, { hint: 'Hockey stick', interact: say("Dad's old stick. I still can't skate.") });
       this.addProp('rug', 860, F, { layer: 'back' });
       this.couch = this.addProp('couch', 846, F, { hint: 'Couch', interact: () => this.interactCouch(), range: 40, priority: 1 });
-      this.addProp('window', 858, 146, { hint: 'Window', st: { outside: (g, x, y, w, h, t) => CH.drawForestView(g, x, y, w, h, t, this.night) }, interact: say("The lake is frozen. Somewhere out there a beaver is having a better day than me.") });
+      this.addProp('window', 858, 146, { hint: 'Window', st: { outside: (g, x, y, w, h, t) => CH.drawForestView(g, x, y, w, h, t, this.night, { lake: true, seed: 9 }) }, interact: say("The lake is frozen. Somewhere out there a beaver is having a better day than me.") });
       this.addProp('coffeeTable', 900, F + 6, { layer: 'front', hint: 'Coffee table', interact: say("Pizza, energy drinks, a remote with no batteries. My workstation."), promptY: F - 26 });
       this.addProp('controller', 920, F + 6, { layer: 'front' });
       this.tv = this.addProp('tv', 958, F, { hint: 'TV', st: { screen: (g, x, y, w, h, t) => this.drawTV(g, x, y, w, h, t) }, interact: () => this.interactTV(), range: 44 });

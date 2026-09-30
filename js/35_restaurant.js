@@ -449,7 +449,13 @@
       g.globalAlpha = 0.1; gfx.rect(840, F + 8, 180, 6, '#fff'); g.globalAlpha = 1;
 
       // windows to street (dining)
-      for (const wx of [60, 270]) { gfx.rect(wx, 40, 90, 56, '#a8c8e8'); gfx.rect(wx, 84, 90, 12, '#e6eef4'); for (let i = 0; i < 4; i++) gfx.tri(wx + 8 + i * 22, 86, wx + 24 + i * 22, 86, wx + 16 + i * 22, 60, '#2f6a24'); gfx.frame(wx, 40, 90, 56, '#c8352b'); gfx.rect(wx + 44, 40, 2, 56, '#c8352b'); gfx.rect(wx, 68, 90, 2, '#c8352b'); }
+      for (const wx of [60, 270]) {
+        // the street outside, with the hand-drawn pines and the houses across the road
+        if (CH.drawStreetView) CH.drawStreetView(g, wx, 40, 90, 56, undefined, { seed: wx === 60 ? 51 : 52 });
+        else gfx.rect(wx, 40, 90, 56, '#a8c8e8');
+        if (CH.IK) CH.IK.windowFrame(wx, 40, 90, 56, { frame: '#c8352b', cols: 2, rows: 2 });
+        else { gfx.frame(wx, 40, 90, 56, '#c8352b'); gfx.rect(wx + 44, 40, 2, 56, '#c8352b'); gfx.rect(wx, 68, 90, 2, '#c8352b'); }
+      }
       // posters
       gfx.rect(180, 44, 60, 46, '#f5c33b'); gfx.rect(184, 48, 52, 38, '#c8352b'); gfx.text('MAN EGG', 210, 52, '#fff', { align: 'center', font: 'small' }); gfx.text('KIDS MEAL', 210, 60, '#fff', { align: 'center', font: 'small' }); gfx.text('TOY INSIDE', 210, 74, '#f5c33b', { align: 'center', font: 'small' }); gfx.ellipse(210, 68, 5, 6, '#e8dcc0'); gfx.rect(207, 67, 6, 1, '#5a3a1a');
       gfx.rect(400, 44, 50, 40, '#fff'); gfx.frame(400, 44, 50, 40, '#c8352b'); gfx.text('EMPLOYEE', 425, 48, '#c8352b', { align: 'center', font: 'small' }); gfx.text('OF THE', 425, 55, '#c8352b', { align: 'center', font: 'small' }); gfx.text('MONTH', 425, 62, '#c8352b', { align: 'center', font: 'small' }); gfx.text('TAMMY (x71)', 425, 74, '#333', { align: 'center', font: 'small' });
