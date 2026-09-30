@@ -745,7 +745,7 @@
     constructor(cabin, game, dir, onDone, dur = 1.5) {
       super();
       this.cabin = cabin; this.game = game; this.dir = dir; this.onDone = onDone; this.dur = dur;
-      this.cabinCanvas = gfx.makeCanvas(W, H); this.gameCanvas = gfx.makeCanvas(W, H);
+      this.RB = CH.RES || 1; this.cabinCanvas = gfx.makeCanvas(W * this.RB, H * this.RB); this.gameCanvas = gfx.makeCanvas(W, H);
       this.p = 0; this.done = false;
     }
     enter() { A.sfx(this.dir > 0 ? 'tvOn' : 'tvOff'); }
@@ -758,11 +758,15 @@
     draw(g) {
       const k = this.dir > 0 ? CH.ease.inOutCubic(this.p) : 1 - CH.ease.inOutCubic(this.p);
       // render both
-      const cc = this.cabinCanvas.getContext('2d'); cc.setTransform(1, 0, 0, 1, 0, 0);
+      const cc = this.cabinCanvas.getContext('2d'); cc.imageSmoothingEnabled = false; cc.setTransform(this.RB, 0, 0, this.RB, 0, 0);
       this.cabin.drawTo(cc);
       const gc = this.gameCanvas.getContext('2d'); gc.setTransform(1, 0, 0, 1, 0, 0);
       this.game.render(gc);
-      const R0 = this.cabin.tvScreenRect(); R0.x -= Math.round(this.cabin.cam.x);
+      const R0 = this.cabin.tvScreenRect();
+      if (this.cabin.worldToScreen) {
+        const a = this.cabin.worldToScreen(R0.x, R0.y), Z = this.cabin.Z;
+        R0.x = a.x; R0.y = a.y; R0.w *= Z; R0.h *= Z;
+      } else R0.x -= Math.round(this.cabin.cam.x);
       const R = { x: CH.lerp(R0.x, 0, k), y: CH.lerp(R0.y, 0, k), w: CH.lerp(R0.w, W, k), h: CH.lerp(R0.h, H, k) };
       const s = R.w / R0.w;
       g.imageSmoothingEnabled = false;

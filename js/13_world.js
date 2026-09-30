@@ -26,7 +26,17 @@
       this.vy = 0; this.py = 0; // hop
       this.controlsHintT = 0;
       this.ambientT = 0;
+      // camera zoom: undefined follows the engine's crisp default (~1.5x)
+      this.zoom = opts.zoom;
+      this.viewPad = opts.viewPad !== undefined ? opts.viewPad : 34; // world px shown below the floor
     }
+    // ---- camera geometry -----------------------------------------------------
+    get Z() { return this.zoom || CH.ZOOM || 1; }
+    get viewW() { return CH.W / this.Z; }
+    get viewH() { return CH.H / this.Z; }
+    // where a world point lands on the 480x270 screen
+    worldToScreen(x, y) { return { x: (x - this.cam.x) * this.Z, y: (y - this.cam.y) * this.Z }; }
+    camYFor() { return CH.clamp(this.floorY + this.viewPad - this.viewH, 0, Math.max(0, CH.H - this.viewH)); }
     // ---- building ---------------------------------------------------------------
     addProp(name, x, y, opts = {}) {
       const def = CH.PROPS[name];
@@ -103,9 +113,11 @@
       this.particles.update(dt);
       // camera
       const focus = this.camFocus !== null ? this.camFocus : pl.x + pl.vx * 0.25;
-      const tx = CH.clamp(focus - CH.W / 2, 0, Math.max(0, this.width - CH.W));
+      const vw = this.viewW;
+      const tx = CH.clamp(focus - vw / 2, 0, Math.max(0, this.width - vw));
       this.cam.x = CH.lerp(this.cam.x, tx, Math.min(1, dt * 6));
       if (Math.abs(this.cam.x - tx) < 0.3) this.cam.x = tx;
+      this.cam.y = this.camYFor();
       // interactions
       this.hoverProp = null;
       if (!this.locked && !CH.ui.busy() && !this._walk) {
@@ -129,16 +141,29 @@
     // ---- draw ----------------------------------------------------------------------
     draw(g) {
       if (this.bgDirty || !this.bg) this.renderBg();
-      const cx = Math.round(this.cam.x);
-      g.drawImage(this.bg, -cx, 0);
-      g.save(); g.translate(-cx, 0);
+      // snap the camera to the device-pixel grid so zoomed sprites never shimmer
+      const Z = this.Z, q = Z * (CH.RES || 1);
+      if (this.cam.y === undefined || this.cam.y === 0 && Z > 1) this.cam.y = this.camYFor();
+      const cx = Math.round(this.cam.x * q) / q, cy = Math.round(this.cam.y * q) / q;
+      g.save(); g.scale(Z, Z); g.translate(-cx, -cy);
+      g.drawImage(this.bg, 0, 0);
       const t = this.t;
-      for (const p of this.props) if (p.anim && p.layer === 'back' && !p.hidden) p.def.draw(g, p.x, p.y, t, p.st);
+      for (const p of this.props) {
+        if (!p.anim || p.layer !== 'back' || p.hidden) continue;
+        if (p.sway && CH.wind) {
+          // lean the whole prop from its base, the way a tree gives in a gust
+          const sk = Math.round(CH.wind.lean(p.x, p.sway) * 48) / 48;
+          g.save(); g.transform(1, 0, -sk, 1, sk * p.y, 0); p.def.draw(g, p.x, p.y, t, p.st); g.restore();
+        } else p.def.draw(g, p.x, p.y, t, p.st);
+      }
       // actors sorted by y
       const actors = [...this.npcs.filter((n) => !n.hidden).map((n) => ({ y: n.y + (n.depth || 0), d: () => n.draw(g) }))];
       if (!this.player.hidden) actors.push({ y: this.player.y + this.py * 0 + 0.5, d: () => this.player.draw(g) });
+      if (this.phys) for (const b of this.phys.drawables()) actors.push(b);
       actors.sort((a, b) => a.y - b.y);
       for (const a of actors) a.d();
+      // ground snow goes over the actors' feet: they stand in it, not on it
+      if (this.phys && this.phys.snow) this.phys.snow.draw(g, this);
       this.particles.draw(g);
       for (const p of this.props) if (p.layer === 'front' && !p.hidden) p.def.draw(g, p.x, p.y, t, p.st);
       this.drawForeground(g);

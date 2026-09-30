@@ -424,6 +424,10 @@
     }
     enter() {
       this.setupLights();
+      // a couple of things on the floor worth nudging: an old tennis ball, a pinecone tracked in
+      this.windScale = 0;
+      this.addBody('ball', 330, { color: '#c8d84a' });
+      this.addBody('pinecone', 1110);
       if (this.mode !== 'emergency') A.play(this.night ? 'night' : 'cabin');
       if (this.mode === 'intro' && !this.introStarted) { this.introStarted = true; this.run(this.intro()); }
     }

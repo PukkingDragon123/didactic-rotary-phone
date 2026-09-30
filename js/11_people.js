@@ -81,6 +81,8 @@
     vest: { kind: 'vest', top: '#ff8800', topD: '#b85f00', bottom: '#3a3a48', stripe: '#e8e8b0', shirt: '#5a6270' },
     flannel: { kind: 'flannel', top: '#a8412f', topD: '#6e2418', bottom: '#3d4a5c' },
     sweater: { kind: 'sweater', top: '#4f7a5a', topD: '#2f5239', bottom: '#4a4256' },
+    cardigan: { kind: 'cardigan', top: '#c8943a', topD: '#8a6424', bottom: '#4a4256', blouse: '#e7d2b4', apron: '#c8943a', skirt: '#4a4256' },
+    track: { kind: 'track', top: '#3a5ac8', topD: '#243a8a', bottom: '#243a8a', stripe: '#f2f2f6' },
     // somebody in town has, once again, left the house without his trousers
     hearts: { kind: 'hearts', top: '#f7f4ec', topD: '#d3cec0', bottom: '#f7f4ec', bareLegs: true, undies: '#eaf2ff', undiesD: '#c3d2ea', heart: '#e8496e' },
     overalls: { kind: 'overalls', top: '#4a6fa8', topD: '#2d4a78', bottom: '#4a6fa8', shirt: '#e2d6c0' },

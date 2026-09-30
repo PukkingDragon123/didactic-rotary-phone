@@ -230,19 +230,22 @@
     const sc = CH.game && CH.game.scene;
     if (!sc) return null;
     const cx = (sc.cam && sc.cam.x) || 0, cy = (sc.cam && sc.cam.y) || 0;
+    // world point -> screen point, through the camera zoom when there is one
+    const Z = sc.worldToScreen ? sc.Z : 1;
+    const toScr = (x, y) => ({ x: (x - cx) * Z, y: (y - cy) * Z });
     const name = d.speaker;
     if ((name === 'Chubby' || d.opts.player) && sc.player && !sc.player.hidden) {
-      return { x: sc.player.x - cx, y: sc.player.y - cy - (sc.player.sitting ? 40 : 48) };
+      return toScr(sc.player.x, sc.player.y - (sc.player.sitting ? 40 : 48));
     }
     if (sc.speakerAt && name) {
       const at = sc.speakerAt(name);
-      if (at) return { x: at.x - (at.world === false ? 0 : cx), y: at.y - (at.world === false ? 0 : cy) };
+      if (at) return at.world === false ? { x: at.x, y: at.y } : toScr(at.x, at.y);
     }
     if (sc.npcs && name) {
       for (const n of sc.npcs) {
         if (n.name === name && !n.hidden) {
           const lift = n.pose === 'lying' || n.pose === 'inbed' ? 26 : 42 * (n.height || 1);
-          return { x: n.x - cx, y: n.y - cy - lift };
+          return toScr(n.x, n.y - lift);
         }
       }
     }

@@ -20,7 +20,7 @@
     }
     CH.game.update(dt);
     // draw
-    g.setTransform(1, 0, 0, 1, 0, 0);
+    g.setTransform(CH.RES || 1, 0, 0, CH.RES || 1, 0, 0);
     // A scene that forgets to restore alpha would otherwise fade every frame
     // drawn after it, menus included.
     g.globalAlpha = 1;
@@ -34,6 +34,7 @@
     CH.ui.drawCursor(g);
     CH.input.endFrame();
     if (CH.DEBUG) gfx.text('fps ' + Math.round(1 / Math.max(dt, 0.001)), 2, CH.H - 8, '#0f0', { font: 'small' });
+    if (CH.post && CH.post.render) CH.post.render();
   }
 
   // test scenes via ?test=

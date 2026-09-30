@@ -43,49 +43,59 @@
     ctx.restore();
   }
 
+  // a wobbly cartoon word: every letter its own size, tilt and bounce,
+  // with a fat ink outline, a drop shadow and a shine stripe
+  function cartoonWord(text, cx, y, scale, fill, ink, seed) {
+    const ctx = gfx.cur;
+    const widths = [...text].map((ch) => (ch === ' ' ? 4 : gfx.textWidth(ch)) + 1);
+    const total = widths.reduce((a, b) => a + b, 0) * scale;
+    let x = cx - total / 2;
+    [...text].forEach((ch, i) => {
+      const wch = widths[i] * scale;
+      if (ch !== ' ') {
+        const rot = Math.sin(i * 1.9 + seed) * 0.12, dy = Math.sin(i * 2.3 + seed) * scale * 1.2, sc = scale * (1 + Math.sin(i * 3.1 + seed) * 0.06);
+        const px = x + wch / 2, py = y + dy;
+        const draw = (dx, dy2, col) => { ctx.save(); ctx.translate(px + dx, py + dy2); ctx.rotate(rot); ctx.scale(sc, sc); gfx.text(ch, 0, 0, col, { align: 'center' }); ctx.restore(); };
+        draw(scale * 0.9, scale * 1.4, '#2a1420');                                            // shadow
+        for (const [ox, oy] of [[-1, 0], [1, 0], [0, -1], [0, 1], [-1, -1], [1, -1], [-1, 1], [1, 1], [-2, 0], [2, 0], [0, 2]]) draw(ox * scale * 0.55, oy * scale * 0.55, ink);
+        draw(-scale * 0.22, -scale * 0.22, '#fffbe0');   // a lighter top edge, like a lit bubble
+        draw(scale * 0.06, scale * 0.06, fill);
+      }
+      x += wch;
+    });
+  }
+  function sunburst(cx, cy, r, n, a, b, rot) {
+    gfx.circle(cx, cy, r, a);
+    for (let i = 0; i < n; i++) {
+      if (i % 2) continue;
+      const a0 = rot + (i / n) * Math.PI * 2, a1 = rot + ((i + 1) / n) * Math.PI * 2;
+      gfx.tri(cx, cy, cx + Math.cos(a0) * r, cy + Math.sin(a0) * r, cx + Math.cos(a1) * r, cy + Math.sin(a1) * r, b);
+    }
+  }
+  function sparkle(x, y, s, col) { gfx.rect(x - s, y, s * 2 + 1, 1, col); gfx.rect(x, y - s, 1, s * 2 + 1, col); gfx.rect(x - 1, y - 1, 3, 3, col); }
+  function heart(x, y, r, col, ink) {
+    for (const [c, g] of [[ink, 1.2], [col, 0]]) { gfx.circle(x - r * 0.5, y - r * 0.2, r * 0.6 + g, c); gfx.circle(x + r * 0.5, y - r * 0.2, r * 0.6 + g, c); gfx.tri(x - r - g, y, x + r + g, y, x, y + r * 1.15 + g, c); }
+  }
+
+  // the store thumbnail: just the name, and him, delighted about it
   window.paintThumbnail = function (ctx, w, h) {
-    gfx.vgrad(0, 0, w, h * 0.62, SKY);
-    // moon and stars
-    gfx.ellipse(w - 76, 144, 26, 26, '#f6f2d8'); gfx.ellipse(w - 70, 140, 22, 22, '#fffbe8');
-    flakes(w, h * 0.6, 60, 11);
-    skyline(w, h * 0.62);
-    snowGround(h * 0.62, w, h);
-    for (const [x, ph, c] of [[46, 96, '#2f6a24'], [96, 68, '#25551c'], [w - 54, 104, '#2f6a24'], [w - 108, 72, '#3a7a2c']]) pine(x, h * 0.62 + 26, ph, c);
-    // the cabin, small, far left
-    gfx.rect(150, h * 0.62 - 26, 54, 28, '#7a4a28');
-    gfx.tri(142, h * 0.62 - 26, 212, h * 0.62 - 26, 177, h * 0.62 - 54, '#4a2e18');
-    gfx.tri(142, h * 0.62 - 29, 212, h * 0.62 - 29, 177, h * 0.62 - 57, '#e9f1f7');
-    gfx.rect(170, h * 0.62 - 16, 14, 18, '#c8352b');
-    gfx.rect(156, h * 0.62 - 20, 10, 9, '#ffd98a'); gfx.rect(190, h * 0.62 - 20, 10, 9, '#ffd98a');
-    // the man himself, front and centre
-    const cy = h - 92;
-    art.shadow(w / 2, cy + 2, 46, 0.3);
-    ctx.save(); ctx.translate(w / 2, cy); ctx.scale(3.4, 3.4);
-    CH.drawChubby(ctx, 0, 0, { face: 'happy', arm: 'idle', outfit: 'hoodie', noShadow: true });
+    sunburst(w / 2, h * 0.62, w * 0.95, 28, '#ffcf4a', '#ffb23a', 0.1);
+    // soft ring of light behind him
+    ctx.save(); ctx.globalAlpha = 0.35; gfx.circle(w / 2, h * 0.64, 150, '#fff3c0'); ctx.globalAlpha = 0.25; gfx.circle(w / 2, h * 0.64, 190, '#fff3c0'); ctx.restore();
+    // a snowy hill he is popping up from
+    gfx.ellipse(w / 2, h + 40, w * 0.75, 120, '#dfe8f4'); gfx.ellipse(w / 2, h + 44, w * 0.72, 112, '#ffffff');
+    for (let i = 0; i < 9; i++) gfx.ellipse(40 + i * 52, h - 44 + (i % 3) * 5, 30, 10, i % 2 ? '#eef4fa' : '#ffffff');
+    // Chubby, huge, cheering, a little tilted for comedy
+    const cy = h - 36;
+    ctx.save(); ctx.translate(w / 2 + 6, cy); ctx.rotate(-0.06); ctx.scale(5.4, 5.4);
+    CH.drawChubby(ctx, 0, 0, { face: 'grin', arm: 'cheer', outfit: 'hoodie', noShadow: true });
     ctx.restore();
-    // a mop, propped against the snow beside him
-    ctx.save(); ctx.translate(w / 2 + 96, cy); ctx.rotate(0.16);
-    gfx.rect(-3, -132, 6, 124, '#a8722f'); gfx.rect(-3, -132, 2, 124, '#c8934a');
-    gfx.rect(-4, -134, 8, 4, '#8a5a22');
-    gfx.ellipse(0, -4, 20, 10, '#c8c2a8'); gfx.ellipse(0, -6, 20, 10, '#e2dcc4');
-    for (let i = 0; i < 11; i++) gfx.rect(-18 + i * 3.4, -16, 2, 14, i % 2 ? '#efe9d2' : '#cec8b0');
-    ctx.restore();
-    // title
-    bigWord('CHUBBY', w / 2, 40, 6, '#ffd84a', '#2a1420');
-    bigWord('THE PORCUPINE', w / 2, 96, 2.6, '#fff3d8', '#2a1420');
-    // ribbon
-    gfx.rrect(w / 2 - 150, h - 54, 300, 30, 8, '#2a1420');
-    gfx.rrect(w / 2 - 147, h - 51, 294, 24, 6, '#c8352b');
-    gfx.text('A JOB-HUNTING WINTER', w / 2, h - 43, '#fff3d8', { align: 'center' });
-    // a HELP WANTED card nailed to a post, because that is the whole story
-    gfx.rect(70, h - 150, 5, 80, '#7a4a22');
-    gfx.rect(44, h - 186, 62, 40, '#2a1420');
-    gfx.rect(46, h - 184, 58, 36, '#f6f2e6');
-    gfx.text('HELP', 75, h - 178, '#c8352b', { align: 'center' });
-    gfx.text('WANTED', 75, h - 166, '#c8352b', { align: 'center' });
-    gfx.text('APPLY WITHIN', 75, h - 156, '#7a6a58', { align: 'center', font: 'small' });
-    gfx.rect(42, h - 190, 66, 4, '#e9f1f7');
-    flakes(w, h, 40, 5);
+    // hearts and sparkles thrown about
+    heart(88, 250, 14, '#ff6a8a', '#2a1420'); heart(398, 214, 11, '#ff6a8a', '#2a1420'); heart(420, 318, 8, '#ff9ab4', '#2a1420');
+    for (const [x, y, s] of [[60, 180, 5], [424, 150, 6], [70, 330, 4], [384, 268, 4], [120, 140, 3], [360, 120, 3]]) sparkle(x, y, s, '#ffffff');
+    // the name, big and wobbly
+    cartoonWord('CHUBBY', w / 2, 22, 8.2, '#ffe95a', '#2a1420', 0.4);
+    cartoonWord('THE PORCUPINE', w / 2, 102, 3.7, '#7ae0d4', '#2a1420', 2.2);
   };
 
   window.paintBanner = function (ctx, w, h) {

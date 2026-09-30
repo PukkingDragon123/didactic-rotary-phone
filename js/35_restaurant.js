@@ -777,10 +777,19 @@
     // ---------------------------------------------------------------- draw ----
     draw(g) {
       super.draw(g);
-      const cx = Math.round(this.cam.x);
       // task icons
       for (const t of this.tasks) {
-        const x = Math.round(t.x - cx), y = Math.round(t.y) - 8 + Math.round(Math.sin(this.t * 5 + t.x) * 2);
+        const sp = this.worldToScreen(t.x, t.y);
+        // a job that has scrolled off the zoomed view gets an arrow at the edge
+        if (sp.x < 6 || sp.x > W - 6) {
+          const ex = sp.x < 6 ? 8 : W - 8, ey = CH.clamp(Math.round(sp.y) - 18, 60, H - 40), dir = sp.x < 6 ? -1 : 1;
+          const col = t.type === 'station' ? '#3b6fd6' : CH.clamp(t.patience / t.maxPatience, 0, 1) < 0.3 ? '#c8352b' : '#f5c33b';
+          const bob = Math.round(Math.sin(this.t * 6) * 2) * dir;
+          gfx.tri(ex + bob, ey, ex - dir * 7 + bob, ey - 6, ex - dir * 7 + bob, ey + 6, '#1a1420');
+          gfx.tri(ex + bob - dir, ey, ex - dir * 6 + bob, ey - 4, ex - dir * 6 + bob, ey + 4, col);
+          continue;
+        }
+        const x = Math.round(sp.x), y = Math.round(sp.y) - 8 + Math.round(Math.sin(this.t * 5 + t.x) * 2);
         const p = CH.clamp(t.patience / t.maxPatience, 0, 1);
         const col = t.strikes >= 2 ? '#6a6a74' : t.type === 'station' ? '#3b6fd6' : p < 0.3 ? '#c8352b' : '#f5c33b';
         gfx.rrect(x - 8, y - 14, 16, 14, 3, col); gfx.tri(x - 3, y, x + 3, y, x, y + 4, col);

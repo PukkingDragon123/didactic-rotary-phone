@@ -416,6 +416,10 @@
         gfx.text('EXIT', x + 15, y - 59, '#f6f2e6', { align: 'center', font: 'small' });
       }, 14, F, 30, 56, { id: 'door', layer: 'back', anim: false, hint: 'Back to the street', range: 24, interact: () => this.leave() });
       this.minX = 34; this.maxX = 496;
+      // things to knock about indoors (there is no wind in here)
+      this.windScale = 0;
+      const loose = { toys: [['ball', '#e05a7a'], ['ball', '#4a9ac8'], ['ball', '#e8b44a']], coffee: [['cup']], hardware: [['can']], garage: [['can'], ['can']], arcade: [['ball', '#3ad6a0']], bait: [['puck']], records: [['can']], thrift: [['mitten']] }[sh.id] || [];
+      loose.forEach(([k, c], i) => this.addBody(k, 150 + i * 46, { color: c }));
       this.ambient = { color: '#6a5a8a', alpha: 0.12 };
       this.addLight({ x: 180, y: 26, rx: 110, ry: 92, color: '#ffd9a0', alpha: 0.08 });
       this.addLight({ x: 380, y: 30, rx: 104, ry: 88, color: '#ffd9a0', alpha: 0.07 });

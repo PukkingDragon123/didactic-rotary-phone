@@ -31,7 +31,9 @@ was written last.
 | Move | Arrow keys / WASD |
 | Interact / advance dialogue | E (or Enter, Space) |
 | Hop / jump (Blue Hedgehog: jump twice for a double jump) | Space or Z |
+| Dance (anyone nearby joins in) | Hold Down / S |
 | Smartphone | I (once Chubby has it) |
+| Shader on / off | F8 |
 | Minigames | Mouse: click, drag, hold, wiggle |
 | Mute | M |
 | Pause, save, load, quit | Esc or P |
@@ -56,6 +58,31 @@ Dialogue is a comic speech bubble anchored over whoever is talking, with a tail
 that points at them, and pages itself when a line runs long.
 
 ## What's inside
+
+- **A closer, richer picture**: the canvas renders at the screen's real
+  resolution and the world camera sits about 1.5x closer, rounded so one game
+  pixel is always a whole number of screen pixels - closer and still crisp.
+  The finished frame then goes through a WebGL shader: a two-pass bloom off
+  lamps, windows and snow glare, warm-light / cool-shade grading, a lens
+  vignette and quiet film grain. Slow machines drop back to the plain image on
+  their own; F8 flips it, `?noshader` turns it off.
+- **Wind, snow and things to kick**: one shared wind with gusts leans the
+  trees, blows powder off the roofs and carries loose things down the street.
+  Ground snow is a live height field - flakes land and pile up, feet plough
+  trenches through it, gusts lift it and blow it along. Snowballs, pinecones,
+  cans, cups, a hockey puck, bouncy balls in the toy shop and one small red
+  mitten can all be kicked, and snowballs burst if you hop on them. Hand the
+  mitten back to Tilly for her best rock and two dollars.
+- **Ice fishing, in 3D**: out on the frozen lake Bartleby lends you a rod. A
+  small software renderer draws the scene as chunky 3D pixel art - cracked,
+  glittering ice, his lit shack, pines along the shore, a lantern, snow
+  falling in 3D - with dithered lighting and fog. The fishing hole is a real
+  height-field water simulation: the lure going in, fish nibbling, snowflakes
+  landing and the splash of a catch all send rings across it. Hold to drop the
+  line, wiggle to jig, click on the bite, reel when the line is slack and let
+  go when it screams. Six things to catch, one of which is a boot.
+- **Everybody dances**: hold Down and Chubby dances; anyone standing near him
+  catches it a beat later. The busker in town gets a crowd going on his own.
 
 - **Main Street**: fourteen shopfronts in a row, twelve of them businesses you
   can walk into - Pinecone Toys, The Dripping Pine, Dog-Eared Books, Frost &
@@ -105,6 +132,10 @@ game) and `arcade.html` (Blue Hedgehog on its own, booted through the
 on-screen d-pad on touch devices.
 
 ## Key art
+
+`art/gifs/` holds a looping GIF of every character in the game dancing on a
+disco floor, plus `_party.gif` with the cast in a row; `node tools/gifs.mjs`
+re-renders them (the encoder in `tools/gif.mjs` has no dependencies).
 
 `art/thumbnail.png` and `art/banner.png` are rendered by `tools/keyart.mjs`,
 which paints them with the game's own primitives and characters - the same

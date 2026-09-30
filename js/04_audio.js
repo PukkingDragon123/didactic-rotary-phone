@@ -71,6 +71,12 @@
   // ---- SFX library -------------------------------------------------------------
   const SFX = {
     blip: () => tone({ f: 880, type: 'square', dur: 0.05, vol: 0.15 }),
+    boing: () => { tone({ f: 180, f2: 520, type: 'sine', dur: 0.16, vol: 0.2 }); tone({ f: 520, f2: 300, type: 'sine', dur: 0.12, vol: 0.12, when: 0.1 }); },
+    crunch: () => { noise({ dur: 0.18, vol: 0.22, filter: { f: 2400 } }); noise({ dur: 0.1, vol: 0.12, filter: { f: 700 }, when: 0.03 }); },
+    plop: () => { tone({ f: 900, f2: 240, type: 'sine', dur: 0.12, vol: 0.2 }); noise({ dur: 0.08, vol: 0.08, filter: { f: 1800 } }); },
+    sploosh: () => { noise({ dur: 0.45, vol: 0.3, filter: { f: 1500 } }); tone({ f: 420, f2: 90, type: 'sine', dur: 0.3, vol: 0.2 }); for (let i = 0; i < 4; i++) tone({ f: 1200 + Math.random() * 900, f2: 400, type: 'sine', dur: 0.08, vol: 0.08, when: 0.12 + i * 0.06 }); },
+    reel: () => { for (let i = 0; i < 3; i++) tone({ f: 1400 + i * 60, type: 'square', dur: 0.015, vol: 0.06, when: i * 0.03 }); },
+    bite: () => { tone({ f: 660, f2: 990, type: 'triangle', dur: 0.08, vol: 0.18 }); tone({ f: 990, type: 'triangle', dur: 0.1, vol: 0.14, when: 0.08 }); },
     blip2: () => tone({ f: 660, type: 'square', dur: 0.04, vol: 0.12 }),
     select: () => { tone({ f: 520, type: 'square', dur: 0.06, vol: 0.15 }); tone({ f: 780, type: 'square', dur: 0.08, vol: 0.15, when: 0.06 }); },
     back: () => tone({ f: 400, f2: 200, type: 'square', dur: 0.1, vol: 0.12 }),

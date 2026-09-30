@@ -57,6 +57,13 @@
           case 'circle': { const r = p.size * (p.grow ? 1 + (1 - k) * (p.grow - 1) : 1); gfx.circle(x, y, r, p.color); break; }
           case 'spark': gfx.rect(x, y, 1, 1, p.color); gfx.rect(x - Math.sign(p.vx), y - Math.sign(p.vy), 1, 1, p.color); break;
           case 'text': gfx.text(p.text, x, y, p.color, { align: 'center', font: p.font, outline: p.outline || '#000' }); break;
+          case 'note': {   // a little quaver, drawn rather than typed
+            const c = p.color, ink = '#1a1420';
+            gfx.ellipse(x, y + 4, 2.4, 1.8, ink); gfx.ellipse(x, y + 4, 1.8, 1.2, c);
+            gfx.rect(x + 1, y - 3, 1, 7, ink); gfx.rect(x + 2, y - 3, 3, 1, ink); gfx.rect(x + 4, y - 2, 1, 2, ink);
+            if (p.double) { gfx.ellipse(x + 5, y + 3, 2.4, 1.8, ink); gfx.ellipse(x + 5, y + 3, 1.8, 1.2, c); gfx.rect(x + 6, y - 4, 1, 7, ink); gfx.rect(x + 1, y - 4, 6, 1, ink); }
+            break;
+          }
           case 'ring': gfx.ellipseOutline(x, y, p.size * (1 + (1 - k) * 3), p.size * (1 + (1 - k) * 3) * 0.6, p.color); break;
           case 'rect': gfx.rect(x - (p.w >> 1), y - (p.h >> 1), p.w, p.h, p.color); break;
           default: { const s = k < 0.3 && p.size > 1 ? Math.max(1, p.size - 1) : p.size; gfx.rect(x, y, s, s, p.color); }

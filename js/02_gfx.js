@@ -18,6 +18,19 @@
     CH.scale = k;
     canvas.style.width = Math.floor(CH.W * k) + 'px';
     canvas.style.height = Math.floor(CH.H * k) + 'px';
+    // The backing store runs at the real on-screen resolution. Everything is
+    // still authored on the 480x270 grid, but a finer backing lets the world
+    // camera zoom in by a whole number of device pixels per game pixel, so the
+    // closer camera stays exactly as crisp as the UI drawn over it.
+    const dpr = window.devicePixelRatio || 1;
+    const B = Math.max(1, Math.min(4, Math.round(k * dpr)));
+    if (canvas.width !== CH.W * B || canvas.height !== CH.H * B) {
+      canvas.width = CH.W * B; canvas.height = CH.H * B;
+      g.imageSmoothingEnabled = false;
+    }
+    CH.RES = B;
+    // ~1.5x closer, rounded so one game pixel is a whole number of device pixels
+    CH.ZOOM = Math.max(1, Math.floor(1.5 * B) / B);
   }
   window.addEventListener('resize', resize);
   resize();

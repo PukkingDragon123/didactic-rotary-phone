@@ -393,7 +393,7 @@
 
   class TravelScene extends CH.WorldScene {
     constructor(opts = {}) {
-      super({ width: 3560, floorY: 214, playerX: opts.playerX || 40 });
+      super({ width: 3560, floorY: 214, playerX: opts.playerX || 40, viewPad: 52 });
       this.name = 'travel'; this.dest = opts.dest || 'donalds'; this.direction = opts.direction || 1;
       this.timeScale = 1 / 30; // 1 game hour per 30 s
       // the light of the whole walk is fixed at the moment it starts
@@ -511,7 +511,7 @@
       }, 0, F, 90, 100, { id: 'cabinExt', anim: true, hint: 'Home', interact: say("Home. {p}I'll be back. With a job. Hopefully.") });
       this.addProp('boots', 60, F);
       // forest
-      for (let x = 110; x < 940; x += 55) { this.addProp('pine', x + (x % 3) * 7, F + 2 - (x % 5), { st: { h: 50 + (x % 4) * 10, c: ['#2f6a24', '#3a7a2c', '#25551c'][x % 3] } }); if (x % 4 === 0) this.addProp('birch', x + 30, F); }
+      for (let x = 110; x < 940; x += 55) { this.addProp('pine', x + (x % 3) * 7, F + 2 - (x % 5), { anim: true, sway: 1 + (x % 3) * 0.3, st: { h: 50 + (x % 4) * 10, c: ['#2f6a24', '#3a7a2c', '#25551c'][x % 3] } }); if (x % 4 === 0) this.addProp('birch', x + 30, F, { anim: true, sway: 0.8 }); }
       for (let x = 130; x < 960; x += 130) this.addProp('snowbank', x, F + 2);
       this.addProp('mailbox', 100, F, { w: 10, h: 26, hint: 'Mailbox', interact: say("Our mailbox. Full of flyers. One says 'You may already be a winner!' {p}I may already be a loser, flyer.") });
       this.addProp('snowman', 300, F, { w: 16, h: 30, hint: 'Snowman', interact: say("A snowman. Somebody gave him a Donald's hat. {p}Everybody's hiring except the snowman.") });
@@ -532,7 +532,17 @@
         gfx.line(x + 108, y - 12, x + 88, y - 5, '#3a3630'); gfx.rect(x + 106, y - 14, 4, 4, '#2a4f9e');
         for (let i = 0; i < 3; i++) { const k = (t * 0.4 + i * 0.33) % 1; gfx.ellipse(x + 102, y - 16 - k * 12, 1.5 + k * 2, 1 + k * 1.5, `rgba(238,244,248,${(0.4 - k * 0.4).toFixed(2)})`); }
         if (Math.sin(t * 0.7) > 0.9) gfx.text('...', x + 100, y - 40, p.night ? '#cfd8e8' : '#333', { font: 'small' });
-      }, 620, F + 4, 200, 20, { id: 'lake', anim: true, hint: 'Frozen lake', interact: say("Old Bartleby, ice fishing. He's been out there since 1994. {p}He waves. I wave. That's our whole relationship."), range: 60 });
+      }, 620, F + 4, 200, 20, { id: 'lake', anim: true, hint: 'Frozen lake', range: 60, interact: () => (function* () {
+        if (!CH.flag('metBartlebyLake')) {
+          CH.flag('metBartlebyLake', true);
+          yield ui.say('Chubby', "Old Bartleby, ice fishing. He's been out there since 1994. {p}He waves. I wave. That's our whole relationship.");
+          yield ui.say('Bartleby', "You. Porcupine. {p}Sit down, you're making the fish nervous. {p}Here. Spare rod. Hold it like you mean it.", { voice: 'blip' });
+        }
+        const c = yield ui.choose('Chubby', 'Fish with Bartleby for a while?', ['Drop a line', 'Not today']);
+        if (c !== 0 || !CH.startFishing) return;
+        S.hour += 0.3;
+        CH.startFishing();
+      })() });
       this.addCustom((g, x, y) => { gfx.rect(x, y - 3, 14, 3, '#221f2a'); gfx.rect(x + 2, y - 4, 10, 1, '#100e16'); gfx.rect(x - 2, y - 1, 18, 1, gfx.shade(this.pal.road, 16)); }, 900, F + 16, 14, 4, { id: 'pothole', anim: false });
       this.addProp('busStop', 856, F, { w: 30, h: 50, hint: 'Bus stop', interact: () => this.interactBus() });
       this.addProp('donaldsRoadSign', 926, F);
@@ -548,7 +558,7 @@
         front({
           hint: sh.name,
           st: { color: sh.color, name: sh.name, textColor: sh.text, sign: sh.sign, awning: sh.awning, logo: sh.logo, logoBg: sh.logoBg, display: sh.display, board: sh.board },
-          interact: () => { const back = this.player.x; CH.enterShop(sh.id, () => { this.player.x = back; this.cam.x = CH.clamp(back - W / 2, 0, this.width - W); }); },
+          interact: () => { const back = this.player.x; CH.enterShop(sh.id, () => { this.player.x = back; this.cam.x = CH.clamp(back - this.viewW / 2, 0, this.width - this.viewW); }); },
         });
       }
       front({ st: { color: '#4a5a8a', name: 'MOOSE HOLLOW ARENA', textColor: '#fff', sign: 'GO MALLARDS', awning: ['#3a4a7a', '#dce4f4'] }, hint: 'Arena', interact: say("The arena. Dad played here. {p}Rick still hasn't fixed the Zamboni.") });
@@ -570,7 +580,7 @@
         });
       }, 2226, F, 30, 30, { id: 'townBus', anim: false });
       this.donalds = this.addProp('donaldsExterior', 3180, F, { hint: "Donald's Burgers", interact: () => this.interactDonalds(), range: 60, offsetX: 20 });
-      this.addProp('pine', 3420, F, { st: { h: 60 } });
+      this.addProp('pine', 3420, F, { anim: true, sway: 1.1, st: { h: 60 } });
       // kids sledding on a hill (animated)
       this.addCustom((g, x, y, t) => {
         const p = this.pal, F = this.floorY;
@@ -594,6 +604,7 @@
       this.addCrowd();
       this.addEvents();
       this.initTraffic();
+      this.addLooseThings();
     }
     // ---- the people of Moose Hollow --------------------------------------
     // Who is out today, and where they are standing, is seeded on the day, so
@@ -620,7 +631,14 @@
           lines: ["I'm not lost! {p}I'm doing a LOOP.",
                   "Do you have a job yet? {p}My dad says everyone needs a job. {p}I'm going to be a Zamboni.",
                   "That deer isn't wearing PANTS."],
-          favour: "If you find a mitten, it's mine. {p}It's red. {p}It's been mine since Tuesday." },
+          favour: "If you find a mitten, it's mine. {p}It's red. {p}It's been mine since Tuesday.",
+          special: function* () {
+            if (!CH.flag('hasMitten') || CH.flag('mittenReturned')) return false;
+            CH.flag('mittenReturned', true); CH.flag('hasMitten', false);
+            yield ui.say('Tilly', "MY MITTEN! {p}You FOUND it! {pp}Here. This is my best rock. {p}...And two dollars. The rock is worth more.", { voice: 'blip' });
+            CH.addMoney(2); A.sfx('coin');
+            return true;
+          } },
         { name: 'Constable Furrow', species: 'dog', outfit: 'security',
           lines: ["Morning. {p}Roads are bad. {p}Everything's bad. Have a good one.",
                   "I'm not going to ticket the deer. {p}I say that every year. {p}I ticket the deer.",
@@ -648,6 +666,7 @@
           interact: () => (function* () {
             npc.face = 'happy'; npc.doEmote('!', 0.6);
             const key = 'metVillager_' + f.name.replace(/[^a-z]/gi, '');
+            if (f.special && (yield* f.special())) { npc.face = 'normal'; return; }
             if (!CH.flag(key)) { CH.flag(key, true); yield ui.say(f.name, f.lines[0], { voice: 'blip' }); yield ui.say(f.name, f.favour, { voice: 'blip' }); }
             else { yield ui.say(f.name, f.lines[state.i % f.lines.length], { voice: 'blip' }); state.i++; }
             npc.face = 'normal';
@@ -676,13 +695,17 @@
         // a busker who is not having a good day
         (x) => {
           const npc = new CH.NPC({ name: 'Busker', species: 'fox', outfit: 'winter', x, y: F + 1, speed: 0 });
-          npc.arm = 'hold'; this.addNPC(npc);
+          npc.arm = 'hold'; npc.noDance = true; this.addNPC(npc);
+          this.busker = npc;
           this.addCustom((g, bx, by, t) => {
             gfx.ellipse(bx + 2, by - 16, 7, 9, '#a8722f'); gfx.ellipse(bx + 2, by - 16, 6, 8, '#c8934a');
             gfx.ellipse(bx + 2, by - 16, 2.4, 2.4, '#3a2a1a');
             gfx.rect(bx + 8, by - 30, 14, 3, '#7a4a22');
             gfx.rect(bx - 12, by - 5, 16, 5, '#3a3440'); gfx.rect(bx - 10, by - 4, 12, 3, '#6b5a3a');
-            for (let i = 0; i < 3; i++) { const k = (t * 0.6 + i * 0.33) % 1; gfx.text(['\u266a', '\u266b'][i % 2], bx + 14 + k * 12, by - 34 - k * 16, 'rgba(255,240,200,' + (0.9 - k * 0.9).toFixed(2) + ')', { font: 'small' }); }
+            for (let i = 0; i < 3; i++) {
+              const k = (t * 0.6 + i * 0.33) % 1, nx = Math.round(bx + 14 + k * 12), ny = Math.round(by - 34 - k * 16), a = (0.9 - k * 0.9).toFixed(2);
+              gfx.ellipse(nx, ny + 4, 2, 1.5, 'rgba(255,240,200,' + a + ')'); gfx.rect(nx + 1, ny - 3, 1, 7, 'rgba(255,240,200,' + a + ')'); gfx.rect(nx + 2, ny - 3, 3, 1, 'rgba(255,240,200,' + a + ')');
+            }
           }, x + 14, F, 30, 40, { id: 'busker', hint: 'Busker', range: 34, interact: say("He's playing for a hat with two loonies in it. {p}He looks happier than everyone in the tower.") });
         },
         // geese, crossing, entirely unbothered
@@ -754,6 +777,52 @@
       for (let i = order.length - 1; i > 0; i--) { const j = rng.int(0, i); const tmp = order[i]; order[i] = order[j]; order[j] = tmp; }
       const n = 2 + rng.int(0, 1);
       for (let i = 0; i < n && i < order.length; i++) EVENTS[order[i]](spot());
+    }
+    // ---- things lying about in the snow ------------------------------------
+    addLooseThings() {
+      const F = this.floorY, rng = new CH.Rng(610 + S.day * 3);
+      this.enableSnow({ depth: 3.4, max: 9, rate: 46, seed: 11 + S.day, skip: [[600, 840]] });
+      // snowballs by the banks, pinecones under the trees
+      for (let x = 150; x < 940; x += 130) if (rng.chance(0.7)) this.addBody('snowball', x + rng.range(-10, 10), { r: rng.range(3.5, 6) });
+      for (let x = 120; x < 940; x += 55) if (rng.chance(0.35)) this.addBody('pinecone', x + rng.range(4, 20));
+      // town litter and a lost puck from the arena
+      for (let i = 0; i < 3; i++) this.addBody(rng.pick(['can', 'cup', 'leaf']), rng.range(this.townX0, this.townX1));
+      this.addBody('puck', this.townX1 - 90);
+      for (let i = 0; i < 4; i++) this.addBody('snowball', rng.range(this.townX0, this.townX1), { r: rng.range(3.5, 5.5) });
+      // Tilly's mitten, until somebody hands it back
+      if (!CH.flag('mittenReturned') && !CH.flag('hasMitten')) {
+        const m = this.mitten = this.addBody('mitten', rng.range(this.townX0 + 200, this.townX1 - 200));
+        this.mittenZone = this.addCustom(() => {}, m.x - 8, F, 16, 12, {
+          id: 'mitten', anim: false, hint: 'Red mitten', range: 16, promptY: F - 22,
+          interact: () => {
+            if (!m.alive) return;
+            m.alive = false; this.mittenZone.hidden = true; CH.flag('hasMitten', true); A.sfx('coin');
+            return ui.say('Chubby', "A small red mitten. {p}Someone's been looking for this since Tuesday.", { face: 'happy' });
+          },
+        });
+      }
+    }
+    updateLoose(dt) {
+      if (this.mitten && this.mittenZone && this.mitten.alive) this.mittenZone.x = this.mitten.x - 8;
+      // a proper gust takes the loose snow off the roofs along the street
+      const w = CH.wind;
+      if (w && w.gust > 0.55 && CH.chance(dt * 6 * w.gust)) {
+        const fronts = this.props.filter((p) => p.name === 'storefront' && p.x + 130 > this.cam.x && p.x < this.cam.x + this.viewW);
+        if (fronts.length) {
+          const f = CH.pick(fronts), x0 = f.x + CH.rand(0, 120), y0 = this.floorY - 97;
+          for (let i = 0; i < 10; i++) this.particles.add({ x: x0 + CH.rand(-6, 6), y: y0 + CH.rand(-2, 2), vx: w.x * CH.rand(0.6, 1.4), vy: CH.rand(-10, 14), life: CH.rand(0.8, 1.6), color: 'rgba(255,255,255,0.9)', size: CH.chance(0.3) ? 2 : 1, grav: 60, drag: 0.99 });
+        }
+      }
+    }
+    drawWind(g) {
+      const w = CH.wind;
+      if (!w || w.gust < 0.3) return;
+      const a = (w.gust - 0.3) * 0.35, t = this.t, x0 = this.cam.x, vw = this.viewW;
+      for (let i = 0; i < 9; i++) {
+        const y = this.floorY - 20 - ((i * 37) % 120), len = 18 + (i % 4) * 10;
+        const x = x0 + CH.wrap(i * 97 + t * w.x * 2.2, vw + 80) - 40;
+        gfx.rect(Math.round(x), Math.round(y), len, 1, `rgba(255,255,255,${a.toFixed(2)})`);
+      }
     }
     // ---- traffic ----------------------------------------------------------
     initTraffic() {
@@ -830,7 +899,7 @@
       A.sfx('bus'); yield 1.5;
       CH.addMoney(-3.5);
       yield fx.fadeOut(0.8);
-      this.player.x = 2300; this.cam.x = 2060; S.hour += 0.2;
+      this.player.x = 2300; this.cam.x = 2300 - this.viewW / 2; S.hour += 0.2;
       yield fx.fadeIn(0.8);
       yield ui.say('Chubby', "The bus driver asked if I was 'the burger guy'. {p}I said 'not yet'. {p}He nodded like that meant something.", { face: 'normal' });
       this.locked = false;
@@ -854,6 +923,12 @@
     update(dt) {
       super.update(dt);
       this.updateTraffic(dt);
+      this.updateLoose(dt);
+      // whoever is standing by the busker cannot help themselves
+      if (this.busker) for (const n of this.npcs) {
+        if (n === this.busker || n.name === 'Moose' || n.hidden) continue;
+        if (Math.abs(n.x - this.busker.x) < 70 && !n.dancing) { n.dancing = true; n.forceDance = true; n.danceT = 0; }
+      }
       const pl = this.player, F = this.floorY;
       // wind comes in gusts
       this.gustT -= dt;
@@ -862,7 +937,7 @@
       for (const s of this.snow) {
         const sp = [10, 22, 44][s.l];
         s.y += dt * sp;
-        s.x += dt * (this.gust * (0.4 + s.l * 0.35)) + Math.sin(this.t * 1.6 + s.ph) * dt * 9 * (s.l + 1);
+        s.x += dt * ((CH.wind ? CH.wind.x : this.gust) * (0.4 + s.l * 0.35)) + Math.sin(this.t * 1.6 + s.ph) * dt * 9 * (s.l + 1);
         if (s.y > H) { s.y = -3; s.x = Math.random() * (W + 40) - 20; }
         if (s.x > W + 20) s.x -= W + 40; else if (s.x < -20) s.x += W + 40;
       }
@@ -916,6 +991,7 @@
     }
     drawForeground(g) {
       this.drawTraffic(g);
+      this.drawWind(g);
       const p = this.pal, F = this.floorY;
             if (p.lamp > 0.2) for (const x of [1520, 1760, 2000, 2240]) {
         glow(x + 5, F - 58, 40, '#ffd27a', 0.34 * p.lamp);
@@ -1004,9 +1080,9 @@
       super.draw(g);
       // breath fog
       for (const q of this.puffs) {
-        const k = q.t / 1.5, a = (1 - k) * 0.45;
-        gfx.ellipse(q.x - cx, q.y, 2 + k * 7, 1.4 + k * 4.5, `rgba(234,243,250,${a.toFixed(2)})`);
-        gfx.ellipse(q.x - cx + 3, q.y - 1, 1.4 + k * 4, 1 + k * 3, `rgba(255,255,255,${(a * 0.7).toFixed(2)})`);
+        const k = q.t / 1.5, a = (1 - k) * 0.45, sp = this.worldToScreen(q.x, q.y), Z = this.Z;
+        gfx.ellipse(sp.x, sp.y, (2 + k * 7) * Z, (1.4 + k * 4.5) * Z, `rgba(234,243,250,${a.toFixed(2)})`);
+        gfx.ellipse(sp.x + 3 * Z, sp.y - Z, (1.4 + k * 4) * Z, (1 + k * 3) * Z, `rgba(255,255,255,${(a * 0.7).toFixed(2)})`);
       }
       // ---- snow, three depths -------------------------------------------------------
       for (const s of this.snow) {
