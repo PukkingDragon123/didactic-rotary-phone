@@ -52,7 +52,7 @@
       this.ambient = { color: '#bcc8dc', alpha: 0.12 };
       for (let x = 30; x < this.width; x += 80) {
         const bad = x === 350 || x === 750;
-        this.addLight({ x: x + 14, y: 40, cone: [22, 120, this.floorY - 46], color: '#dfe9ff', alpha: bad ? 0.1 : 0.13, flicker: bad ? 13 : 0 });
+        this.addLight({ x: x + 14, y: 40, cone: [22, 120, this.floorY - 46], color: '#dfe9ff', alpha: bad ? 0.1 : 0.13, flicker: bad ? 13 : 0, emit: true, er: 4, ea: 0.7, ec: '#f4f8ff' });
         this.addLight({ x: x + 14, y: this.floorY - 4, rx: 62, ry: 16, color: '#cfe0ff', alpha: bad ? 0.07 : 0.09, flicker: bad ? 13 : 0 });
       }
       this.addProp('elevator', 16, F, { hint: 'Elevator', interact: () => this.interactElevator() });
@@ -330,7 +330,7 @@
       this.addProp('fluor', 60, 34); this.addProp('fluor', 200, 34); this.addProp('fluor', 380, 34, { st: { flicker: true } });
       // one warm lamp by the bed, the rest of the room cool and quiet
       this.ambient = { color: '#a8b8d4', alpha: 0.2 };
-      for (const lx of [60, 200, 380]) this.addLight({ x: lx + 14, y: 40, cone: [20, 110, this.floorY - 46], color: '#dfe9ff', alpha: 0.1 });
+      for (const lx of [60, 200, 380]) this.addLight({ x: lx + 14, y: 40, cone: [20, 110, this.floorY - 46], color: '#dfe9ff', alpha: 0.1, emit: true, er: 4, ea: 0.6, ec: '#f4f8ff' });
       this.addLight({ x: 236, y: this.floorY - 42, rx: 76, ry: 44, color: '#ffce8a', alpha: 0.24 });
       this.addLight({ x: 176, y: this.floorY - 30, rx: 40, ry: 20, color: '#8fe0c8', alpha: 0.1, flicker: 4 });
       this.addProp('curtainRail', 110, F - 30, { layer: 'back' });

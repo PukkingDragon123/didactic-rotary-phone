@@ -396,9 +396,14 @@
     }
     // light: an ambient tint, lamp pools, and daylight through the glass
     scene.ambient = room.ambient || { color: '#6a5a8a', alpha: 0.12 };
-    for (const L of room.lights || []) scene.addLight(Object.assign({}, L));
+    for (const L of room.lights || []) scene.addLight(Object.assign({}, L, { alpha: (L.alpha || 0.1) * 0.75 }));
     const p = CH.skyAt ? CH.skyAt(S.hour || 9) : null;
-    if (p && !p.night) scene.addLight({ x: wo.x + wo.w / 2, y: wo.y + wo.h + 20, rx: wo.w * 0.9, ry: 44, color: '#dfeaff', alpha: 0.1 });
+    if (p && !p.night) {
+      // daylight streams through the glass and lands on the floor
+      const h = S.hour || 9, warm = h < 9 || h > 15.5;
+      scene.addLight({ x: wo.x + wo.w / 2, y: wo.y + 6, shaft: [wo.w * 0.7, F - wo.y + 4, h < 12 ? 44 : 26], color: warm ? '#ffc870' : '#ffe0a0', alpha: warm ? 0.24 : 0.2 });
+      scene.addLight({ x: wo.x + wo.w / 2 + (h < 12 ? 44 : 26), y: F + 6, rx: wo.w * 0.5, ry: 8, color: warm ? '#ffe2b0' : '#fff6e0', alpha: 0.08 });
+    }
     // the room is indoors: no wind, but things can still be kicked
     scene.windScale = 0;
     (room.loose || []).forEach(([k, c, x], i) => scene.addBody(k, x || 150 + i * 46, { color: c }));
@@ -801,7 +806,7 @@
         gfx.text('OPEN', x + 41, y + 13, '#ff6a7a', { align: 'center', font: 'small' });
         for (const [sx, sy] of [[x + 26, y + 10], [x + 55, y + 10]]) VL(sx + 2, y + 2, 8, '#3a3440');
       },
-      live(g, t) { if (Math.sin(t * 9) > -0.95) withA(0.18, () => R(78, 115, 30, 11, '#ff4a6a')); },
+      live(g, t) { if (Math.sin(t * 9) > -0.95) { withA(0.18, () => R(78, 115, 30, 11, '#ff4a6a')); CH.emit(93, 119, 6, '#ff5a7a', 0.9); } },
     },
     live: [
       { id: 'steam', draw(g, t) { steamAt(172, F - 30, t); steamAt(232, F - 30, t + 0.5); steamAt(405, F - 60, t, 3, 0.4); steamAt(417, F - 60, t + 0.3, 3, 0.4); } },
@@ -994,6 +999,7 @@
         const cx = 286, my = F - 34;
         for (let i = 0; i < 9; i++) { const fx = cx - 14 + i * 3.4, fl = 5 + Math.sin(t * 9 + i * 1.7) * 2.4 + Math.sin(t * 5.3 + i) * 1.5, c = i % 3 === 0 ? '#ffe070' : i % 3 === 1 ? '#ff9a3c' : '#e8502a'; R(Math.round(fx), Math.round(my + 20 - fl), 3, Math.round(fl), c); }
         withA(0.22 + Math.sin(t * 7) * 0.05, () => E(cx, my + 14, 22, 9, '#ff9a3c'));
+        CH.emit(cx, my + 14, 13, '#ff8a2a', 0.85 + Math.sin(t * 7) * 0.15);
         for (let i = 0; i < 3; i++) { const k = (t * 0.9 + i / 3) % 1; P1(cx - 8 + i * 8 + Math.round(Math.sin(t * 3 + i) * 2), Math.round(my + 10 - k * 18), k < 0.5 ? '#ffe070' : '#ff9a3c'); }
       } },
       { id: 'steam', draw(g, t) { steamAt(170, 138, t, 2, 0.35); steamAt(196, 138, t + 0.4, 2, 0.35); } },
@@ -1334,7 +1340,7 @@
       { id: 'neon', draw(g, t) {
         const on = Math.sin(t * 11) > -0.92, c = on ? '#ff6ad8' : '#8a3a7a';
         R(282, 124, 50, 14, '#0e0c12'); gfx.text('VINYL', 307, 128, c, { align: 'center' });
-        if (on) withA(0.2, () => E(307, 131, 30, 10, '#ff6ad8'));
+        if (on) { withA(0.12, () => E(307, 131, 30, 10, '#ff6ad8')); CH.emit(307, 131, 10, '#ff5ad0', 0.9); }
       } },
       { id: 'spin', draw(g, t) {
         const cx = 333, cy = F - 30, a = t * 5;
@@ -1345,6 +1351,7 @@
         const x = 462, yb = F - 34;
         R(x - 3, yb - 2, 8, 2, '#8a8f9c'); R(x - 2, yb - 20, 6, 18, '#3a1a4a'); R(x - 3, yb - 22, 8, 2, '#8a8f9c');
         for (let i = 0; i < 3; i++) { const k = (Math.sin(t * 0.5 + i * 2.1) + 1) / 2; E(x + 1, Math.round(yb - 4 - k * 14), 2, 2, '#ff6ad8'); }
+        CH.emit(x + 1, yb - 11, 4, '#ff6ad8', 0.7);
       }, layer: 'front' },
       { id: 'notes', draw(g, t) { for (let i = 0; i < 2; i++) { const k = (t * 0.4 + i * 0.5) % 1; withA(1 - k, () => note(500 + i * 10 + Math.round(Math.sin(t * 2 + i) * 3), F - 44 - k * 20, '#ffd84a')); } } },
     ],
@@ -1409,7 +1416,7 @@
     },
     live: [
       { id: 'tubes', draw(g, t) { if (Math.sin(t * 17) > 0.985) withA(0.14, () => R(390, 52, 60, 4, '#ffffff')); } },
-      { id: 'bp', draw(g, t) { if (Math.floor(t * 2) % 2) P1(511, F - 40, '#c8352b'); } },
+      { id: 'bp', draw(g, t) { if (Math.floor(t * 2) % 2) P1(511, F - 40, '#c8352b'); CH.emit(503, F - 43, 4, '#3ad6a0', 0.5); } },
     ],
     counter: { wood: '#e8eef0', top: '#3a8a6a', stripe: '#3a8a6a', items(x, top) {
       for (let i = 0; i < 3; i++) R(20 + i * 8, top - 8, 6, 8, ['#f8c8d8', '#ffe8a0', '#c8f0d8'][i]);
@@ -1493,7 +1500,7 @@
         for (let i = 0; i < 5; i++) { const k = (t * (0.12 + i * 0.02) + i * 0.2) % 2, u = k < 1 ? k : 2 - k, fx = Math.round(294 + u * 44), fy = F - 40 + i * 4 + Math.round(Math.sin(t * 2 + i) * 1.5); R(fx, fy, 3, 1, '#c8ccd8'); P1(k < 1 ? fx - 1 : fx + 3, fy, '#8a8f9c'); }
         for (let i = 0; i < 4; i++) { const k = (t * 0.6 + i * 0.25) % 1; P1(334 + (i % 2), Math.round(F - 20 - k * 28), '#e8f8ff'); }
       } },
-      { id: 'stove', draw(g, t) { for (let i = 0; i < 4; i++) R(499 + i * 3, F - 10 - Math.round(2 + Math.sin(t * 8 + i) * 1.5), 2, 3, i % 2 ? '#ff9a3c' : '#ffe070'); } },
+      { id: 'stove', draw(g, t) { for (let i = 0; i < 4; i++) R(499 + i * 3, F - 10 - Math.round(2 + Math.sin(t * 8 + i) * 1.5), 2, 3, i % 2 ? '#ff9a3c' : '#ffe070'); CH.emit(505, F - 12, 5, '#ff8a2a', 0.8 + Math.sin(t * 8) * 0.15); } },
     ],
     counter: { wood: '#6a4424', top: '#8a5a2b', stripe: '#2f6a8a', items(x, top) {
       R(24, top - 10, 16, 10, '#c8352b'); HL(24, top - 10, 16, '#e8604a'); for (let i = 0; i < 3; i++) R(26 + i * 5, top - 8, 3, 6, '#f4f0e6');
@@ -1674,9 +1681,9 @@
     },
     live: [
       { id: 'lamps', draw(g, t) { const s = Math.round(Math.sin(t * 0.9) * 1); P1(300 + s, 70, '#fff4c0'); } },
-      { id: 'sparks', draw(g, t) { const k = t % 4; if (k < 0.6) for (let i = 0; i < 6; i++) { const a = i * 1.1 + t * 9, rr = k * 30; P1(Math.round(232 + Math.cos(a) * rr * 0.6), Math.round(F - 30 + Math.sin(a) * rr * 0.3 + k * 20), i % 2 ? '#ffe070' : '#ff9a3c'); } } },
+      { id: 'sparks', draw(g, t) { const k = t % 4; if (k < 0.6) CH.emit(232, F - 26, 5, '#ffc040', 1 - k); if (k < 0.6) for (let i = 0; i < 6; i++) { const a = i * 1.1 + t * 9, rr = k * 30; P1(Math.round(232 + Math.cos(a) * rr * 0.6), Math.round(F - 30 + Math.sin(a) * rr * 0.3 + k * 20), i % 2 ? '#ffe070' : '#ff9a3c'); } } },
       { id: 'drip', draw(g, t) { const k = (t * 0.8) % 1; P1(228, Math.round(F - 34 + k * 30), '#1e1a20'); } },
-      { id: 'vend', draw(g, t) { withA(0.3 + Math.sin(t * 3) * 0.1, () => R(491, F - 48, 17, 36, '#9fdcff')); } },
+      { id: 'vend', draw(g, t) { withA(0.3 + Math.sin(t * 3) * 0.1, () => R(491, F - 48, 17, 36, '#9fdcff')); CH.emit(499, F - 30, 8, '#8fd0ff', 0.45); } },
     ],
     counter: { wood: '#5a5f6a', top: '#8a8f9c', stripe: '#ffd84a', items(x, top) {
       R(22, top - 3, 18, 3, '#f4f0e6'); for (let i = 0; i < 3; i++) HL(23, top - 3 + i, 16, i % 2 ? '#8a8f9c' : '#f4f0e6');
@@ -1819,10 +1826,12 @@
           if (Math.floor(k * 1.5) % 4 === 0) gfx.text('INSERT', x + w / 2, y + 2, '#ffffff', { align: 'center', font: 'small' });
           gfx.unclip();
           withA(0.15, () => R(x + 2, y + 2, 5, h - 4, '#ffffff'));
+          CH.emit(x + w / 2, y + h / 2, 9, ['#3ad6a0', '#e05a4a', '#4a8ad8', '#ffd84a', '#b86ae8'][i], 0.6);
         }
       } },
       { id: 'neon', draw(g, t) {
-        for (let x = 0; x < W; x += 4) { const c = NEON[(Math.floor(x / 20) + Math.floor(t * 4)) % 4]; R(x, 52, 3, 2, c); if (x < 136 || x > 352) R(x, F - 42, 3, 1, c); }
+        for (let x = 0; x < W; x += 4) { const c = NEON[(Math.floor(x / 20) + Math.floor(t * 4)) % 4]; R(x, 52, 3, 2, c); if (x < 136 || x > 352) R(x, F - 42, 3, 1, c); if (x % 24 === 0) CH.emit(x + 1, 53, 3, c, 0.6); }
+        CH.emit(502, F - 56, 12, '#ff9ad8', 0.35);
       } },
       { id: 'claw', draw(g, t) {
         const k = (t * 0.25) % 1, cx = 488 + Math.round((Math.sin(t * 0.6) + 1) * 14), drop = k > 0.7 ? Math.round(Math.sin((k - 0.7) / 0.3 * Math.PI) * 26) : 0;

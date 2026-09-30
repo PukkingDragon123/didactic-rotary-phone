@@ -86,6 +86,7 @@
   const upperWin = (x, y, w, h, o, p, r) => {
     const tm = K.ramp(o.frame || '#e8e2d6');
     const lit = p.win > 0.35 && r.chance(0.72);
+    if (lit && o.emits && p.win > 0.55) o.emits.push([x + (w >> 1), y + (h >> 1), 2.5, '#ffc070', (p.win - 0.45) * 0.8]);
     if (o.arch) { for (let j = 0; j < 4; j++) HL(x - 1 + (j < 2 ? 2 - j : 0), y - 4 + j, w + 2 - (j < 2 ? (2 - j) * 2 : 0), tm.m); P1(x + (w >> 1), y - 5, tm.h); }
     R(x - 2, y - 1, w + 4, h + 2, tm.m); HL(x - 2, y - 1, w + 4, tm.h);
     const glass = lit ? mix('#3a4a66', '#ffd98a', p.win) : mix('#2e3c52', p.sky[2], 0.3);
@@ -225,6 +226,7 @@
 
   function paintFront(x, y, t, st) {
     const A = ARCH[st.id] || ARCH.general, p = pal(), r = rng((st.id || 'x').length * 977 + (x | 0));
+    const emits = [];   // buffer-space light sources, handed to the shader after the blit
     const W0 = 120, H = A.h, name = st.name || 'STORE', c = st.color || A.color;
     const tm = K.ramp(A.trim);
     // everything that stands in front of the wall shares one ink line
@@ -296,7 +298,7 @@
         const n = A.style === 'gable' ? 2 : 3;
         for (let i = 0; i < n; i++) {
           const wx = Math.round(ox + (n === 2 ? 22 + i * 60 : 14 + i * 40)), ww = n === 2 ? 16 : 14;
-          upperWin(wx, upY, ww, upH, { frame: A.trim, arch: A.arch, shutters: A.shutters, box: A.box }, p, r);
+          upperWin(wx, upY, ww, upH, { frame: A.trim, arch: A.arch, shutters: A.shutters, box: A.box, emits }, p, r);
         }
       }
       // ---- sign band --------------------------------------------------------------
@@ -318,6 +320,7 @@
         displayWin(ox + 5, dy, 44, dh, { frame: A.style === 'tudor' ? A.timber : sh(c, -40), goods: (gx, gy, gw, gh) => g1(gx, gy, gw, gh, false) }, p);
         displayWin(ox + 71, dy, 44, dh, { frame: A.style === 'tudor' ? A.timber : sh(c, -40), goods: (gx, gy, gw, gh) => g1(gx, gy, gw, gh, true) }, p);
       }
+      if (p.win > 0.55 && !A.bay) { emits.push([ox + 27, dy + dh / 2, 5, '#ffc070', (p.win - 0.5) * 0.7]); emits.push([ox + 93, dy + dh / 2, 5, '#ffc070', (p.win - 0.5) * 0.7]); }
       if (!A.bay) frontDoor(ox + 53, b, 14, 46, A.door, { wreath: A.wreath, sign: !A.wreath }, p);
       else frontDoor(ox + 90, b, 14, 0, A.door, {}, p);
       // ---- awning or porch --------------------------------------------------------
@@ -341,6 +344,7 @@
       R(ox + 1, b - 22, 4, 6, '#8a8f9c'); E(ox + 3, b - 20, 1, 1, '#e8eef4');
       R(ox + 53, b - gf + 4, 14, 5, '#f4f0e6'); gfx.text(String(100 + ((x | 0) >> 4) % 90), ox + 60, b - gf + 4, '#3a3440', { align: 'center', font: 'small' });
     });
+    for (const [ex, ey, er, ec, ea] of emits) CH.emitStatic(x + ex - 15, y + ey - 156, er, ec, ea);
     // ---- things standing on the sidewalk, outside the ink line ----------------------
     const p2 = pal();
     if (A.bench) bench(x + 124, y, p2);
@@ -372,16 +376,17 @@
     if (A.neon) add((g, x, y, t, p) => {
       const on = Math.sin(t * 9) > -0.9, c = on ? '#ff6ad8' : '#7a3a6a';
       R(x + 20, y - 96, 40, 12, '#0e0c12'); gfx.text('VINYL', x + 40, y - 93, c, { align: 'center' });
-      if (on) withA(0.18, () => E(x + 40, y - 90, 26, 9, '#ff6ad8'));
+      if (on) { withA(0.12, () => E(x + 40, y - 90, 26, 9, '#ff6ad8')); CH.emit(x + 40, y - 90, 10, '#ff5ad0', 0.9); }
     });
     if (A.marquee) add((g, x, y, t) => {
       const i0 = Math.floor(t * 8);
       for (let i = 0; i < 28; i++) P1(x + 4 + i * 4, y - 108, (i + i0) % 4 === 0 ? '#ffffff' : ['#ff6ad8', '#3ad6a0', '#9fdcff', '#ffd84a'][(i >> 2) % 4]);
       R(x + 30, y - 104, 60, 14, '#0e0c12'); gfx.text('PLAY!', x + 60, y - 101, (i0 % 2) ? '#3ad6a0' : '#ff6ad8', { align: 'center' });
+      CH.emit(x + 60, y - 97, 11, (i0 % 2) ? '#3ad6a0' : '#ff5ad0', 0.8);
     });
     if (A.chimney) add((g, x, y, t) => { for (let i = 0; i < 4; i++) { const k = (t * 0.35 + i * 0.25) % 1; withA(0.5 * (1 - k), () => E(Math.round(x + 98 + Math.sin(t + i) * 3 + k * 6), Math.round(y - 140 - k * 22), 2 + k * 4, 1.5 + k * 3, '#eef4f8')); } });
-    if (A.lights) add((g, x, y, t) => { for (let i = 0; i < 20; i++) { const lx = x + 2 + i * 6, ly = y - 56 + Math.round(Math.sin((i / 19) * Math.PI) * 4); P1(lx, ly, ((i + Math.floor(t * 3)) % 3) ? ['#ffd84a', '#ff6a7a', '#3ad6a0'][i % 3] : '#ffffff'); } });
-    if (A.cross) add((g, x, y, t) => { withA(0.12 + Math.sin(t * 2) * 0.05, () => E(x + 106, y - 84, 12, 12, '#3ad6a0')); });
+    if (A.lights) add((g, x, y, t, p) => { for (let i = 0; i < 20; i++) { const lx = x + 2 + i * 6, ly = y - 56 + Math.round(Math.sin((i / 19) * Math.PI) * 4), c = ['#ffd84a', '#ff6a7a', '#3ad6a0'][i % 3]; P1(lx, ly, ((i + Math.floor(t * 3)) % 3) ? c : '#ffffff'); if (i % 2 === 0) CH.emit(lx, ly, 1.6, c, 0.5 + (p ? p.lamp : 0) * 0.4); } });
+    if (A.cross) add((g, x, y, t) => { withA(0.08 + Math.sin(t * 2) * 0.03, () => E(x + 106, y - 84, 12, 12, '#3ad6a0')); CH.emit(x + 106, y - 84, 7, '#3ad6a0', 0.8); });
   };
 
   // ==========================================================================
@@ -513,7 +518,12 @@
     }
     K.drift(x - 18, y + 1, 36, 5, pal(), 31); K.drift(x + 182, y + 1, 34, 5, pal(), 32);
   };
-  if (CH.PROPS.donaldsExterior) CH.PROPS.donaldsExterior.draw = (g, x, y, t) => donalds(g, x, y, t || 0);
+  if (CH.PROPS.donaldsExterior) CH.PROPS.donaldsExterior.draw = (g, x, y, t) => {
+    donalds(g, x, y, t || 0);
+    const p = pal(), k = 0.35 + (p ? p.win : 0) * 0.5;
+    for (const wx of [x + 32, x + 80, x + 162]) CH.emitStatic(wx, y - 36, 10, '#ffd898', k);
+    CH.emitStatic(x + 105, y - 118, 16, '#f5c33b', 0.3 + (p ? p.lamp : 0) * 0.5);
+  };
 
   // ---- the cabin: logs, a shingled roof under a foot of snow, a porch, a woodpile ----
   let cabinCache = null, cabinKey = null;
@@ -576,7 +586,9 @@
     }
     g.drawImage(cabinCache, Math.round(x) - 22, Math.round(y) - 146);
     // the lantern's glow and the chimney smoke move
-    if (p.lamp > 0.3) withA(0.2 * p.lamp, () => E(x + 49, y - 42, 12, 9, '#ffd98a'));
+    if (p.lamp > 0.3) withA(0.12 * p.lamp, () => E(x + 62, y - 43, 10, 8, '#ffd98a'));
+    if (p.lamp > 0.3) CH.emit(x + 62, y - 43, 3, '#ffd98a', p.lamp);
+    if (p.win > 0.3) { CH.emit(x + 17, y - 44, 6, '#ffcf78', p.win * 0.7); CH.emit(x + 77, y - 44, 6, '#ffcf78', p.win * 0.7); }
     for (let i = 0; i < 4; i++) { const k = (t * 0.35 + i * 0.25) % 1; withA(0.45 * (1 - k), () => E(Math.round(x + 49 + Math.sin(t + i) * 3 + k * 5), Math.round(y - 116 - k * 22), 2 + k * 4, 1.6 + k * 3, '#eef4f8')); }
     K.drift(x - 20, y + 1, 30, 5, p, 41); K.drift(x + 76, y + 1, 26, 4, p, 42);
   };

@@ -391,31 +391,34 @@
       const h = CH.state.hour;
       const night = this.night || h >= 19 || h < 6;
       const dusk = !night && (h >= 17 || h < 8);
-      this.ambient = night ? { color: '#2a3a72', alpha: 0.46 }
-        : dusk ? { color: '#d08a5a', alpha: 0.2 }
-        : { color: '#c8d4f0', alpha: 0.08 };
+      this.ambient = night ? { color: '#2a3a72', alpha: 0.5 }
+        : dusk ? { color: '#d08a5a', alpha: 0.24 }
+        : { color: '#c8d4f0', alpha: 0.06 };
       this.lights = [];
       // fireplace: the heart of the room, and it breathes
-      this.fireLight = this.addLight({ x: 754, y: F - 26, rx: 96, ry: 58, color: '#ff9a3a', alpha: night ? 0.34 : 0.2, flicker: 9 });
+      this.fireLight = this.addLight({ x: 754, y: F - 26, rx: 96, ry: 58, color: '#ff9a3a', alpha: night ? 0.34 : 0.2, flicker: 9, emit: true, er: 5, ea: 0.8, ey: 4, ec: '#ff8a2a' });
       this.addLight({ x: 754, y: F + 4, rx: 60, ry: 16, color: '#ff7a20', alpha: night ? 0.22 : 0.12, flicker: 11 });
       // standing lamp by the couch
-      this.lampLight = this.addLight({ x: 1042, y: F - 52, rx: 70, ry: 60, color: '#ffd89a', alpha: night ? 0.3 : 0.14 });
+      this.lampLight = this.addLight({ x: 1042, y: F - 52, rx: 70, ry: 60, color: '#ffd89a', alpha: night ? 0.3 : 0.14, emit: true, er: 4, ec: '#ffe0a0' });
       // daylight through the windows and the front door glass
       const day = night ? 0 : dusk ? 0.16 : 0.3;
       if (day > 0) {
-        for (const wx of [300, 540, 876]) {
-          this.addLight({ x: wx, y: 150, cone: [34, 120, F - 120], color: '#eaf2ff', alpha: day * 0.5 });
-          this.addLight({ x: wx, y: F - 6, rx: 74, ry: 22, color: '#dce8ff', alpha: day * 0.4 });
+        // slanted shafts of daylight through the glass, landing on the floor
+        const lean = h < 12 ? 40 : -34, warm = dusk || h < 9 || h > 15.5;
+        for (const wx of [300, 550, 886]) {
+          const top = wx === 300 ? F - 64 : 104;   // the door glass sits lower than the windows
+          this.addLight({ x: wx, y: top, shaft: [wx === 300 ? 18 : 36, F - top + 2, lean * (F - top) / (F - 104)], color: warm ? '#ffe2b0' : '#f4f8ff', alpha: day * 0.55 });
+          this.addLight({ x: wx + lean, y: F + 4, rx: 40, ry: 9, color: warm ? '#ffe2b0' : '#e8f0ff', alpha: day * 0.35 });
         }
       }
       // ceiling bulbs
-      for (const lx of [130, 560, 900]) this.addLight({ x: lx, y: 56, cone: [12, 86, F - 60], color: '#ffe6b0', alpha: night ? 0.16 : 0.07 });
+      for (const lx of [130, 560, 900]) this.addLight({ x: lx, y: 56, cone: [12, 86, F - 60], color: '#ffe6b0', alpha: night ? 0.16 : 0.07, emit: true, er: 3, ea: night ? 1 : 0.6, ec: '#ffe6b0' });
       // the TV throws cold light whenever it is on
-      this.tvLight = this.addLight({ x: 990, y: F - 40, rx: 78, ry: 46, color: '#6aa8ff', alpha: 0, flicker: 14 });
+      this.tvLight = this.addLight({ x: 990, y: F - 40, rx: 78, ry: 46, color: '#6aa8ff', alpha: 0, flicker: 14, er: 10, ea: 0.6 });
     }
     updateLights() {
       if (!this.lights) return;
-      if (this.tvLight) this.tvLight.alpha = this.tvMode && this.tvMode !== 'off' ? (this.night ? 0.24 : 0.12) : 0;
+      if (this.tvLight) { const on = this.tvMode && this.tvMode !== 'off'; this.tvLight.alpha = on ? (this.night ? 0.24 : 0.12) : 0; this.tvLight.emit = !!on; }
       if (this.fireLight) { const lit = !this.fire || !this.fire.st || this.fire.st.lit !== false; this.fireLight.off = !lit; }
     }
     update(dt) {

@@ -347,6 +347,9 @@
     const m = K.ramp(c);
     VL(x, y0, len, '#241f2a');
     const y = y0 + len;
+    // the bulb glows (see the shader in 97_post.js)
+    if (style === 'tube') { CH.emitStatic(x - 8, y + 5, 3, '#eaf4ff', 0.8); CH.emitStatic(x + 8, y + 5, 3, '#eaf4ff', 0.8); }
+    else CH.emitStatic(x, y + (style === 'edison' ? 6 : 9), style === 'edison' ? 3 : 4, style === 'edison' ? '#ffc870' : '#ffe6a0', 0.9);
     if (style === 'dome') {
       R(x - 1, y, 3, 2, '#3a3440');
       E(x, y + 5, 8, 4, m.m); R(x - 8, y + 5, 17, 3, m.m);
@@ -644,6 +647,7 @@
         const wx = Math.round(x + 4 + c * ((w - 8 - ww) / Math.max(1, cols - 1 || 1)) + (cols === 1 ? (w - 8 - ww) / 2 : 0));
         const wy = Math.round(top + 4 + s * (h / storeys));
         const on = lit > 0.35 && r.chance(0.7);
+        if (on && lit > 0.55) CH.emitStatic(Math.round(x + 4 + c * ((w - 8 - 7) / Math.max(1, cols - 1 || 1)) + (cols === 1 ? (w - 8 - 7) / 2 : 0)) + 3, Math.round(top + 4 + s * (h / storeys)) + 4, 2, '#ffc070', 0.7 * (lit - 0.45));
         R(wx - 1, wy - 1, ww + 2, wh + 2, tm.m);
         R(wx, wy, ww, wh, on ? mix('#3a4a66', '#ffd98a', lit) : mix('#2e3c52', p ? p.sky[2] : '#8fb4d8', 0.25));
         if (on) { R(wx, wy, 2, wh, mix('#c86a3a', '#ffd98a', 0.4)); R(wx + ww - 2, wy, 2, wh, mix('#c86a3a', '#ffd98a', 0.4)); }
@@ -768,9 +772,11 @@
       if (viewCache.size > 60) viewCache.clear();
       c = gfx.makeCanvas(w, h);
       const g = c.getContext('2d');
+      const sink = CH.emitSink; CH.emitSink = null;
       gfx.pushTarget(g);
       (kind === 'forest' ? paintForest : paintStreet)(w, h, p, o.seed || 1, o);
       gfx.popTarget();
+      CH.emitSink = sink;
       viewCache.set(key, c);
     }
     return c;

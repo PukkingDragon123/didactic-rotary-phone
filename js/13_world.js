@@ -65,8 +65,13 @@
       g.imageSmoothingEnabled = false;
       g.clearRect(0, 0, this.width, CH.H);
       gfx.pushTarget(g);
+      // light sources painted into the background register themselves here,
+      // so the shader can make them glow every frame without repainting
+      this.staticEmit = [];
+      CH.emitSink = this.staticEmit;
       this.drawRoom(g);
       for (const p of this.props) if (!p.anim && p.layer === 'back' && !p.hidden) p.def.draw(g, p.x, p.y, 0, p.st);
+      CH.emitSink = null;
       gfx.popTarget();
       this.bgDirty = false;
     }
@@ -147,6 +152,10 @@
       const cx = Math.round(this.cam.x * q) / q, cy = Math.round(this.cam.y * q) / q;
       g.save(); g.scale(Z, Z); g.translate(-cx, -cy);
       g.drawImage(this.bg, 0, 0);
+      if (CH.post && CH.post.emitView) {
+        CH.post.emitView(Z, cx, cy);
+        for (const e of this.staticEmit || []) CH.emit(e.x, e.y, e.r, e.c, e.a);
+      }
       const t = this.t;
       for (const p of this.props) {
         if (!p.anim || p.layer !== 'back' || p.hidden) continue;
@@ -201,7 +210,8 @@
       if (amb) {
         g.save();
         g.globalCompositeOperation = 'multiply';
-        g.globalAlpha = amb.alpha;
+        // kept light: the room is tinted, never dimmed into murk
+        g.globalAlpha = amb.alpha * 0.55;
         CH.gfx.rect(this.cam.x - 4, 0, CH.W + 8, CH.H, amb.color);
         g.restore();
       }
@@ -210,10 +220,13 @@
         if (L.off) continue;
         const sx = L.x - this.cam.x;
         if (sx < -120 || sx > CH.W + 120) continue;
-        let a = L.alpha === undefined ? 0.18 : L.alpha;
-        if (L.flicker) a *= 0.82 + Math.sin(this.t * L.flicker + L.x) * 0.1 + Math.sin(this.t * L.flicker * 2.7 + L.y) * 0.06;
-        if (L.cone) CH.art.lightCone(L.x, L.y, L.cone[0], L.cone[1], L.cone[2], L.color, a);
-        else CH.art.lightPool(L.x, L.y, L.rx || 40, L.ry || 30, L.color || '#ffd08a', a);
+        let a = L.alpha === undefined ? 0.18 : L.alpha, fl = 1;
+        if (L.flicker) { fl = 0.82 + Math.sin(this.t * L.flicker + L.x) * 0.1 + Math.sin(this.t * L.flicker * 2.7 + L.y) * 0.06; a *= fl; }
+        // pools and cones are soft and small now; the shader's glow does the rest
+        if (L.shaft) CH.art.lightShaft(L.x, L.y, L.shaft[0], L.shaft[1], L.shaft[2], L.color, a, this.t);
+        else if (L.cone) CH.art.lightCone(L.x, L.y, L.cone[0], L.cone[1], L.cone[2], L.color, a * 0.6);
+        else CH.art.lightPool(L.x, L.y, (L.rx || 40) * 0.8, (L.ry || 30) * 0.8, L.color || '#ffd08a', a * 0.7);
+        if (L.emit) CH.emit(L.x + (L.ex || 0), L.y + (L.ey || 0), L.er || 3, L.ec || L.color || '#ffd08a', (L.ea || 1) * fl);
       }
     }
     addLight(L) { this.lights = this.lights || []; this.lights.push(L); return L; }

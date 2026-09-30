@@ -978,16 +978,26 @@
       this.drawTraffic(g);
       this.drawWind(g);
       const p = this.pal, F = this.floorY;
-            if (p.lamp > 0.2) for (const x of [1520, 1760, 2000, 2240]) {
-        glow(x + 5, F - 58, 40, '#ffd27a', 0.34 * p.lamp);
-        glow(x + 5, F - 58, 16, '#fff4cf', 0.40 * p.lamp);
-        const gl = gfx.cur, o = gl.globalAlpha; gl.globalAlpha = 0.12 * p.lamp;
-        gfx.tri(x - 1, F - 56, x + 11, F - 56, x + 26, F + 2, '#ffe6a8'); gfx.tri(x - 1, F - 56, x + 11, F - 56, x - 16, F + 2, '#ffe6a8');
-        gl.globalAlpha = o;
-        gfx.ellipse(x + 5, F + 1, 16, 4, gfx.alpha('#ffe6a8', 0.14 * p.lamp));
+      if (p.lamp > 0.2) {
+        if (!this._lamps) this._lamps = this.props.filter((q) => q.name === 'lamppost').map((q) => q.x);
+        for (const x of this._lamps) {
+          if (x + 40 < this.cam.x || x - 40 > this.cam.x + this.viewW) continue;
+          // a small warm halo, a faint cone to the snow, and a hot core for the shader
+          glow(x + 5, F - 58, 20, '#ffd27a', 0.22 * p.lamp);
+          const gl = gfx.cur, o = gl.globalAlpha; gl.globalAlpha = 0.06 * p.lamp;
+          gfx.tri(x - 1, F - 56, x + 11, F - 56, x + 26, F + 2, '#ffe6a8'); gfx.tri(x - 1, F - 56, x + 11, F - 56, x - 16, F + 2, '#ffe6a8');
+          gl.globalAlpha = o;
+          gfx.ellipse(x + 5, F + 1, 14, 3, gfx.alpha('#ffe6a8', 0.12 * p.lamp));
+          CH.emit(x + 5, F - 58, 4, '#ffd98a', p.lamp);
+        }
       }
-      if (p.win > 0.35) for (const x of [1560, 1720, 1880]) { glow(x + 32, F - 30, 38, '#ffcb78', 0.10 * p.win); glow(x + 92, F - 30, 38, '#ffcb78', 0.10 * p.win); }
-      if (p.win > 0.35) glow(2400, F - 40, 60, '#ffcb78', 0.10 * p.win);
+    }
+    // How far down the screen open sky reaches: the treeline out in the woods,
+    // the rooflines on Main Street. God rays only come from open sky.
+    skyLine() {
+      const x0 = this.cam.x, x1 = x0 + this.viewW, a = (this.townX0 || 1020) - 40, b = (this.townX1 || 3100) + 60;
+      const inTown = CH.clamp((Math.min(x1, b) - Math.max(x0, a)) / (x1 - x0), 0, 1);
+      return 0.71 - inTown * 0.56;
     }
     draw(g) {
       const p = this.pal; LP = p;
@@ -1011,8 +1021,12 @@
         const u = (hr - 6.4) / 11.2, sxp = 34 + u * 410, syp = 162 - Math.sin(u * Math.PI) * 126;
         glow(sxp, syp, 30, '#ffe9a8', 0.13); glow(sxp, syp, 18, '#fff4c8', 0.18);
         gfx.circle(sxp, syp, 11, '#fff2cc'); gfx.circle(sxp, syp, 9, '#fffdf0');
+        // low sun: long golden rays; high sun: soft white ones
+        const low = 1 - Math.sin(u * Math.PI);
+        if (CH.post) CH.post.sun = { x: sxp / W, y: syp / H, horizon: this.skyLine(), k: 0.42 + low * 0.45, color: [1, 0.93 - low * 0.2, 0.74 - low * 0.32] };
       } else {
         const hh = hr < 6.4 ? hr + 24 : hr, u = (hh - 17.6) / 12.8, sxp = 34 + u * 410, syp = 150 - Math.sin(u * Math.PI) * 112;
+        if (CH.post) CH.post.sun = { x: sxp / W, y: syp / H, horizon: this.skyLine(), k: 0.22, color: [0.62, 0.74, 1] };
         glow(sxp, syp, 26, '#cfe0ff', 0.12);
         gfx.circle(sxp, syp, 10, '#e6ebf4'); gfx.circle(sxp, syp, 8, '#f4f6fb');
         gfx.ellipse(sxp - 3, syp - 2, 2.2, 1.7, '#cdd4e0'); gfx.ellipse(sxp + 3, syp + 3, 1.7, 1.3, '#cdd4e0'); gfx.ellipse(sxp + 1, syp - 5, 1.4, 1.1, '#cdd4e0');
@@ -1088,7 +1102,7 @@
       gfx.rect(0, 268, W, 2, p.snowHi);
       // ---- time of day over the whole frame --------------------------------------------
       if (p.tintA > 0.005) {
-        g.save(); g.globalAlpha = p.tintA; g.globalCompositeOperation = 'multiply';
+        g.save(); g.globalAlpha = p.tintA * 0.75; g.globalCompositeOperation = 'multiply';
         gfx.rect(0, 0, W, H, p.tint); g.restore();
       }
       if (p.lamp > 0.5) { g.save(); g.globalAlpha = 0.05; g.globalCompositeOperation = 'lighter'; gfx.rect(0, 0, W, H, '#2a3a6a'); g.restore(); }

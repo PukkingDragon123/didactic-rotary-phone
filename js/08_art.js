@@ -316,6 +316,27 @@
     }
     ctx.restore();
   };
+  // A slanted shaft of daylight from a window: a soft parallelogram that
+  // fades toward the floor, the way a shader pack draws light through glass.
+  art.lightShaft = function (x, y, w, len, dx, color, alpha = 0.1, t = 0) {
+    const ctx = gfx.cur;
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    for (let j = 0; j < len; j += 2) {
+      const u = j / len, fade = Math.pow(1 - u, 1.1) * Math.min(1, u / 0.06 + 0.2);
+      const xx = x + dx * u, ww = w * (1 + u * 0.3);
+      ctx.globalAlpha = alpha * fade * 0.6; gfx.rect(Math.round(xx - ww / 2), y + j, Math.round(ww), 2, color);
+      ctx.globalAlpha = alpha * fade * 0.5; gfx.rect(Math.round(xx - ww * 0.3), y + j, Math.round(ww * 0.6), 2, color);
+    }
+    // dust hanging in the light, drifting slowly - what makes a beam read as one
+    for (let i = 0; i < 12; i++) {
+      const u = ((i * 0.618 + t * 0.03 * (1 + (i % 3) * 0.4)) % 1), v = ((i * 0.37 + Math.sin(t * 0.4 + i) * 0.08) % 1 + 1) % 1;
+      const px = x + dx * u + (v - 0.5) * w * (1 + u * 0.3), py = y + u * len;
+      ctx.globalAlpha = Math.min(1, alpha * 4) * (1 - u) * (0.5 + 0.5 * Math.sin(t * 1.3 + i * 2));
+      gfx.px(Math.round(px), Math.round(py), '#fffaf0');
+    }
+    ctx.restore();
+  };
   // Multiply a tint over the frame - the cheap way to say "it is evening".
   art.tint = function (color, alpha) {
     const ctx = gfx.cur;

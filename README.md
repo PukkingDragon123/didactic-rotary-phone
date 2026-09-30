@@ -62,21 +62,19 @@ that points at them, and pages itself when a line runs long.
 - **A closer, richer picture**: the canvas renders at the screen's real
   resolution and the world camera sits about 1.5x closer, rounded so one game
   pixel is always a whole number of screen pixels - closer and still crisp.
-  The finished frame then goes through a WebGL shader: a two-pass bloom off
-  lamps, windows and snow glare, warm-light / cool-shade grading, a lens
-  vignette and quiet film grain. Slow machines drop back to the plain image on
-  their own; F8 flips it, `?noshader` turns it off. The interface - clock and
-  money, dialogue, speech bubbles, button prompts, minigame HUDs, menus, fades
-  and the cursor - is drawn on its own layer above the world, so the lamps,
-  night tint, bloom and grading never touch it and it stays sharp and readable.
-- **Hand-drawn pixel sprites**: the food and the trees are drawn pixel by
-  pixel as little text grids in `js/09_pixelart.js`, each with its own
-  hand-placed outline in a dark shade of itself. That covers every burger
-  layer, which browns as it cooks; the whole burger; fries, nuggets and pies;
-  the bakery's bread, croissants, cinnamon buns, muffins, donuts, pretzels and
-  cookies; pancakes, coffee and more. Pines are built from hand-drawn snowy
-  bough clumps laid in drooping tiers, and the far treelines are hand-drawn
-  silhouettes recoloured to the hour.
+  The finished frame then goes through a WebGL shader in the style of a
+  Minecraft shader pack (`js/97_post.js`): bright, saturated colour; a soft
+  glow that comes only from things that give off light - lamps, lit windows,
+  fire, neon, screens - never from snow or a white wall; god rays streaming
+  from the sun between the trees and roofs, golden in the morning and evening;
+  shafts of daylight through windows with dust hanging in them; blue nights
+  that stay readable; a gentle vignette. Scenes paint their light sources into
+  a small emission map (`CH.emit`) as they draw, and the shader turns that
+  into glow. Slow machines drop back to the plain image on their own; F8 flips
+  it, `?noshader` turns it off. The interface - clock and money, dialogue,
+  speech bubbles, button prompts, minigame HUDs, menus, fades and the cursor -
+  is drawn on its own layer above the world, so the lighting never touches it
+  and it stays sharp and readable.
 - **Wind, snow and things to kick**: one shared wind with gusts leans the
   trees, blows powder off the roofs and carries loose things down the street.
   Ground snow is a live height field - flakes land and pile up, feet plough

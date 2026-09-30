@@ -36,6 +36,8 @@
     g.save();
     g.translate(CH.shake.x, CH.shake.y);
     CH.ui.cursor = 'arrow';
+    // the shader's emission map starts empty; scenes paint their lights into it
+    if (CH.post && CH.post.beginFrame) CH.post.beginFrame();
     CH.game.draw(g);
     g.restore();
     CH.drawUI(g, (uu) => {

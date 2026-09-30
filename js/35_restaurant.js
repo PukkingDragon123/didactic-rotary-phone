@@ -495,10 +495,10 @@
       this.destiny = CH.makeDestiny(1040, F + 1); this.destiny.wanderRange = [1000, 1120]; this.destiny.arm = 'hold'; this.addNPC(this.destiny);
       // ---- lighting: cold fluorescent out front, hot lamps over the line ----
       this.ambient = { color: '#c6d2e8', alpha: 0.1 };
-      for (let x = 60; x < 780; x += 150) this.addLight({ x, y: 30, cone: [18, 150, F - 40], color: '#e8f0ff', alpha: 0.09 });
-      this.addLight({ x: 750, y: F - 52, rx: 54, ry: 26, color: '#ffb060', alpha: 0.22, flicker: 6 });   // heat lamp over the pass
-      for (let x = 840; x < 1180; x += 110) this.addLight({ x, y: 34, cone: [20, 130, F - 44], color: '#dfe8ff', alpha: 0.11 });
-      this.addLight({ x: 872, y: F - 48, rx: 40, ry: 20, color: '#ff7a30', alpha: 0.16, flicker: 9 });   // the grill itself
+      for (let x = 60; x < 780; x += 150) this.addLight({ x, y: 30, cone: [18, 150, F - 40], color: '#e8f0ff', alpha: 0.09, emit: true, er: 4, ea: 0.7, ec: '#f4f8ff' });
+      this.addLight({ x: 750, y: F - 52, rx: 54, ry: 26, color: '#ffb060', alpha: 0.22, flicker: 6, emit: true, er: 6, ec: '#ff9a3c' });   // heat lamp over the pass
+      for (let x = 840; x < 1180; x += 110) this.addLight({ x, y: 34, cone: [20, 130, F - 44], color: '#dfe8ff', alpha: 0.11, emit: true, er: 4, ea: 0.7, ec: '#f4f8ff' });
+      this.addLight({ x: 872, y: F - 48, rx: 40, ry: 20, color: '#ff7a30', alpha: 0.16, flicker: 9, emit: true, er: 6, ec: '#ff7a30' });   // the grill itself
       this.addLight({ x: 1179, y: F - 46, rx: 56, ry: 34, color: '#9fc8ff', alpha: 0.14 });              // daylight at the drive-thru
       this.addLight({ x: 120, y: F - 46, rx: 70, ry: 40, color: '#bcd8ff', alpha: 0.13 });               // and at the front doors
 
