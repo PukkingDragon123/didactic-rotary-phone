@@ -77,6 +77,18 @@ rather than let it spill out of its sign.
 
 ## What's inside
 
+- **A title shot like the opening of a film**: Chubby's cabin on the hill
+  above Moose Hollow at night, the town asleep across the frozen lake, the
+  moon and the northern lights over the hills, and through the big front
+  window Chubby himself, fast asleep. The picture is painted once into six
+  parallax layers that the camera sways slowly across; snow falls in three
+  depths, the chimneys smoke, a car crawls along the shore road, the odd
+  shooting star crosses the sky and the town's lights go out one window at a
+  time. The shader lights every window, lamp and neon sign and casts the
+  moonlight. The logo is built from the Fibberish letters, smoothed, extruded
+  and capped with soft snow - nothing spiky - and drops in letter by letter.
+  Starting a game pushes the camera in through Chubby's window and fades to
+  the morning he wakes up in.
 - **A closer, richer picture**: the canvas renders at the screen's real
   resolution and the world camera sits about 1.5x closer, rounded so one game
   pixel is always a whole number of screen pixels - closer and still crisp.

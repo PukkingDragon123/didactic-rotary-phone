@@ -17,6 +17,7 @@
   const post = (CH.post = { on: false, strength: 1, sun: null, mood: null });
   // the emission API exists either way, so scenes can call it unconditionally
   CH.emit = () => {};
+  CH.emitScreen = () => {};
   CH.emitStatic = (x, y, r, c, a) => { if (CH.emitSink) CH.emitSink.push({ x, y, r, c, a: a === undefined ? 1 : a }); };
   post.beginFrame = () => {};
   post.emitView = () => {};
