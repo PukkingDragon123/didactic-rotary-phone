@@ -138,7 +138,7 @@
       // so putting the phone away never depends on knowing a hotkey.
       if (this.mode !== 'locked') this.drawExitButton(g);
     }
-    exitRect() { return { x: PX + PW + 14, y: PY + 24, w: 76, h: 20 }; }
+    exitRect() { return { x: PX + PW + 14, y: PY + 24, w: 92, h: 20 }; }
     drawExitButton(g) {
       const r = this.exitRect();
       const hot = inp.mouseIn(r);
@@ -152,7 +152,7 @@
       gfx.line(cx - 3, cy - 4, cx + 5, cy + 4, '#fff');
       gfx.line(cx + 4, cy - 4, cx - 4, cy + 4, '#fff');
       gfx.line(cx + 5, cy - 4, cx - 3, cy + 4, '#fff');
-      gfx.text('PUT AWAY', r.x + 24, r.y + 7 - lift, '#fff');
+      gfx.text('PUT AWAY', r.x + 24, r.y + 6 - lift, '#fff');
       gfx.text('or press I / Esc', r.x + r.w / 2, r.y + r.h + 4, '#8a8090', { align: 'center', font: 'small' });
       if (inp.clicked(r)) { this.close(); inp.eat(); }
     }
@@ -219,7 +219,7 @@
       gfx.rect(px + 2, py + 2, pw - 4, 1, '#fffaf0');
       const mid = px + pw / 2;
       let yy = py + 6;
-      gfx.text(L.label.slice(0, 24), mid, yy, '#2a2436', { align: 'center', font: 'small' }); yy += 9;
+      gfx.text(gfx.ellipsize(L.label, pw - 10, 'small'), mid, yy, '#2a2436', { align: 'center', font: 'small' }); yy += 9;
       if (bands) {
         // an image painting in from the top, four pixel rows at a time
         const iw = pw - 12, ih = 44, ix = px + 6, iy = yy;
@@ -246,8 +246,8 @@
       // the patter underneath
       const quips = ['ESTIMATING TIME REMAINING…', 'STILL ESTIMATING…', 'TIME LEFT: 4 MINUTES', 'TIME LEFT: 2 SECONDS', 'TIME LEFT: 11 MINUTES', 'ALMOST THERE', 'DEFINITELY ALMOST THERE'];
       const line = nr ? '(NOT RESPONDING)' : pct >= 99 ? quips[5 + (Math.floor(L.t * 1.4) % 2)] : L.sub || quips[Math.floor(L.t * 1.4 + L.seed) % 5];
-      gfx.text(line.slice(0, 30), mid, yy, nr ? '#c8352b' : '#6a6478', { align: 'center', font: 'small' }); yy += 8;
-      if (L.sub && (pct >= 99 || nr)) gfx.text(L.sub.slice(0, 30), mid, yy, '#9a94a8', { align: 'center', font: 'small' });
+      gfx.text(gfx.ellipsize(line, pw - 10, 'small'), mid, yy, nr ? '#c8352b' : '#6a6478', { align: 'center', font: 'small' }); yy += 8;
+      if (L.sub && (pct >= 99 || nr)) gfx.text(gfx.ellipsize(L.sub, pw - 10, 'small'), mid, yy, '#9a94a8', { align: 'center', font: 'small' });
       // it never blocks: say so
       gfx.text('MOOSEPHONE 12 MINI', mid, py + ph - 8, '#b8b2a4', { align: 'center', font: 'small' });
     }
@@ -388,8 +388,8 @@
         const by = SY + 2 - Math.round((1 - a) * 20);
         gfx.rrect(SX + 3, by, SW - 6, 20, 3, 'rgba(20,20,30,0.95)');
         gfx.rect(SX + 6, by + 3, 8, 8, b.app === 'Mail' ? '#3b6fd6' : '#4f9d3a'); gfx.text(b.app === 'Mail' ? '✉' : '☺', SX + 10, by + 4, '#fff', { align: 'center', font: 'small' });
-        gfx.text(b.from.slice(0, 22), SX + 17, by + 3, '#fff', { font: 'small' });
-        gfx.text(b.text.slice(0, 26) + (b.text.length > 26 ? '…' : ''), SX + 17, by + 11, '#bbb', { font: 'small' });
+        gfx.text(gfx.ellipsize(b.from, SW - 26, 'small'), SX + 17, by + 3, '#fff', { font: 'small' });
+        gfx.text(gfx.ellipsize(b.text, SW - 26, 'small'), SX + 17, by + 11, '#bbb', { font: 'small' });
         const r = { x: SX + 3, y: by, w: SW - 6, h: 20 };
         if (inp.mouseIn(r)) ui.cursor = 'hand';
         if (inp.clicked(r)) { this.banner = null; this.appStack = []; this.app = null; this.open(b.app === 'Mail' ? 'mail' : 'messages'); inp.eat(); }
@@ -423,12 +423,12 @@
         gfx.rrect(x, y, iw, iw, 5, hv ? gfx.shade(ap[2], 25) : ap[2]);
         ap[3](x, y);
         if (ap[4]) { gfx.circle(x + iw - 1, y + 1, 4, '#e83030'); gfx.text(String(ap[4]), x + iw - 1, y - 2, '#fff', { align: 'center', font: 'small' }); }
-        gfx.text(ap[1], x + iw / 2, y + iw + 2, '#fff', { align: 'center', font: 'small' });
+        gfx.text(ap[1], x + iw / 2, y + iw + 3, '#fff', { align: 'center', font: 'tiny' });
         if (hv) ui.cursor = 'hand';
         if (this.clicked(r)) { this.openApp(ap[0]); inp.eat(); }
       });
       // objective hint on home
-      if (S.chapter === 'jobsearch' && !CH.flag('gotInterview')) { gfx.rrect(5, ch - 15, cw - 10, 13, 4, '#150f1c'); gfx.rrect(6, ch - 14, cw - 12, 11, 3, '#2f2740'); gfx.text('TIP: open Foxfire and search for jobs', cw / 2, ch - 11, '#fff', { align: 'center', font: 'small' }); }
+      if (S.chapter === 'jobsearch' && !CH.flag('gotInterview')) { gfx.rrect(5, ch - 15, cw - 10, 13, 4, '#150f1c'); gfx.rrect(6, ch - 14, cw - 12, 11, 3, '#2f2740'); gfx.text('TIP: search jobs in Foxfire', cw / 2, ch - 11, '#fff', { align: 'center', fit: cw - 16, font: 'small' }); }
     }
     openApp(name) {
       if (name === 'camera') { A.sfx('camera'); fx.doFlash(0.8); ui.toast('You took a photo of your own face. It is 4 AM tired.', '#fff', 3); return; }
@@ -464,7 +464,8 @@
       const r = { x, y, w, h }; const hv = this.hover(r);
       const col = opts.color || '#3b6fd6';
       gfx.rrect(x, y + 1, w, h, 2, 'rgba(0,0,0,0.3)'); gfx.rrect(x, y, w, h, 2, opts.disabled ? '#aaa' : hv ? gfx.shade(col, 30) : col);
-      gfx.text(label, x + w / 2, y + Math.floor((h - (opts.font === 'main' ? 7 : 5)) / 2), opts.textColor || '#fff', { align: 'center', font: opts.font || 'small' });
+      const bf = gfx.fitFont(label, w - 2, opts.font || 'small');
+      gfx.text(label, x + w / 2, y + Math.floor((h - gfx.fontH(bf)) / 2), opts.textColor || '#fff', { align: 'center', font: bf });
       if (hv && !opts.disabled) ui.cursor = 'hand';
       const c = !opts.disabled && this.clicked(r);
       if (c) { A.sfx(opts.sfx || 'tap'); inp.eat(); }
@@ -474,10 +475,13 @@
       const r = { x, y, w, h }; const hv = this.hover(r); const focused = this.focus === id;
       gfx.rrect(x, y, w, h, 2, '#fff'); gfx.frame(x, y, w, h, focused ? '#3b6fd6' : '#bbb');
       const v = this.fields[id] || '';
-      const shown = v.length * 4 > w - 8 ? v.slice(-(Math.floor((w - 8) / 4))) : v;
-      if (v) gfx.text(opts.password ? '*'.repeat(v.length) : shown, x + 3, y + Math.floor((h - 5) / 2), '#222', { font: 'small' });
-      else gfx.text(placeholder, x + 3, y + Math.floor((h - 5) / 2), '#aaa', { font: 'small' });
-      if (focused && Math.floor(this.t2 * 2) % 2 === 0) gfx.rect(x + 4 + gfx.textWidth(opts.password ? '*'.repeat(v.length) : shown, 'small'), y + 2, 1, h - 4, '#222');
+      // keep the end of what was typed in view
+      let shown = v;
+      while (shown.length && gfx.textWidth(shown, 'small') > w - 8) shown = shown.slice(1);
+      const ty = y + Math.floor((h - gfx.fontH('small')) / 2);
+      if (v) gfx.text(opts.password ? '*'.repeat(shown.length) : shown, x + 3, ty, '#222', { font: 'small' });
+      else gfx.text(gfx.ellipsize(placeholder, w - 6, 'small'), x + 3, ty, '#aaa', { font: 'small' });
+      if (focused && Math.floor(this.t2 * 2) % 2 === 0) gfx.rect(x + 4 + gfx.textWidth(opts.password ? '*'.repeat(shown.length) : shown, 'small'), y + 2, 1, h - 4, '#222');
       if (hv) ui.cursor = 'hand';
       if (this.clicked(r)) { this.focus = id; this.keyboardShown = true; A.sfx('tap'); inp.eat(); }
       return v;
@@ -489,7 +493,9 @@
       gfx.hline(4, y + h - 1, SW - 8, '#dde');
       if (onClick && this.clicked(r)) { onClick(); inp.eat(); }
     }
-    para(text, x, y, w, color = '#333', font = 'small') { const lines = gfx.wrap(text, w, font); lines.forEach((l, i) => gfx.text(l, x, y + i * (font === 'small' ? 7 : 10), color, { font })); return lines.length * (font === 'small' ? 7 : 10); }
+    // a paragraph centred line by line on cx
+    cpara(text, cx, y, w, color = '#333', font = 'small') { const lh = gfx.lineH(font); const lines = gfx.wrap(text, w, font); lines.forEach((l, i) => gfx.text(l, cx, y + i * lh, color, { font, align: 'center' })); return lines.length * lh; }
+    para(text, x, y, w, color = '#333', font = 'small') { const lh = gfx.lineH(font); const lines = gfx.wrap(text, w, font); lines.forEach((l, i) => gfx.text(l, x, y + i * lh, color, { font })); return lines.length * lh; }
     drawKeyboard(g) {
       const rows = ['qwertyuiop', 'asdfghjkl', 'zxcvbnm'];
       const kh = 56, ky = SY + SH - NAV_H - kh;
@@ -537,7 +543,9 @@
       const ub = { x: 14, y: a.scroll + 3, w: cw - 30, h: 10 };
       gfx.rrect(ub.x, ub.y, ub.w, ub.h, 3, '#fff'); gfx.frame(ub.x, ub.y, ub.w, ub.h, this.focus === 'url' ? '#3b6fd6' : '#ccc');
       const typed = this.fields.url;
-      gfx.text(this.focus === 'url' ? (typed || '') + (Math.floor(this.t2 * 2) % 2 ? '|' : '') : (url.length > 24 ? url.slice(0, 24) + '…' : url), ub.x + 4, ub.y + 3, '#333', { font: 'small' });
+      let shownUrl = gfx.ellipsize(url, ub.w - 7, 'small');
+      if (this.focus === 'url') { shownUrl = typed || ''; while (shownUrl.length && gfx.textWidth(shownUrl + '|', 'small') > ub.w - 7) shownUrl = shownUrl.slice(1); shownUrl += Math.floor(this.t2 * 2) % 2 ? '|' : ''; }
+      gfx.text(shownUrl, ub.x + 4, ub.y + 2, '#333', { font: 'small' });
       if (this.hover({ x: ub.x, y: ub.y, w: ub.w, h: ub.h })) ui.cursor = 'hand';
       if (this.clicked({ x: ub.x, y: ub.y, w: ub.w, h: ub.h })) { this.focus = 'url'; this.fields.url = ''; this.keyboardShown = true; inp.eat(); }
       // back arrow
@@ -605,24 +613,26 @@
     }
     goto(st, url) { st.hist = st.hist || []; st.hist.push(st.url); st.url = url; this.app.scroll = 0; A.sfx('swipe'); this.pageLoad(url); }
     page_goggle(g, cw, y, st) {
-      gfx.rect(0, y, cw, 200, '#fff');
+      gfx.rect(0, y, cw, 260, '#fff');
       // logo
       const cols = ['#3b6fd6', '#c8352b', '#f5c33b', '#3b6fd6', '#4f9d3a', '#c8352b'];
-      'Goggle'.split('').forEach((c, i) => { g.save(); g.translate(cw / 2 - 30 + i * 11, y + 30); g.scale(1.6, 1.6); gfx.text(c, 0, 0, cols[i]); g.restore(); });
+      // letters placed by their real widths so the thin l does not leave a gap
+      let lx = cw / 2 - (gfx.textWidth('Goggle') * 1.6) / 2;
+      'Goggle'.split('').forEach((c, i) => { g.save(); g.translate(Math.round(lx), y + 26); g.scale(1.6, 1.6); gfx.text(c, 0, 0, cols[i]); g.restore(); lx += (gfx.textWidth(c) + 1) * 1.6; });
       const v = this.field('gsearch', 10, y + 56, cw - 20, 12, 'Search or type URL');
       if (this.enterPressed && this.focus === 'gsearch') { this.enterPressed = false; this.navigate(st, v); this.fields.gsearch = ''; this.focus = null; this.keyboardShown = false; }
       if (this.button(cw / 2 - 40, y + 74, 36, 12, 'Search')) { this.navigate(st, v); this.fields.gsearch = ''; }
       if (this.button(cw / 2 + 4, y + 74, 40, 12, "I'm Lazy", { color: '#8899aa' })) { this.navigate(st, 'blue hedgehog cheats'); }
-      this.para('Trending: "jobs near me", "how to adult", "is 84000 a lot", "Donald\'s Burgers hiring", "can you eat a button"', 10, y + 96, cw - 20, '#888');
-      this.link(10, y + 130, 'Goggle Jobs →', () => this.navigate(st, 'jobs'));
-      this.link(10, y + 140, 'Moosepedia', () => this.goto(st, 'moosepedia.org'));
-      this.link(10, y + 150, 'Moose Weather', () => this.goto(st, 'mooseweather.ca'));
-      return 170;
+      let ly = y + 96 + this.para('Trending: "jobs near me", "how to adult", "is 84000 a lot", "Donald\'s Burgers hiring", "can you eat a button"', 10, y + 96, cw - 20, '#888') + 6;
+      this.link(10, ly, 'Goggle Jobs →', () => this.navigate(st, 'jobs')); ly += 11;
+      this.link(10, ly, 'Moosepedia', () => this.goto(st, 'moosepedia.org')); ly += 11;
+      this.link(10, ly, 'Moose Weather', () => this.goto(st, 'mooseweather.ca')); ly += 11;
+      return ly - y + 10;
     }
     page_search(g, cw, y, st) {
       const q = decodeURIComponent((st.url.split('q=')[1] || '')).toLowerCase();
       gfx.rect(0, y, cw, 400, '#fff');
-      gfx.text('Goggle', 6, y + 4, '#3b6fd6'); gfx.rrect(50, y + 3, cw - 56, 10, 3, '#eef'); gfx.text(q.slice(0, 22), 54, y + 6, '#333', { font: 'small' });
+      gfx.text('Goggle', 6, y + 4, '#3b6fd6'); gfx.rrect(50, y + 3, cw - 56, 10, 3, '#eef'); gfx.text(gfx.ellipsize(q, cw - 62, 'small'), 54, y + 6, '#333', { font: 'small' });
       let yy = y + 20;
       const results = [];
       const jobby = /job|work|hiring|career|employ|money|apply|donald/.test(q);
@@ -637,7 +647,7 @@
       if (/weather|snow|cold/.test(q)) results.push(['Moose Weather - Moose Hollow forecast', 'mooseweather.ca', '-18°C. Snow. More snow. Snow tomorrow.']);
       if (/porcupine|quill|chubby/.test(q)) results.push(['Porcupine - Moosepedia', 'moosepedia.org', 'A large rodent with a coat of sharp spines. Known for napping.']);
       if (!results.length) results.push(['Did you mean: get a job', 'goggle.ca/search?q=jobs', 'Showing results for "jobs near me" instead.'], ['Moosepedia - ' + q.slice(0, 12), 'moosepedia.org', 'The free encyclopedia that anyone can edit (mostly Kevin).']);
-      gfx.text(`About ${(q.length * 1337 + 42).toLocaleString()} results (0.${q.length}1 seconds)`, 6, yy, '#888', { font: 'small' }); yy += 10;
+      gfx.text(gfx.ellipsize(`About ${(q.length * 1337 + 42).toLocaleString()} results (0.${q.length}1 sec)`, cw - 12, 'small'), 6, yy, '#888', { font: 'small' }); yy += 10;
       for (const [title, url, snip] of results) {
         if (url === 'donaldsburgers.ca') { // paid placement, and it shows
           const r = { x: 6, y: yy, w: cw - 12, h: 54 };
@@ -647,17 +657,17 @@
           gfx.text('AD - DONALDSBURGERS.CA', 6, yy + 56, '#3a9a5a', { font: 'small' });
           yy += 66; continue;
         }
-        this.link(6, yy, title.length > 32 ? title.slice(0, 32) + '…' : title, () => { if (url.startsWith('goggle')) this.navigate(st, 'jobs'); else this.goto(st, url); });
+        this.link(6, yy, gfx.ellipsize(title, cw - 12, 'small'), () => { if (url.startsWith('goggle')) this.navigate(st, 'jobs'); else this.goto(st, url); });
         gfx.text(url, 6, yy + 8, '#3a9a5a', { font: 'small' });
         yy += 16; yy += this.para(snip, 6, yy, cw - 12, '#555') + 6;
       }
-      if (jobby) { gfx.rrect(6, yy, cw - 12, 24, 3, '#fff8d0'); gfx.text('Sponsored: "Earn $5000/wk from your', 10, yy + 4, '#886', { font: 'small' }); gfx.text('COUCH!" - GlobalMoney Solutionz', 10, yy + 11, '#886', { font: 'small' }); this.link(10, yy + 18, 'kijujube.ca/dataentry', () => this.goto(st, 'kijujube.ca')); yy += 30; }
+      if (jobby) { const sp = 'Sponsored: "Earn $5000/wk from your COUCH!" - GlobalMoney Solutionz'; const sh = gfx.wrap(sp, cw - 20, 'small').length * 8; gfx.rrect(6, yy, cw - 12, sh + 18, 3, '#fff8d0'); this.para(sp, 10, yy + 4, cw - 20, '#886'); this.link(10, yy + sh + 6, 'kijujube.ca/dataentry', () => this.goto(st, 'kijujube.ca')); yy += sh + 24; }
       return yy - y + 10;
     }
     jobList(g, cw, y, st, site, color, name, tagline) {
       gfx.rect(0, y, cw, 600, '#fff');
-      gfx.rect(0, y, cw, 18, color); gfx.text(name, 6, y + 3, '#fff'); gfx.text(tagline, 6, y + 11, 'rgba(255,255,255,0.8)', { font: 'small' });
-      let yy = y + 22;
+      gfx.rect(0, y, cw, 25, color); gfx.text(name, 6, y + 3, '#fff'); gfx.text(tagline, 6, y + 16, 'rgba(255,255,255,0.8)', { font: 'small', fit: cw - 10 });
+      let yy = y + 29;
       const v = this.field(site + '_q', 6, yy, cw - 46, 11, 'Search jobs...'); if (this.button(cw - 38, yy, 32, 11, 'Find')) { this.beginLoad({ label: 'SEARCHING JOBS', dur: 2.0, style: 'bar', sub: 'SORTING 1,203 RESULTS…' }); }
       yy += 16;
       yy += this.adSlot(4, yy, cw - 8, st, this.t2 || 0);
@@ -670,7 +680,7 @@
           const adH = 58;
           this.row(yy, adH, () => {
             this.donaldsAd(2, yy + 2, cw - 4, 52, this.t2 || 0);
-            if (st2) { gfx.rrect(4, yy + 4, 40, 8, 2, st2 === 'pending' ? '#f0a030' : st2 === 'interview' ? '#3a9a5a' : '#999'); gfx.text(st2 === 'pending' ? 'APPLIED' : st2 === 'interview' ? 'INTERVIEW' : 'REJECTED', 24, yy + 5, '#fff', { align: 'center', font: 'small' }); }
+            if (st2) { gfx.rrect(4, yy + 4, 40, 8, 2, st2 === 'pending' ? '#f0a030' : st2 === 'interview' ? '#3a9a5a' : '#999'); gfx.text(st2 === 'pending' ? 'APPLIED' : st2 === 'interview' ? 'INTERVIEW' : 'REJECTED', 24, yy + 5, '#fff', { align: 'center', font: 'small', fit: 38 }); }
           }, () => this.goto(st, 'job:' + j.id));
           yy += adH; continue;
         }
@@ -682,8 +692,8 @@
           gfx.text(gfx.ellipsize(j.company, cw - 36, 'small'), 30, yy + 12, '#555', { font: 'small' });
           gfx.text(gfx.ellipsize(j.pay + '  -  ' + j.type, cw - 36, 'small'), 30, yy + 20, '#3a9a5a', { font: 'small' });
           gfx.text(j.posted, cw - 6, yy + 4, j.hot ? '#c8352b' : '#999', { align: 'right', font: 'small' });
-          if (j.hot) { gfx.rrect(cw - 30, yy + 12, 24, 8, 2, '#c8352b'); gfx.text('URGENT', cw - 18, yy + 13, '#fff', { align: 'center', font: 'small' }); }
-          if (st2) { gfx.rrect(cw - 40, yy + 22, 36, 8, 2, st2 === 'pending' ? '#f0a030' : st2 === 'interview' ? '#3a9a5a' : '#999'); gfx.text(st2 === 'pending' ? 'APPLIED' : st2 === 'interview' ? 'INTERVIEW' : 'REJECTED', cw - 22, yy + 23, '#fff', { align: 'center', font: 'small' }); }
+          if (j.hot) { gfx.rrect(cw - 30, yy + 12, 24, 8, 2, '#c8352b'); gfx.text('URGENT', cw - 18, yy + 13, '#fff', { align: 'center', font: 'small', fit: 22 }); }
+          if (st2) { gfx.rrect(cw - 40, yy + 22, 36, 8, 2, st2 === 'pending' ? '#f0a030' : st2 === 'interview' ? '#3a9a5a' : '#999'); gfx.text(st2 === 'pending' ? 'APPLIED' : st2 === 'interview' ? 'INTERVIEW' : 'REJECTED', cw - 22, yy + 23, '#fff', { align: 'center', font: 'small', fit: 34 }); }
         }, () => this.goto(st, 'job:' + j.id));
         yy += rowH;
       }
@@ -692,43 +702,43 @@
     page_indeedly(g, cw, y, st) { return this.jobList(g, cw, y, st, 'indeedly', '#2557a7', 'indeedly', 'find your next disappointment'); }
     page_kijujube(g, cw, y, st) { return this.jobList(g, cw, y, st, 'kijujube', '#37a850', 'Kijujube', 'buy. sell. probably a scam.'); }
     page_linkedout(g, cw, y, st) {
-      gfx.rect(0, y, cw, 300, '#f3f2ef');
-      gfx.rect(0, y, cw, 16, '#0a66c2'); gfx.text('Linked', 6, y + 4, '#fff'); gfx.rrect(44, y + 3, 18, 10, 2, '#fff'); gfx.text('out', 53, y + 5, '#0a66c2', { align: 'center', font: 'small' });
+      gfx.rect(0, y, cw, 520, '#f3f2ef');
+      gfx.rect(0, y, cw, 16, '#0a66c2'); gfx.text('Linked', 6, y + 4, '#fff'); gfx.rrect(46, y + 3, 20, 10, 2, '#fff'); gfx.text('out', 56, y + 5, '#0a66c2', { align: 'center', font: 'small' });
       let yy = y + 20;
       gfx.rrect(6, yy, cw - 12, 40, 3, '#fff'); gfx.frame(6, yy, cw - 12, 40, '#ddd');
       g.save(); g.translate(22, yy + 36); g.scale(0.9, 0.9); CH.drawChubby(g, 0, 0, { outfit: S.outfit, noShadow: true, face: 'normal', arm: 'pocket' }); g.restore();
-      gfx.text('Chubby Quillsworth', 42, yy + 5, '#1a1a2a', { font: 'small' }); gfx.text('Couch Manager at Self', 42, yy + 13, '#555', { font: 'small' }); gfx.text('Moose Hollow, ON - 2 connections', 42, yy + 21, '#888', { font: 'small' }); gfx.text('(Mom, and a bot)', 42, yy + 29, '#888', { font: 'small' });
+      gfx.text('Chubby Quillsworth', 42, yy + 5, '#1a1a2a', { font: 'small' }); gfx.text(gfx.ellipsize('Couch Manager at Self', cw - 50, 'small'), 42, yy + 13, '#555', { font: 'small' }); gfx.text('2 connections', 42, yy + 21, '#888', { font: 'small' }); gfx.text('(Mom, and a bot)', 42, yy + 29, '#888', { font: 'small' });
       yy += 46;
       yy += this.adSlot(6, yy, cw - 12, st, this.t2 || 0);
-      gfx.text('Jobs for you', 6, yy, '#1a1a2a'); yy += 10;
+      gfx.text('Jobs for you', 6, yy, '#1a1a2a'); yy += 14;
       for (const j of CH.JOB_LISTINGS.filter((j) => j.site === 'linkedout')) {
         const st2 = PD().applications[j.id] ? PD().applications[j.id].status : null;
-        this.row(yy, 30, (hv) => { gfx.text(j.title, 8, yy + 4, '#0a66c2', { font: 'small' }); gfx.text(j.company + ' - ' + j.loc, 8, yy + 12, '#555', { font: 'small' }); gfx.text(st2 ? 'Status: ' + st2.toUpperCase() : '4,311 applicants', 8, yy + 20, st2 ? '#c8352b' : '#888', { font: 'small' }); }, () => this.goto(st, 'job:' + j.id));
+        this.row(yy, 30, (hv) => { gfx.text(gfx.ellipsize(j.title, cw - 16, 'small'), 8, yy + 4, '#0a66c2', { font: 'small' }); gfx.text(gfx.ellipsize(j.company + ' - ' + j.loc, cw - 16, 'small'), 8, yy + 12, '#555', { font: 'small' }); gfx.text(st2 ? 'Status: ' + st2.toUpperCase() : '4,311 applicants', 8, yy + 20, st2 ? '#c8352b' : '#888', { font: 'small' }); }, () => this.goto(st, 'job:' + j.id));
         yy += 30;
       }
       yy += 6;
-      gfx.text('Feed', 6, yy, '#1a1a2a'); yy += 10;
+      gfx.text('Feed', 6, yy, '#1a1a2a'); yy += 14;
       const posts = [['Tammy F.', 'Thrilled to announce I am now a SENIOR CASHIER at Donald\'s Burgers!! #blessed #grind'], ['Gary from high school', 'Just closed my 3rd house. Hustle never sleeps. (I sleep 4 hrs)'], ['Kevin R.', 'I QUIT. Never mopping again. Brenda if you see this: the fryer WAS on fire.'], ['Moose Hollow Mall', 'Now hiring Santa. Not a bear this time. Please.']];
-      for (const [who, txt] of posts) { gfx.rrect(6, yy, cw - 12, 30, 3, '#fff'); gfx.frame(6, yy, cw - 12, 30, '#ddd'); gfx.circle(14, yy + 8, 5, '#0a66c2'); gfx.text(who, 22, yy + 4, '#1a1a2a', { font: 'small' }); this.para(txt, 10, yy + 12, cw - 20, '#444'); yy += 34; }
+      for (const [who, txt] of posts) { const ph = 16 + gfx.wrap(txt, cw - 20, 'small').length * 8; gfx.rrect(6, yy, cw - 12, ph, 3, '#fff'); gfx.frame(6, yy, cw - 12, ph, '#ddd'); gfx.circle(14, yy + 8, 5, '#0a66c2'); gfx.text(gfx.ellipsize(who, cw - 30, 'small'), 22, yy + 5, '#1a1a2a', { font: 'small' }); this.para(txt, 10, yy + 14, cw - 20, '#444'); yy += ph + 4; }
       return yy - y + 10;
     }
     page_donalds(g, cw, y, st) {
-      gfx.rect(0, y, cw, 260, '#fff8e8');
+      gfx.rect(0, y, cw, 360, '#fff8e8');
       gfx.rect(0, y, cw, 30, '#c8352b');
       // big D logo
       g.save(); g.translate(14, y + 4); g.scale(2, 2); gfx.text('D', 0, 0, '#f5c33b', { outline: '#8f2419' }); g.restore();
-      gfx.text("Donald's Burgers", 34, y + 6, '#fff'); gfx.text('"It\'s a D. Not an M."', 34, y + 17, '#f5c33b', { font: 'small' });
+      gfx.text("Donald's Burgers", 33, y + 5, '#fff', { fit: cw - 34 }); gfx.text('"It\'s a D. Not an M."', 34, y + 20, '#f5c33b', { font: 'small', fit: cw - 38 });
       let yy = y + 36;
       yy += this.para("Home of the Big Don, the Quarter Pounder-ish, and the McFlurry-adjacent Donald Swirl. Serving Moose Hollow since 1987.", 6, yy, cw - 12, '#5a3a1a') + 6;
       this.donaldsAd(6, yy, cw - 12, 56, this.t2 || 0);
       yy += 60;
-      gfx.text('JANITOR / CREW MEMBER. IMMEDIATELY.', cw / 2, yy, '#5a3a1a', { align: 'center', font: 'small' }); yy += 8;
-      gfx.text(CH.DONALDS_AD.kicker, cw / 2, yy, '#c8352b', { align: 'center', font: 'small' }); yy += 10;
+      yy += this.cpara('JANITOR / CREW MEMBER. IMMEDIATELY.', cw / 2, yy, cw - 12, '#5a3a1a');
+      yy += this.cpara(CH.DONALDS_AD.kicker, cw / 2, yy, cw - 12, '#c8352b') + 2;
       if (this.button(cw / 2 - 34, yy, 68, 11, 'View posting', { color: '#c8352b' })) this.goto(st, 'job:donalds');
       yy += 16;
-      gfx.text('Menu highlights', 6, yy, '#5a3a1a'); yy += 10;
-      for (const [n, p] of [['Big Don', '$6.99'], ['Double Don w/ cheese', '$8.49'], ['Donald Fries (L)', '$3.29'], ['Moose Shake', '$4.99'], ['Kids Meal (toy: sad egg)', '$5.99']]) { gfx.text(n, 8, yy, '#333', { font: 'small' }); gfx.text(p, cw - 8, yy, '#c8352b', { align: 'right', font: 'small' }); yy += 8; }
-      yy += 6; gfx.text('123 Main St, Moose Hollow  -  Open 6AM-11PM', 6, yy, '#888', { font: 'small' }); yy += 8;
+      gfx.text('Menu highlights', 6, yy, '#5a3a1a'); yy += 14;
+      for (const [n, p] of [['Big Don', '$6.99'], ['Double Don w/ cheese', '$8.49'], ['Donald Fries (L)', '$3.29'], ['Moose Shake', '$4.99'], ['Kids Meal (toy: sad egg)', '$5.99']]) { gfx.text(gfx.ellipsize(n, cw - 22 - gfx.textWidth(p, 'small'), 'small'), 8, yy, '#333', { font: 'small' }); gfx.text(p, cw - 8, yy, '#c8352b', { align: 'right', font: 'small' }); yy += 9; }
+      yy += 6; yy += this.para('123 Main St, Moose Hollow  -  Open 6AM-11PM', 6, yy, cw - 12, '#888');
       return yy - y + 10;
     }
     page_job(g, cw, y, st) {
@@ -737,18 +747,18 @@
       let yy = y + 4;
       if (j.ad) { this.donaldsAd(6, yy, cw - 12, 56, this.t2 || 0); yy += 62; }
       yy += this.para(j.title, 6, yy, cw - 12, '#1a1a2a', 'main') + 2;
-      gfx.text(j.company + ' - ' + j.loc, 6, yy, '#555', { font: 'small' }); yy += 8;
-      gfx.text(j.pay + '  -  ' + j.type + '  -  ' + j.posted, 6, yy, '#3a9a5a', { font: 'small' }); yy += 12;
+      yy += this.para(j.company + ' - ' + j.loc, 6, yy, cw - 12, '#555');
+      yy += this.para(j.pay + '  -  ' + j.type + '  -  ' + j.posted, 6, yy, cw - 12, '#3a9a5a') + 4;
       const ap = PD().applications[j.id];
-      if (ap) { gfx.rrect(6, yy, cw - 12, 12, 2, ap.status === 'pending' ? '#f0a030' : ap.status === 'interview' ? '#3a9a5a' : '#999'); gfx.text(ap.status === 'pending' ? 'APPLIED - awaiting response' : ap.status === 'interview' ? 'INTERVIEW OFFERED! Check Mail.' : 'REJECTED - check Mail for details', cw / 2, yy + 3, '#fff', { align: 'center', font: 'small' }); yy += 16; }
+      if (ap) { gfx.rrect(6, yy, cw - 12, 12, 2, ap.status === 'pending' ? '#f0a030' : ap.status === 'interview' ? '#3a9a5a' : '#999'); gfx.text(ap.status === 'pending' ? 'APPLIED - awaiting reply' : ap.status === 'interview' ? 'INTERVIEW! Check Mail.' : 'REJECTED - see Mail', cw / 2, yy + 3, '#fff', { align: 'center', font: 'small', fit: cw - 16 }); yy += 16; }
       else { if (this.button(6, yy, cw - 12, 14, 'APPLY NOW', { color: j.hot ? '#c8352b' : '#2557a7', font: 'main', sfx: 'select' })) { this.fields = Object.assign(this.fields, { ap_name: this.fields.ap_name || '', ap_email: this.fields.ap_email || '' }); this.goto(st, 'apply:' + j.id + ':0'); } yy += 18; }
-      gfx.text('Description', 6, yy, '#1a1a2a'); yy += 10;
+      gfx.text('Description', 6, yy, '#1a1a2a'); yy += 14;
       yy += this.para(j.desc, 6, yy, cw - 12, '#333') + 6;
-      gfx.text('Requirements', 6, yy, '#1a1a2a'); yy += 10;
-      for (const r of j.reqs) { gfx.text('- ' + r, 8, yy, '#333', { font: 'small' }); yy += 8; }
+      gfx.text('Requirements', 6, yy, '#1a1a2a'); yy += 14;
+      for (const r of j.reqs) yy += this.para('- ' + r, 8, yy, cw - 14, '#333');
       yy += 6;
-      gfx.text('Similar jobs', 6, yy, '#1a1a2a'); yy += 10;
-      for (const o of CH.JOB_LISTINGS.filter((o) => o.id !== j.id).slice(0, 3)) { this.link(8, yy, o.title.slice(0, 30), () => this.goto(st, 'job:' + o.id)); yy += 9; }
+      gfx.text('Similar jobs', 6, yy, '#1a1a2a'); yy += 14;
+      for (const o of CH.JOB_LISTINGS.filter((o) => o.id !== j.id).slice(0, 3)) { this.link(8, yy, gfx.ellipsize(o.title, cw - 16, 'small'), () => this.goto(st, 'job:' + o.id)); yy += 10; }
       return yy - y + 10;
     }
     // ---- APPLICATION FLOW ----------------------------------------------------------------------------------
@@ -762,7 +772,7 @@
       const steps = ['Info', 'Resume', 'Questions', 'Letter', 'Human?', 'Done'];
       steps.forEach((s, i) => { const x = 6 + i * ((cw - 12) / steps.length); gfx.rect(x, y + 4, (cw - 12) / steps.length - 2, 3, i <= step ? '#2557a7' : '#ddd'); });
       gfx.text(`Step ${step + 1}/${steps.length}: ${steps[step]}`, 6, y + 10, '#555', { font: 'small' });
-      gfx.text(j.title.slice(0, 28), 6, y + 18, '#1a1a2a', { font: 'small' });
+      gfx.text(gfx.ellipsize(j.title, cw - 12, 'small'), 6, y + 18, '#1a1a2a', { font: 'small' });
       let yy = y + 30;
       const next = () => { this.goto(st, `apply:${id}:${step + 1}`); this.focus = null; this.keyboardShown = false; };
       if (step === 0) {
@@ -771,21 +781,21 @@
         gfx.text('Phone', 6, yy, '#333', { font: 'small' }); yy += 8; const ph = this.field('ap_phone', 6, yy, cw - 12, 12, '(705) 555-'); yy += 18;
         if (this.enterPressed) { this.enterPressed = false; this.focus = null; this.keyboardShown = false; }
         const ok = nm.trim().length >= 3 && em.includes('@') && ph.length >= 3;
-        if (!ok) { gfx.text('Fill in all fields (email needs an @)', 6, yy, '#c8352b', { font: 'small' }); yy += 10; }
-        if (nm && !/chubby/i.test(nm)) { gfx.text('(That is not your name. Bold.)', 6, yy, '#888', { font: 'small' }); yy += 10; }
+        if (!ok) yy += this.para('Fill in all fields (email needs an @)', 6, yy, cw - 12, '#c8352b') + 2;
+        if (nm && !/chubby/i.test(nm)) yy += this.para('(That is not your name. Bold.)', 6, yy, cw - 12, '#888') + 2;
         if (this.button(6, yy, cw - 12, 12, 'Continue', { disabled: !ok })) { ap.name = nm; ap.score += /chubby/i.test(nm) ? 1 : 0; next(); }
         yy += 16;
         this.link(6, yy, 'Autofill from LinkedOut', () => { this.fields.ap_name = 'Chubby Quillsworth'; this.fields.ap_email = 'chubby_gamer_420@hotmoose.ca'; this.fields.ap_phone = '(705) 555-0142'; A.sfx('good'); }); yy += 10;
       } else if (step === 1) {
-        gfx.text('Attach your resume', 6, yy, '#333'); yy += 12;
+        gfx.text('Attach your resume', 6, yy, '#333'); yy += 14;
         const files = [['resume_final_FINAL2.pdf', 'PDF - 84 KB', true], ['resume_final.pdf', 'PDF - 81 KB (old, has typo)', 'old'], ['blue_hedgehog_speedrun_41min.mp4', 'Video - 1.2 GB', false], ['IMG_2019_pancakes.jpg', 'Image - 2.1 MB', false], ['pancake_mix_coupon.pdf', 'PDF - 12 KB', false], ['taxes_2022_DO_NOT_OPEN.zip', 'Archive - 9 KB', false]];
         for (const [name, meta, good] of files) {
           const sel = ap.file === name;
-          this.row(yy, 18, (hv) => { gfx.rect(6, yy + 3, 12, 12, sel ? '#2557a7' : '#eee'); gfx.text(name.split('.').pop().toUpperCase().slice(0, 3), 12, yy + 7, sel ? '#fff' : '#555', { align: 'center', font: 'small' }); gfx.text(name.length > 26 ? name.slice(0, 26) + '…' : name, 22, yy + 3, '#1a1a2a', { font: 'small' }); gfx.text(meta, 22, yy + 11, '#888', { font: 'small' }); if (sel) gfx.text('✓', cw - 10, yy + 6, '#3a9a5a'); }, () => { ap.file = name; ap.good = good; A.sfx('tap'); });
+          this.row(yy, 18, (hv) => { gfx.rect(6, yy + 3, 12, 12, sel ? '#2557a7' : '#eee'); gfx.text(name.split('.').pop().toUpperCase().slice(0, 3), 12, yy + 7, sel ? '#fff' : '#555', { align: 'center', font: 'small', fit: 11 }); gfx.text(gfx.ellipsize(name, cw - 34, 'small'), 22, yy + 3, '#1a1a2a', { font: 'small' }); gfx.text(gfx.ellipsize(meta, cw - 34, 'small'), 22, yy + 11, '#888', { font: 'small' }); if (sel) gfx.text('✓', cw - 10, yy + 6, '#3a9a5a'); }, () => { ap.file = name; ap.good = good; A.sfx('tap'); });
           yy += 18;
         }
         yy += 6;
-        if (ap.file && ap.good !== true) { gfx.text(ap.good === 'old' ? 'Hmm. This one says "Couch Manger".' : 'Are you sure? That is not a resume.', 6, yy, '#c8352b', { font: 'small' }); yy += 10; }
+        if (ap.file && ap.good !== true) yy += this.para(ap.good === 'old' ? 'Hmm. This one says "Couch Manger".' : 'Are you sure? That is not a resume.', 6, yy, cw - 12, '#c8352b') + 2;
         if (this.button(6, yy, cw - 12, 12, 'Attach & continue', { disabled: !ap.file })) { ap.score += ap.good === true ? 2 : ap.good === 'old' ? 1 : 0; if (ap.good !== true) ap.wrongFile = ap.file; next(); }
         yy += 16;
       } else if (step === 2) {
@@ -795,37 +805,41 @@
           gfx.text(`Question ${qi + 1} of ${j.qs.length}`, 6, yy, '#888', { font: 'small' }); yy += 8;
           yy += this.para(q.q, 6, yy, cw - 12, '#1a1a2a', 'main') + 6;
           q.a.forEach((opt, i) => {
-            const r = { x: 6, y: yy, w: cw - 12, h: 14 }; const hv = this.hover(r);
-            gfx.rrect(6, yy, cw - 12, 14, 2, hv ? '#e8f0ff' : '#f4f6fa'); gfx.frame(6, yy, cw - 12, 14, hv ? '#2557a7' : '#ccd');
+            // answers wrap onto as many lines as they need
+            const ol = gfx.wrap(opt, cw - 30, 'small'), oh = Math.max(14, 6 + ol.length * 8);
+            const r = { x: 6, y: yy, w: cw - 12, h: oh }; const hv = this.hover(r);
+            gfx.rrect(6, yy, cw - 12, oh, 2, hv ? '#e8f0ff' : '#f4f6fa'); gfx.frame(6, yy, cw - 12, oh, hv ? '#2557a7' : '#ccd');
             gfx.circle(13, yy + 7, 3, '#fff'); gfx.ellipseOutline(13, yy + 7, 3, 3, '#888');
-            gfx.text(opt.length > 30 ? opt.slice(0, 30) + '…' : opt, 20, yy + 4, '#333', { font: 'small' });
+            ol.forEach((l, k) => gfx.text(l, 20, yy + 4 + k * 8, '#333', { font: 'small' }));
             if (hv) ui.cursor = 'hand';
             if (this.clicked(r)) { ap.answers.push(i); ap.score += i === q.good ? 2 : i === 3 ? 0 : 1; A.sfx('tap'); inp.eat(); }
-            yy += 17;
+            yy += oh + 3;
           });
         } else {
-          gfx.text('All questions answered.', 6, yy, '#3a9a5a'); yy += 12;
+          gfx.text('All questions answered.', 6, yy, '#3a9a5a', { fit: cw - 12 }); yy += 14;
           gfx.text('Also please confirm:', 6, yy, '#333', { font: 'small' }); yy += 10;
           ap.checks = ap.checks || [false, false, false];
           ['I am legally allowed to work in Canada', 'I am not a robot (see next step)', 'I consent to being emailed forever'].forEach((c, i) => {
-            const r = { x: 6, y: yy, w: cw - 12, h: 10 }; gfx.rect(6, yy, 8, 8, '#fff'); gfx.frame(6, yy, 8, 8, '#888'); if (ap.checks[i]) gfx.text('✓', 10, yy + 1, '#2557a7', { align: 'center', font: 'small' });
-            gfx.text(c, 17, yy + 1, '#333', { font: 'small' }); if (this.hover(r)) ui.cursor = 'hand'; if (this.clicked(r)) { ap.checks[i] = !ap.checks[i]; A.sfx('tap'); inp.eat(); } yy += 11;
+            const cl = gfx.wrap(c, cw - 24, 'small'), chh = 3 + cl.length * 8;
+            const r = { x: 6, y: yy, w: cw - 12, h: chh }; gfx.rect(6, yy, 8, 8, '#fff'); gfx.frame(6, yy, 8, 8, '#888'); if (ap.checks[i]) gfx.text('✓', 10, yy + 1, '#2557a7', { align: 'center', font: 'small' });
+            cl.forEach((l, k) => gfx.text(l, 17, yy + 1 + k * 8, '#333', { font: 'small' })); if (this.hover(r)) ui.cursor = 'hand'; if (this.clicked(r)) { ap.checks[i] = !ap.checks[i]; A.sfx('tap'); inp.eat(); } yy += chh + 2;
           });
           yy += 4;
           if (this.button(6, yy, cw - 12, 12, 'Continue', { disabled: !ap.checks.every(Boolean) })) next();
           yy += 16;
         }
       } else if (step === 3) {
-        gfx.text('Cover letter', 6, yy, '#333'); yy += 10;
-        gfx.text('Pick a template or write your own:', 6, yy, '#555', { font: 'small' }); yy += 10;
+        gfx.text('Cover letter', 6, yy, '#333'); yy += 14;
+        yy += this.para('Pick a template or write your own:', 6, yy, cw - 12, '#555') + 2;
         CH.COVER_LETTERS.forEach((cl, i) => {
-          const sel = ap.letter === i; const r = { x: 6, y: yy, w: cw - 12, h: 30 };
-          gfx.rrect(6, yy, cw - 12, 30, 2, sel ? '#e8f0ff' : '#f8f9fb'); gfx.frame(6, yy, cw - 12, 30, sel ? '#2557a7' : '#ccd');
-          gfx.text(cl.title, 10, yy + 3, '#1a1a2a', { font: 'small' }); this.para(cl.text.slice(0, 70) + '…', 10, yy + 11, cw - 20, '#666');
+          const tl = gfx.wrap(cl.text.slice(0, 64) + '…', cw - 20, 'small').slice(0, 2), lh2 = 14 + tl.length * 8;
+          const sel = ap.letter === i; const r = { x: 6, y: yy, w: cw - 12, h: lh2 };
+          gfx.rrect(6, yy, cw - 12, lh2, 2, sel ? '#e8f0ff' : '#f8f9fb'); gfx.frame(6, yy, cw - 12, lh2, sel ? '#2557a7' : '#ccd');
+          gfx.text(gfx.ellipsize(cl.title, cw - 20, 'small'), 10, yy + 3, '#1a1a2a', { font: 'small' }); tl.forEach((l, k) => gfx.text(l, 10, yy + 12 + k * 8, '#666', { font: 'small' }));
           if (this.hover(r)) ui.cursor = 'hand'; if (this.clicked(r)) { ap.letter = i; A.sfx('tap'); inp.eat(); }
-          yy += 33;
+          yy += lh2 + 3;
         });
-        gfx.text('Or type your own (20+ chars):', 6, yy, '#555', { font: 'small' }); yy += 9;
+        yy += this.para('Or type your own (20+ chars):', 6, yy, cw - 12, '#555') + 1;
         const custom = this.field('ap_letter_' + id, 6, yy, cw - 12, 12, 'Dear Hiring Manager...'); yy += 16;
         if (this.enterPressed) { this.enterPressed = false; this.focus = null; this.keyboardShown = false; }
         const ok = ap.letter >= 0 || custom.trim().length >= 20;
@@ -835,7 +849,7 @@
       } else if (step === 4) {
         // CAPTCHA: select all porcupines
         if (!ap.captcha) { const kinds = ['porcupine', 'hedgehog', 'pinecone', 'cactus', 'porcupine', 'brush', 'porcupine', 'hedgehog', 'pineapple']; ap.captcha = CH.shuffle(kinds.slice()); ap.captchaSel = ap.captcha.map(() => false); ap.captchaFails = 0; }
-        gfx.rrect(6, yy, cw - 12, 14, 2, '#4a8ad0'); gfx.text('Select all images with a', 10, yy + 2, '#fff', { font: 'small' }); gfx.text('PORCUPINE', 10, yy + 8, '#fff', { font: 'small' }); yy += 18;
+        gfx.rrect(6, yy, cw - 12, 21, 2, '#4a8ad0'); gfx.text('Select all images with a', 10, yy + 3, '#fff', { font: 'small', fit: cw - 20 }); gfx.text('PORCUPINE', 10, yy + 12, '#fff', { font: 'small' }); yy += 25;
         const cell = 36, gx = Math.floor((cw - cell * 3 - 4) / 2);
         for (let i = 0; i < 9; i++) {
           const cx = gx + (i % 3) * (cell + 2), cy = yy + Math.floor(i / 3) * (cell + 2);
@@ -847,7 +861,7 @@
           if (this.clicked(r)) { ap.captchaSel[i] = !ap.captchaSel[i]; A.sfx('tap'); inp.eat(); }
         }
         yy += cell * 3 + 8;
-        if (ap.captchaMsg) { gfx.text(ap.captchaMsg, 6, yy, '#c8352b', { font: 'small' }); yy += 10; }
+        if (ap.captchaMsg) yy += this.para(ap.captchaMsg, 6, yy, cw - 12, '#c8352b') + 2;
         if (this.button(6, yy, cw - 12, 12, 'VERIFY', { color: '#4a8ad0' })) {
           const ok = ap.captcha.every((k, i) => (k === 'porcupine') === ap.captchaSel[i]);
           if (ok) { A.sfx('good'); next(); }
@@ -862,7 +876,7 @@
           if (id === 'donalds') CH.flag('appliedDonalds', true);
         }
         gfx.circle(cw / 2, yy + 16, 14, '#3a9a5a'); gfx.text('✓', cw / 2, yy + 11, '#fff', { align: 'center' }); yy += 36;
-        gfx.text('Application submitted!', cw / 2, yy, '#1a1a2a', { align: 'center' }); yy += 12;
+        gfx.text('Application submitted!', cw / 2, yy, '#1a1a2a', { align: 'center', fit: cw - 8 }); yy += 14;
         yy += this.para(`${j.company} will review your application and respond by email. Typical response time: ${j.delay} minutes.`, 6, yy, cw - 12, '#555') + 8;
         yy += this.para(CH.pick(['You feel a strange mix of hope and nausea.', 'Your paws are sweaty.', 'You refresh your inbox. Nothing. You refresh again.', 'Somewhere, a hiring manager sighs.']), 6, yy, cw - 12, '#888') + 8;
         if (this.button(6, yy, cw - 12, 12, 'Back to listings')) { st.hist = []; this.goto(st, j.site + '.ca'); }
@@ -887,9 +901,9 @@
         this.header('Mail', '#3b6fd6', '◀ Inbox'); if (this.clicked({ x: cw - 40, y: 0, w: 40, h: 14 })) { st.open = null; inp.eat(); return; }
         let yy = 18;
         yy += this.para(m.subject, 6, yy, cw - 12, '#1a1a2a', 'main') + 2;
-        gfx.text('From: ' + m.from, 6, yy, '#3b6fd6', { font: 'small' }); yy += 8; gfx.hline(6, yy, cw - 12, '#ddd'); yy += 6;
+        gfx.text(gfx.ellipsize('From: ' + m.from, cw - 12, 'small'), 6, yy, '#3b6fd6', { font: 'small' }); yy += 8; gfx.hline(6, yy, cw - 12, '#ddd'); yy += 6;
         yy += this.para(m.text, 6, yy, cw - 12, '#333') + 10;
-        if (m.kind === 'interview') { gfx.rrect(6, yy, cw - 12, 22, 3, '#e8f8e8'); gfx.text('INTERVIEW: Tomorrow 10 AM', cw / 2, yy + 3, '#3a9a5a', { align: 'center', font: 'small' }); gfx.text("Donald's Burgers, 123 Main St", cw / 2, yy + 11, '#3a9a5a', { align: 'center', font: 'small' }); yy += 28; }
+        if (m.kind === 'interview') { gfx.rrect(6, yy, cw - 12, 22, 3, '#e8f8e8'); gfx.text('INTERVIEW: Tomorrow 10 AM', cw / 2, yy + 3, '#3a9a5a', { align: 'center', font: 'small' }); gfx.text("Donald's, 123 Main St", cw / 2, yy + 11, '#3a9a5a', { align: 'center', font: 'small' }); yy += 28; }
         if (this.button(6, yy, cw - 12, 12, 'Reply', { color: '#8899aa' })) { ui.toast('You type "thank you" and delete it four times.', '#fff', 3); } yy += 16;
         a.contentH = yy;
         return;
@@ -900,9 +914,9 @@
       for (const m of d.mail) {
         this.row(yy, 26, (hv) => {
           if (!m.read) gfx.circle(6, yy + 13, 2, '#3b6fd6');
-          gfx.text(m.from.length > 26 ? m.from.slice(0, 26) + '…' : m.from, 12, yy + 3, m.read ? '#555' : '#1a1a2a', { font: 'small' });
-          gfx.text(m.subject.length > 30 ? m.subject.slice(0, 30) + '…' : m.subject, 12, yy + 11, m.kind === 'interview' ? '#3a9a5a' : m.kind === 'reject' ? '#c8352b' : '#333', { font: 'small' });
-          gfx.text(m.text.replace(/\n/g, ' ').slice(0, 32) + '…', 12, yy + 19, '#888', { font: 'small' });
+          gfx.text(gfx.ellipsize(m.from, cw - 16, 'small'), 12, yy + 3, m.read ? '#555' : '#1a1a2a', { font: 'small' });
+          gfx.text(gfx.ellipsize(m.subject, cw - 16, 'small'), 12, yy + 11, m.kind === 'interview' ? '#3a9a5a' : m.kind === 'reject' ? '#c8352b' : '#333', { font: 'small' });
+          gfx.text(gfx.ellipsize(m.text.replace(/\n/g, ' ') + ' ', cw - 16, 'small'), 12, yy + 19, '#888', { font: 'small' });
         }, () => { if (!m.read) { m.read = true; d.unreadMail = Math.max(0, d.unreadMail - 1); } st.open = m; a.scroll = 0; this.beginLoad({ label: 'LOADING MESSAGE', dur: 1.2, style: 'bar', sub: 'FETCHING FROM SERVER…' }); });
         yy += 26;
       }
@@ -938,7 +952,7 @@
       const threads = Object.keys(d.texts);
       for (const who of threads) {
         const msgs = d.texts[who]; const last = msgs[msgs.length - 1]; const unread = msgs.filter((m) => m.them && !m.read).length;
-        this.row(yy, 24, (hv) => { gfx.circle(14, yy + 12, 8, who === 'Mom' ? '#c85a8a' : '#8899aa'); gfx.text(who[0], 14, yy + 9, '#fff', { align: 'center' }); gfx.text(who, 28, yy + 4, '#1a1a2a', { font: 'small' }); gfx.text(last.text.slice(0, 26) + (last.text.length > 26 ? '…' : ''), 28, yy + 13, '#666', { font: 'small' }); if (unread) { gfx.circle(cw - 10, yy + 12, 4, '#e83030'); gfx.text(String(unread), cw - 10, yy + 9, '#fff', { align: 'center', font: 'small' }); } }, () => { st.thread = who; a.scroll = 0; this.beginLoad({ label: 'LOADING THREAD', dur: 0.9, style: 'spinner' }); });
+        this.row(yy, 24, (hv) => { gfx.circle(14, yy + 12, 8, who === 'Mom' ? '#c85a8a' : '#8899aa'); gfx.text(who[0], 14, yy + 9, '#fff', { align: 'center' }); gfx.text(who, 28, yy + 4, '#1a1a2a', { font: 'small' }); gfx.text(gfx.ellipsize(last.text, cw - 46, 'small'), 28, yy + 13, '#666', { font: 'small' }); if (unread) { gfx.circle(cw - 10, yy + 12, 4, '#e83030'); gfx.text(String(unread), cw - 10, yy + 9, '#fff', { align: 'center', font: 'small' }); } }, () => { st.thread = who; a.scroll = 0; this.beginLoad({ label: 'LOADING THREAD', dur: 0.9, style: 'spinner' }); });
         yy += 24;
       }
       a.contentH = yy + 10;
@@ -957,7 +971,7 @@
         this.header('resume_final_FINAL2.pdf', '#f0a030', '◀'); if (this.clicked({ x: cw - 30, y: 0, w: 30, h: 14 })) { st.open = null; inp.eat(); return; }
         let yy = 18; gfx.rect(4, yy, cw - 8, 400, '#fff'); gfx.frame(4, yy, cw - 8, 400, '#ccc'); yy += 6;
         const R = CH.RESUME;
-        gfx.text(R.name, cw / 2, yy, '#1a1a2a', { align: 'center' }); yy += 10; gfx.text(R.title, cw / 2, yy, '#555', { align: 'center', font: 'small' }); yy += 8; gfx.text(R.contact.slice(0, 34), cw / 2, yy, '#888', { align: 'center', font: 'small' }); yy += 12;
+        gfx.text(R.name, cw / 2, yy, '#1a1a2a', { align: 'center', fit: cw - 12 }); yy += 12; gfx.text(R.title, cw / 2, yy, '#555', { align: 'center', font: 'small', fit: cw - 12 }); yy += 8; gfx.text(gfx.ellipsize(R.contact, cw - 14, 'small'), cw / 2, yy, '#888', { align: 'center', font: 'small' }); yy += 12;
         for (const [sec, lines] of R.sections) { gfx.text(sec, 10, yy, '#3b6fd6', { font: 'small' }); gfx.hline(10, yy + 6, cw - 20, '#3b6fd6'); yy += 9; for (let l of lines) { if (l.includes('Couch Manager') && !d.resumeFixed) l = l.replace('Couch Manager', 'Couch Manger'); yy += this.para(l, 12, yy, cw - 24, '#333'); } yy += 5; }
         if (!d.resumeFixed) { gfx.text('Typo detected: "Manger"', 10, yy, '#c8352b', { font: 'small' }); yy += 8; if (this.button(10, yy, cw - 20, 11, 'Fix typo', { color: '#3a9a5a' })) { d.resumeFixed = true; A.sfx('good'); ui.toast('Fixed. Somewhere, a hiring manager relaxes.', '#8bd06a', 3); } yy += 14; }
         a.contentH = yy + 10; return;
@@ -966,7 +980,7 @@
       let yy = 16;
       const files = [['resume_final_FINAL2.pdf', '84 KB', 'resume'], ['resume_final.pdf', '81 KB', 'msg:An older version. It says "Couch Manger". Twice.'], ['cover_letter_template.doc', '22 KB', 'msg:"Dear [COMPANY], I am [ADJECTIVE] to apply..."'], ['blue_hedgehog_speedrun_41min.mp4', '1.2 GB', 'msg:Your personal best. Nobody has watched it. Except Gus.'], ['IMG_2019_pancakes.jpg', '2.1 MB', 'msg:A very good stack. Mom is blurry in the background, laughing.'], ['pancake_mix_coupon.pdf', '12 KB', 'msg:Save $1.00 on Maple Moose Pancake Mix. Expired.'], ['taxes_2022_DO_NOT_OPEN.zip', '9 KB', 'msg:You do not open it.'], ['ManEgg_wallpaper.png', '340 KB', 'msg:He looks so smug.']];
       for (const [name, size, act] of files) {
-        this.row(yy, 16, (hv) => { const ext = name.split('.').pop(); gfx.rect(6, yy + 3, 10, 10, ext === 'pdf' ? '#c8352b' : ext === 'mp4' ? '#7b4fb0' : ext === 'jpg' || ext === 'png' ? '#3b6fd6' : '#8899aa'); gfx.text(name.length > 28 ? name.slice(0, 28) + '…' : name, 20, yy + 2, '#1a1a2a', { font: 'small' }); gfx.text(size, 20, yy + 9, '#888', { font: 'small' }); }, () => { if (act === 'resume') { st.open = 'resume'; a.scroll = 0; this.beginLoad({ label: 'OPENING PDF', dur: 1.8, style: 'bands', sub: 'RENDERING PAGE 1 OF 1…', art: (x, y, w, h) => this.docPreviewArt(x, y, w, h) }); } else ui.toast(act.slice(4), '#fff', 3.5); });
+        this.row(yy, 16, (hv) => { const ext = name.split('.').pop(); gfx.rect(6, yy + 3, 10, 10, ext === 'pdf' ? '#c8352b' : ext === 'mp4' ? '#7b4fb0' : ext === 'jpg' || ext === 'png' ? '#3b6fd6' : '#8899aa'); gfx.text(gfx.ellipsize(name, cw - 24, 'small'), 20, yy + 2, '#1a1a2a', { font: 'small' }); gfx.text(size, 20, yy + 9, '#888', { font: 'small' }); }, () => { if (act === 'resume') { st.open = 'resume'; a.scroll = 0; this.beginLoad({ label: 'OPENING PDF', dur: 1.8, style: 'bands', sub: 'RENDERING PAGE 1 OF 1…', art: (x, y, w, h) => this.docPreviewArt(x, y, w, h) }); } else ui.toast(act.slice(4), '#fff', 3.5); });
         yy += 16;
       }
       a.contentH = yy + 10;
@@ -976,17 +990,17 @@
       const d = PD();
       this.header('Moosebank', '#2f7a4a', 'Chequing');
       let yy = 20;
-      gfx.rrect(6, yy, cw - 12, 34, 3, '#2f7a4a'); gfx.text('Balance', 12, yy + 4, '#bfe8c8', { font: 'small' }); g.save(); g.translate(12, yy + 12); g.scale(1.5, 1.5); gfx.text(CH.fmtMoney(S.money), 0, 0, '#fff'); g.restore(); gfx.text('Quillsworth, C.  ****0142', 12, yy + 26, '#bfe8c8', { font: 'small' }); yy += 40;
+      gfx.rrect(6, yy, cw - 12, 38, 3, '#2f7a4a'); gfx.text('Balance', 12, yy + 4, '#bfe8c8', { font: 'small' }); g.save(); g.translate(12, yy + 13); g.scale(1.5, 1.5); gfx.text(CH.fmtMoney(S.money), 0, 0, '#fff'); g.restore(); gfx.text('Quillsworth, C.  ****0142', 12, yy + 29, '#bfe8c8', { font: 'small', fit: cw - 24 }); yy += 44;
       if (S.bill - S.billPaid > 0) {
         gfx.rrect(6, yy, cw - 12, 30, 3, '#fff0f0'); gfx.frame(6, yy, cw - 12, 30, '#c8352b');
-        gfx.text("St. Mooseph's - amount owing", 10, yy + 3, '#c8352b', { font: 'small' }); gfx.text(CH.fmtMoney(S.bill - S.billPaid), 10, yy + 11, '#c8352b');
+        gfx.text("St. Mooseph's: owing", 10, yy + 3, '#c8352b', { font: 'small' }); gfx.text(CH.fmtMoney(S.bill - S.billPaid), 10, yy + 11, '#c8352b');
         const pay = Math.min(S.money, S.bill - S.billPaid);
         const canPay = pay >= 1 && S.chapter === 'career';
         if (this.button(cw - 60, yy + 16, 54, 11, canPay ? 'Pay ' + CH.fmtMoney(Math.floor(pay)) : S.chapter !== 'career' ? 'Pay (later)' : 'Pay', { color: '#c8352b', disabled: !canPay })) { const amt = Math.floor(pay); CH.addMoney(-amt); S.billPaid += amt; d.bankTx.unshift(["St. Mooseph's payment", -amt]); A.sfx('cash'); ui.toast('Paid ' + CH.fmtMoney(amt) + ' toward the bill', '#8bd06a', 3); if (S.bill - S.billPaid <= 0.5 && CH.onDebtPaid) CH.onDebtPaid(); }
         yy += 36;
       } else if (S.bill) { gfx.rrect(6, yy, cw - 12, 14, 3, '#e8f8e8'); gfx.text('Hospital bill: PAID IN FULL ♥', cw / 2, yy + 4, '#3a9a5a', { align: 'center', font: 'small' }); yy += 20; }
       gfx.text('Recent transactions', 6, yy, '#333', { font: 'small' }); yy += 9;
-      for (const [name, amt] of d.bankTx.slice(0, 12)) { gfx.text(name.slice(0, 26), 8, yy, '#333', { font: 'small' }); gfx.text((amt > 0 ? '+' : '') + CH.fmtMoney(amt), cw - 8, yy, amt > 0 ? '#3a9a5a' : '#c8352b', { align: 'right', font: 'small' }); yy += 8; }
+      for (const [name, amt] of d.bankTx.slice(0, 12)) { const am = (amt > 0 ? '+' : '') + CH.fmtMoney(amt); gfx.text(gfx.ellipsize(name, cw - 22 - gfx.textWidth(am, 'small'), 'small'), 8, yy, '#333', { font: 'small' }); gfx.text(am, cw - 8, yy, amt > 0 ? '#3a9a5a' : '#c8352b', { align: 'right', font: 'small' }); yy += 9; }
       a.contentH = yy + 10;
     }
     // ---- misc apps -----------------------------------------------------------------------------------------------------
@@ -996,7 +1010,7 @@
         (x, y, w, h) => { gfx.rect(x, y, w, h, '#87ceeb'); gfx.rect(x, y + h - 8, w, 8, '#fff'); CH.drawCritter(g, x + w / 2 - 8, y + h - 6, { species: 'porcupine', outfit: 'winter', glasses: true, hair: 'bun', face: 'happy', noShadow: true, height: 0.8 }); CH.drawChubby(g, x + w / 2 + 10, y + h - 6, { outfit: 'hoodie', face: 'happy', noShadow: true, sx: 0.8, sy: 0.8 }); },
         (x, y, w, h) => { gfx.rect(x, y, w, h, '#000'); gfx.rect(x + 4, y + 4, w - 8, h - 8, '#3b6fd6'); gfx.text('99,999', x + w / 2, y + h / 2 - 3, '#f5c33b', { align: 'center', font: 'small' }); gfx.text('HI-SCORE', x + w / 2, y + 6, '#fff', { align: 'center', font: 'small' }); }];
       const caps = ['Saturday pancakes (every Saturday)', 'Winter Fair with Mom, 2 years ago', 'Screenshot: Blue Hedgehog 2 high score'];
-      pics.forEach((p, i) => { p(6, yy, cw - 12, 50); gfx.text(caps[i], 6, yy + 52, '#555', { font: 'small' }); yy += 64; });
+      pics.forEach((p, i) => { p(6, yy, cw - 12, 50); yy += 53 + this.para(caps[i], 6, yy + 53, cw - 12, '#555') + 6; });
       a.contentH = yy;
     }
     app_maps(g, cw, ch, st, a) {
@@ -1009,24 +1023,24 @@
       for (let i = 0; i < 20; i++) gfx.tri((i * 23) % cw, yy + 10 + (i * 17) % 40, (i * 23) % cw + 6, yy + 10 + (i * 17) % 40, (i * 23) % cw + 3, yy + 2 + (i * 17) % 40, '#3a7a2c');
       gfx.circle(20, yy + 30, 4, '#c8352b'); gfx.text('Home', 20, yy + 18, '#333', { align: 'center', font: 'small' });
       gfx.circle(100, yy + 66, 4, '#c8352b'); gfx.text("Donald's", 100, yy + 54, '#333', { align: 'center', font: 'small' });
-      gfx.circle(120, yy + 120, 4, '#3b6fd6'); gfx.text('Hospital', 120, yy + 108, '#333', { align: 'center', font: 'small' });
-      gfx.text('Home → Donald\'s: 2.4 km, 31 min walk', 4, yy + 140, '#333', { font: 'small' });
-      yy += 156; gfx.text('"Bus 12 runs every 40 min. Or never."', 6, yy, '#888', { font: 'small' }); yy += 10;
+      gfx.circle(116, yy + 120, 4, '#3b6fd6'); gfx.text('Hospital', 112, yy + 108, '#333', { align: 'center', font: 'small' });
+      yy += 154; yy += this.para('Home → Donald\'s: 2.4 km, 31 min walk', 6, yy, cw - 12, '#333') + 4;
+      yy += this.para('"Bus 12 runs every 40 min. Or never."', 6, yy, cw - 12, '#888') + 4;
       a.contentH = yy;
     }
     app_settings(g, cw, ch, st, a) {
       this.header('Settings', '#777'); let yy = 18;
-      const rows = [['Sound', CH.audio.muted ? 'Off' : 'On', () => { CH.audio.toggleMute(); }], ['Wallpaper', 'Blue Hedgehog', () => ui.toast('It stays.', '#fff', 2)], ['Storage', '127.9 GB of 128 GB used', () => ui.toast('It is all speedruns.', '#fff', 2)], ['Screen time', '14h 22m today', () => ui.toast('...', '#fff', 2)], ['About', 'MoosePhone 12 mini', () => {}], ['Save game', 'Tap to save', () => { CH.autosave('Chapter saved'); A.sfx('good'); ui.toast('Game saved.', '#8bd06a', 2); }]];
+      const rows = [['Sound', CH.audio.muted ? 'Off' : 'On', () => { CH.audio.toggleMute(); }], ['Wallpaper', 'Blue Hedgehog', () => ui.toast('It stays.', '#fff', 2)], ['Storage', '127.9/128 GB', () => ui.toast('It is all speedruns.', '#fff', 2)], ['Screen time', '14h 22m today', () => ui.toast('...', '#fff', 2)], ['About', 'MoosePhone 12 mini', () => {}], ['Save game', 'Tap to save', () => { CH.autosave('Chapter saved'); A.sfx('good'); ui.toast('Game saved.', '#8bd06a', 2); }]];
       for (const [k, v, fn] of rows) { this.row(yy, 16, () => { gfx.text(k, 8, yy + 2, '#1a1a2a', { font: 'small' }); gfx.text(v, cw - 8, yy + 2, '#666', { align: 'right', font: 'small' }); }, fn); yy += 16; }
       a.contentH = yy;
     }
     app_shop(g, cw, ch, st, a) { if (CH.drawShopApp) CH.drawShopApp(this, g, cw, ch, st, a); else { this.header('Amazoon', '#f0a030'); gfx.text('Shop unlocks once you have income.', cw / 2, 40, '#888', { align: 'center', font: 'small' }); a.contentH = 60; } }
     app_donalds(g, cw, ch, st, a) { if (CH.drawDonaldsApp) CH.drawDonaldsApp(this, g, cw, ch, st, a); else { this.header("Donald's Crew", '#c8352b'); a.contentH = 40; } }
-    page_moosepedia(g, cw, y, st) { gfx.rect(0, y, cw, 300, '#fff'); let yy = y + 4; gfx.text('Moosepedia', 6, yy, '#333'); yy += 12; gfx.text('Porcupine', 6, yy, '#1a1a2a', { font: 'main' }); yy += 12; yy += this.para('The North American porcupine (Erethizon dorsatum) is a large rodent with approximately 30,000 quills. Porcupines are nocturnal, solitary, and spend most of their time eating, sleeping, and being round. They cannot shoot their quills, despite what your uncle says.', 6, yy, cw - 12, '#333') + 6; yy += this.para('Notable porcupines: Chubby Quillsworth (Couch Manager, disputed).', 6, yy, cw - 12, '#888') + 6; this.link(6, yy, '[edit] (last edited by Kevin)', () => ui.toast('You add "and very handsome". It is reverted instantly.', '#fff', 3)); yy += 10; return yy - y + 10; }
+    page_moosepedia(g, cw, y, st) { gfx.rect(0, y, cw, 420, '#fff'); let yy = y + 4; gfx.text('Moosepedia', 6, yy, '#333'); yy += 14; gfx.text('Porcupine', 6, yy, '#1a1a2a', { font: 'main' }); yy += 14; yy += this.para('The North American porcupine (Erethizon dorsatum) is a large rodent with approximately 30,000 quills. Porcupines are nocturnal, solitary, and spend most of their time eating, sleeping, and being round. They cannot shoot their quills, despite what your uncle says.', 6, yy, cw - 12, '#333') + 6; yy += this.para('Notable porcupines: Chubby Quillsworth (Couch Manager, disputed).', 6, yy, cw - 12, '#888') + 6; this.link(6, yy, '[edit] (last edited by Kevin)', () => ui.toast('You add "and very handsome". It is reverted instantly.', '#fff', 3)); yy += 10; return yy - y + 10; }
     page_weather(g, cw, y, st) { gfx.rect(0, y, cw, 200, '#e8f0f8'); let yy = y + 6; gfx.text('Moose Hollow, ON', cw / 2, yy, '#333', { align: 'center' }); yy += 14; g.save(); g.translate(cw / 2, yy); g.scale(2, 2); gfx.text('-18°', 0, 0, '#1a55cc', { align: 'center' }); g.restore(); yy += 20; gfx.text('Snow. Feels like -26.', cw / 2, yy, '#555', { align: 'center', font: 'small' }); yy += 12; for (const d of ['MON  -16  snow', 'TUE  -19  snow', 'WED  -14  snow?', 'THU  -22  yes snow', 'FRI  -12  a bird']) { gfx.text(d, 10, yy, '#333', { font: 'small' }); yy += 9; } return yy - y + 10; }
-    page_fans(g, cw, y, st) { gfx.rect(0, y, cw, 300, '#1a1a2a'); let yy = y + 4; gfx.text('HedgehogFans.net', 6, yy, '#3b6fd6'); yy += 12; for (const [t, r] of [['Man Egg is a misunderstood genius', 4201], ['Speedrun: 41 min (unverified, "Chubby_420")', 12], ['Kart DLC ruined my life', 890], ['Is the hedgehog blue or is the world orange', 233], ['Anyone else\'s mom in hospital? (support thread)', 56]]) { this.link(6, yy, t.slice(0, 32), () => ui.toast(t.includes('mom') ? 'You read every reply. Twice. It helps a little.' : 'You have read this thread 40 times.', '#fff', 3), '#9fdcff'); gfx.text(r + ' replies', cw - 6, yy, '#888', { align: 'right', font: 'small' }); yy += 12; } return yy - y + 10; }
-    page_stmoosephs(g, cw, y, st) { gfx.rect(0, y, cw, 200, '#fff'); let yy = y + 4; gfx.text("St. Mooseph's General", 6, yy, '#3fa79a'); yy += 12; gfx.text('Billing FAQ', 6, yy, '#1a1a2a'); yy += 10; yy += this.para('Q: Why is my bill so high?\nA: Great question!\n\nQ: Are payment plans available?\nA: Yes! Most families find a way :)\n\nQ: What if I cannot find a way?\nA: :)', 6, yy, cw - 12, '#333') + 6; return yy - y + 10; }
-    page_error(g, cw, y, st) { gfx.rect(0, y, cw, 120, '#fff'); gfx.text(':(', cw / 2, y + 20, '#555', { align: 'center' }); gfx.text("This site can't be reached", cw / 2, y + 36, '#333', { align: 'center', font: 'small' }); gfx.text(st.url.replace('error:', '').slice(0, 30), cw / 2, y + 46, '#888', { align: 'center', font: 'small' }); if (this.button(cw / 2 - 30, y + 60, 60, 11, 'Go to Goggle')) this.goto(st, 'goggle.ca'); return 90; }
+    page_fans(g, cw, y, st) { gfx.rect(0, y, cw, 300, '#1a1a2a'); let yy = y + 4; gfx.text('HedgehogFans.net', 6, yy, '#3b6fd6', { fit: cw - 12 }); yy += 14; for (const [t, r] of [['Man Egg is a misunderstood genius', 4201], ['Speedrun: 41 min (unverified, "Chubby_420")', 12], ['Kart DLC ruined my life', 890], ['Is the hedgehog blue or is the world orange', 233], ['Anyone else\'s mom in hospital? (support thread)', 56]]) { this.link(6, yy, gfx.ellipsize(t, cw - 18 - gfx.textWidth(r + ' replies', 'small'), 'small'), () => ui.toast(t.includes('mom') ? 'You read every reply. Twice. It helps a little.' : 'You have read this thread 40 times.', '#fff', 3), '#9fdcff'); gfx.text(r + ' replies', cw - 6, yy, '#888', { align: 'right', font: 'small' }); yy += 12; } return yy - y + 10; }
+    page_stmoosephs(g, cw, y, st) { gfx.rect(0, y, cw, 200, '#fff'); let yy = y + 4; gfx.text("St. Mooseph's General", 6, yy, '#3fa79a', { fit: cw - 12 }); yy += 14; gfx.text('Billing FAQ', 6, yy, '#1a1a2a'); yy += 14; yy += this.para('Q: Why is my bill so high?\nA: Great question!\n\nQ: Are payment plans available?\nA: Yes! Most families find a way :)\n\nQ: What if I cannot find a way?\nA: :)', 6, yy, cw - 12, '#333') + 6; return yy - y + 10; }
+    page_error(g, cw, y, st) { gfx.rect(0, y, cw, 120, '#fff'); gfx.text(':(', cw / 2, y + 20, '#555', { align: 'center' }); gfx.text("This site can't be reached", cw / 2, y + 36, '#333', { align: 'center', font: 'small', fit: cw - 8 }); gfx.text(gfx.ellipsize(st.url.replace('error:', ''), cw - 12, 'small'), cw / 2, y + 46, '#888', { align: 'center', font: 'small' }); if (this.button(cw / 2 - 30, y + 60, 60, 11, 'Go to Goggle')) this.goto(st, 'goggle.ca'); return 90; }
   }
   CH.PhoneScene = PhoneScene;
   CH.openPhone = (opts) => { if (CH.game.scene && CH.game.scene.name === 'phone') return null; const p = new PhoneScene(opts); CH.game.push(p); return p; };

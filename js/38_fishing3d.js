@@ -611,9 +611,9 @@
     }
     drawHud(g) {
       const MG = CH.MG;
-      gfx.rrect(4, 4, 112, 16, 4, 'rgba(12,16,28,0.7)');
+      gfx.rrect(4, 4, 132, 17, 4, 'rgba(12,16,28,0.7)');
       gfx.text('ICE FISHING', 10, 8, '#ffd84a');
-      gfx.text(this.catches.length + ' caught', 110, 8, '#cfe6ff', { align: 'right', font: 'small' });
+      gfx.text(this.catches.length + ' caught', 130, 10, '#cfe6ff', { align: 'right', font: 'small' });
       // depth gauge
       const gx = W - 20, gy = 34, gh = 150;
       gfx.rrect(gx - 6, gy - 6, 18, gh + 12, 5, 'rgba(12,16,28,0.7)');
@@ -638,7 +638,7 @@
       if (this.msgT > 0 && this.msg) {
         const txt = this.msg.replace(/\{[a-z]+\}/g, ' '), w = gfx.textWidth(txt) + 16;
         g.save(); g.globalAlpha = Math.min(1, this.msgT * 2);
-        gfx.rrect(W / 2 - w / 2, 26, w, 15, 5, 'rgba(12,16,28,0.8)');
+        gfx.rrect(W / 2 - w / 2, 26, w, 17, 5, 'rgba(12,16,28,0.8)');
         gfx.text(txt, W / 2, 30, '#fff6d0', { align: 'center' });
         g.restore();
       }

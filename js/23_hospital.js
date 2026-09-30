@@ -315,14 +315,14 @@
       // reflection of the room in the dark glass
       g.globalAlpha = 0.1; gfx.rect(wx + 4, wy + 4, 26, 54, '#fff'); g.globalAlpha = 1;
       // whiteboard, written by somebody who has done this a thousand times
-      gfx.rect(38, 68, 64, 44, '#c8cfd4');
-      gfx.rect(40, 70, 60, 40, '#fbfdfc');
-      gfx.rect(40, 70, 60, 1, '#fff');
-      gfx.text('RN: GOSLING', 44, 74, '#3b6fd6', { font: 'small' });
-      gfx.text('DR: BEAVERTON', 44, 82, '#3b6fd6', { font: 'small' });
-      gfx.text('GOAL: REST', 44, 90, '#c8352b', { font: 'small' });
-      gfx.text('PAIN: 3/10', 44, 98, '#3a4048', { font: 'small' });
-      gfx.rect(94, 104, 5, 2, '#c8352b');
+      gfx.rect(34, 68, 74, 44, '#c8cfd4');
+      gfx.rect(36, 70, 70, 40, '#fbfdfc');
+      gfx.rect(36, 70, 70, 1, '#fff');
+      gfx.text('RN: GOSLING', 40, 74, '#3b6fd6', { font: 'small' });
+      gfx.text('DR: BEAVERTON', 40, 82, '#3b6fd6', { font: 'small' });
+      gfx.text('GOAL: REST', 40, 90, '#c8352b', { font: 'small' });
+      gfx.text('PAIN: 3/10', 40, 98, '#3a4048', { font: 'small' });
+      gfx.rect(98, 104, 5, 2, '#c8352b');
     }
 
     build() {
@@ -489,7 +489,7 @@
     }
     update(dt) {
       this.t2 += dt;
-      const lineH = 12, headH = 40, paperH = headH + this.items.length * lineH + 70;
+      const lineH = 16, headH = 44, paperH = headH + this.items.length * lineH + 70;
       if (this.phase === 'unroll') {
         this.shown = Math.min(paperH, this.shown + dt * 140);
         if (this.shown % 12 < 3 && Math.random() < 0.3) A.sfx('paper');
@@ -501,8 +501,8 @@
     }
     draw(g) {
       g.globalAlpha = 0.6; gfx.rect(0, 0, W, H, '#000'); g.globalAlpha = 1;
-      const px = W / 2 - 110, pw = 220;
-      const lineH = 12, headH = 40;
+      const px = W / 2 - 135, pw = 270;
+      const lineH = 16, headH = 44;
       const top = 20 - this.scroll;
       const shownH = Math.round(this.shown);
       gfx.clip(0, 0, W, H);
@@ -513,13 +513,13 @@
       gfx.clip(px, top, pw, shownH);
       gfx.text("ST. MOOSEPH'S GENERAL HOSPITAL", px + pw / 2, top + 6, '#222', { align: 'center', font: 'small' });
       gfx.text('STATEMENT OF ESTIMATED CHARGES', px + pw / 2, top + 14, '#222', { align: 'center', font: 'small' });
-      gfx.text('PATIENT: QUILLSWORTH, MARGARET', px + 8, top + 24, '#555', { font: 'small' });
-      gfx.text('GUARANTOR: QUILLSWORTH, CHUBBY', px + 8, top + 31, '#c8352b', { font: 'small' });
+      gfx.text('PATIENT: QUILLSWORTH, MARGARET', px + 8, top + 25, '#555', { font: 'small' });
+      gfx.text('GUARANTOR: QUILLSWORTH, CHUBBY', px + 8, top + 33, '#c8352b', { font: 'small' });
       gfx.hline(px + 6, top + headH - 2, pw - 12, '#888');
       this.items.forEach((it, i) => {
         const y = top + headH + i * lineH;
         gfx.text(it[0], px + 8, y, '#222', { font: 'small' });
-        if (it[2]) gfx.text(it[2], px + 8, y + 6, it[1] === 0 ? '#3a9a5a' : '#c8352b', { font: 'small' });
+        if (it[2]) gfx.text(it[2], px + 8, y + 8, it[1] === 0 ? '#3a9a5a' : '#c8352b', { font: 'small' });
         gfx.text(CH.fmtMoney(it[1]), px + pw - 8, y, it[1] > 10000 ? '#c8352b' : '#222', { align: 'right', font: 'small' });
       });
       const ty = top + headH + this.items.length * lineH + 6;

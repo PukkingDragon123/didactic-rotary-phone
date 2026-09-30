@@ -418,7 +418,7 @@
       K.band(ix, iy, iw, ih, '#8a6a3a', 0.2);
     } else if (kind === 'text') {
       R(ix, iy, iw, ih, o.bg || '#f4ecd8');
-      (o.lines || []).forEach((l, i) => gfx.text(l, ix + iw / 2, iy + 1 + i * 7, o.ink || '#3a2a1a', { align: 'center', font: 'small' }));
+      (o.lines || []).forEach((l, i) => gfx.text(l, ix + iw / 2, iy + 1 + i * 7, o.ink || '#3a2a1a', { align: 'center', font: 'small', fit: iw - 2 }));
     } else if (kind === 'abstract') {
       R(ix, iy, iw, ih, o.bg || '#f4ecd8');
       E(ix + iw * 0.35, iy + ih * 0.45, iw * 0.22, ih * 0.22, o.c1 || '#e05a4a');
@@ -448,7 +448,7 @@
     withA(0.18, () => { gfx.line(x + 5, y + h - 8, x + w - 12, y + 6, '#e8e8e0'); });
     lines.forEach((l, i) => {
       const L = typeof l === 'string' ? { t: l } : l;
-      gfx.text(L.t, L.x !== undefined ? x + L.x : x + w / 2, y + 5 + i * 8, L.c || '#ece6d6', { align: L.x !== undefined ? 'left' : 'center', font: 'small' });
+      gfx.text(L.t, L.x !== undefined ? x + L.x : x + w / 2, y + 5 + i * 8, L.c || '#ece6d6', { align: L.x !== undefined ? 'left' : 'center', font: 'small', fit: L.x !== undefined ? w - L.x - 4 : w - 8 });
     });
     // chalk tray + a stub of chalk
     R(x + 2, y + h, w - 4, 2, '#6a4520'); R(x + w - 12, y + h - 1, 4, 1, '#f4f0e6');

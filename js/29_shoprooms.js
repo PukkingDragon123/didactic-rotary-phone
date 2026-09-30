@@ -295,7 +295,7 @@
     // the bell that rings when you come in
     VL(15, -62, 3, '#3a3440'); E(15, -57, 3, 2, '#e8b84a'); HL(13, -56, 5, '#fff0a0'); P1(15, -55, '#8a5a1c');
     // an OPEN sign hanging on the glass, seen from behind
-    R(8, -47, 14, 6, '#f6f2e6'); gfx.text('NEPO', 15, -46, '#c8352b', { align: 'center', font: 'small' }); VL(10, -52, 5, '#3a3440'); VL(19, -52, 5, '#3a3440');
+    R(8, -47, 14, 6, '#f6f2e6'); gfx.text('NEPO', 15, -46, '#c8352b', { align: 'center', font: 'tiny' }); VL(10, -52, 5, '#3a3440'); VL(19, -52, 5, '#3a3440');
     K.band(-3, -1, 36, 2, '#140c10', 0.3);
   });
 
@@ -452,7 +452,7 @@
       R(252, F - 40, 52, 5, bm.d); HL(252, F - 40, 52, bm.h);
       draw('teddy', 262, F - 38, { remap: { m: '#e05a9a', l: '#f8a0c8', d: '#a8306a' } }); draw('duck', 280, F - 37); draw('frog', 294, F - 36, { flip: true });
       E(272, F - 40, 4, 4, '#4a8ad8'); P1(271, F - 42, '#b8e0ff'); E(288, F - 41, 3, 3, '#6aa05a');
-      R(262, F - 24, 32, 12, '#fff3d8'); gfx.text('BIN OF', 278, F - 23, '#b2452f', { align: 'center', font: 'small' }); gfx.text('MYSTERY', 278, F - 17, '#b2452f', { align: 'center', font: 'small' });
+      R(258, F - 27, 40, 15, '#fff3d8'); gfx.text('BIN OF', 278, F - 26, '#b2452f', { align: 'center', font: 'small' }); gfx.text('MYSTERY', 278, F - 19, '#b2452f', { align: 'center', font: 'small' });
       // blocks and a truck on the play rug
       draw('blocks', 318, F + 6);
       // a gumball machine by the counter
@@ -477,7 +477,7 @@
         for (let i = 0; i < 5; i++) { const sx = x + 14 + i * 12; draw('kite', sx, cy + 6, { remap: { r: ['#ffd84a', '#e05a4a', '#f4f0ea', '#6aa05a', '#e05a9a'][i], y: '#f4f0ea' } }); }
         R(x + w / 2 - 4, cy + 2, 8, 3, '#e8b84a'); P1(x + w / 2, cy + 3, '#8a5a1c');
         draw('frog', x + 14, y + h + 3); draw('blocks', x + 62, y + h + 3); draw('teddy', x + 36, y + h + 3, { flip: true });
-        R(x + 20, y + h - 18, 40, 8, '#fff3d8'); gfx.text('WIND-UP SALE', x + 40, y + h - 17, '#c8452f', { align: 'center', font: 'small' });
+        R(x + 12, y + h - 19, 56, 9, '#fff3d8'); gfx.text('WIND-UP SALE', x + 40, y + h - 18, '#c8452f', { align: 'center', font: 'small', fit: 54 });
         VL(x + 24, y + 2, h - 20, '#3a3440'); VL(x + 55, y + 2, h - 20, '#3a3440');
       },
     },
@@ -740,8 +740,8 @@
   };
   const plaque = (cx, y, text, bg = '#3a2418', fg = '#f5c33b') => {
     const w = gfx.textWidth(text, 'small') + 6, x = Math.round(cx - w / 2);
-    R(x - 1, y - 1, w + 2, 9, '#140c10'); R(x, y, w, 7, bg); HL(x, y, w, sh(bg, 24));
-    gfx.text(text, cx, y + 1, fg, { align: 'center', font: 'small' });
+    R(x - 1, y - 1, w + 2, 11, '#140c10'); R(x, y, w, 9, bg); HL(x, y, w, sh(bg, 24));
+    gfx.text(text, cx, y + 2, fg, { align: 'center', font: 'small' });
   };
   const steamAt = (x, y, t, n = 3, a = 0.5) => {
     for (let i = 0; i < n; i++) { const k = (t * 0.55 + i / n) % 1; withA(a * (1 - k), () => E(Math.round(x + Math.sin(t * 2 + i * 2) * 2), Math.round(y - k * 12), 1 + k * 1.6, 1 + k, '#ffffff')); }
@@ -764,7 +764,7 @@
       for (const [bx, len] of [[160, 34], [196, 28], [232, 36], [284, 30], [318, 26]]) K.pendant(bx, 51, len, 'edison');
       // the community board and a couple of pictures
       K.corkboard(150, 76, 50, 34, 7);
-      R(154, 80, 20, 12, '#fff0a0'); gfx.text('LOST', 164, 81, '#8a2a1a', { align: 'center', font: 'small' }); gfx.text('MITTEN', 164, 87, '#8a2a1a', { align: 'center', font: 'small' });
+      R(151, 79, 26, 14, '#fff0a0'); gfx.text('LOST', 164, 80, '#8a2a1a', { align: 'center', font: 'tiny' }); gfx.text('MITTEN', 164, 87, '#8a2a1a', { align: 'center', font: 'tiny' });
       K.picture(212, 78, 30, 24, '#3a2414', 'lake');
       K.picture(250, 82, 22, 18, '#3a2414', 'abstract', { c1: '#c8352b', c2: '#2f5a44', c3: '#e8c070' });
       // seating: two tables, bentwood chairs, mugs left mid-conversation
@@ -988,7 +988,7 @@
         HL(x + 2, y + 3, w - 4, '#ffffff');
         tieredCake(x + w / 2, y + h + 1);
         draw('muffin', x + 14, y + h + 2); draw('muffin', x + w - 14, y + h + 2, { remap: { b: '#d8263a', B: '#f07a9a' } });
-        R(x + 6, y + h - 16, 22, 9, '#fff6e0'); gfx.text('FRESH', x + 17, y + h - 15, '#c8506a', { align: 'center', font: 'small' });
+        R(x + 4, y + h - 16, 26, 9, '#fff6e0'); gfx.text('FRESH', x + 17, y + h - 14, '#c8506a', { align: 'center', font: 'small' });
         const m = K.ramp('#e8c8b0');
         R(x - 4, y + h + 4, w + 8, F - (y + h + 4), m.m); HL(x - 4, y + h + 4, w + 8, m.h); VL(x - 4, y + h + 4, F - y - h - 4, m.l);
         for (let i = x; i < x + w; i += 20) { R(i + 2, y + h + 10, 16, F - y - h - 16, m.d); R(i + 3, y + h + 11, 14, F - y - h - 18, m.m); }
@@ -1039,7 +1039,7 @@
     const m = K.ramp(c);
     R(x, yb - 12, 18, 12, m.m); HL(x, yb - 12, 18, m.h); VL(x, yb - 12, 12, m.l); VL(x + 17, yb - 12, 12, m.dd); HL(x, yb - 1, 18, m.dd);
     R(x + 1, yb - 13, 16, 2, m.d); for (let i = x + 2; i < x + 17; i += 3) P1(i, yb - 13, m.l);
-    gfx.text('SALT', x + 9, yb - 9, '#f4f8fc', { align: 'center', font: 'small' });
+    gfx.text('SALT', x + 9, yb - 9, '#f4f8fc', { align: 'center', font: 'tiny' });
   };
   ROOMS.hardware = {
     ceil: ['drop', '#d8d4c8'], crown: '#6a5a42', doorWood: '#6a5a42',
@@ -1091,7 +1091,7 @@
         for (let i = 0; i < 3; i++) saltBag(x + 4 + i * 20, F, ['#3a6a8a', '#3a6a8a', '#4a7a9a'][i]);
         for (let i = 0; i < 2; i++) saltBag(x + 14 + i * 20, F - 12, '#3a6a8a');
         saltBag(x + 24, F - 24, '#4a7a9a');
-        R(x + w - 26, y + h - 20, 24, 12, '#ffd84a'); gfx.text('SALT $4', x + w - 14, y + h - 18, '#8a2a1a', { align: 'center', font: 'small' });
+        R(x + w - 38, y + h - 20, 36, 12, '#ffd84a'); gfx.text('SALT $4', x + w - 20, y + h - 17, '#8a2a1a', { align: 'center', font: 'small', fit: 34 });
         HL(x + w - 26, y + h - 20, 24, '#fff4a0');
       },
     },
@@ -1177,7 +1177,7 @@
     R(x, yb - 26, w, 14, m.m); HL(x, yb - 26, w, m.h); VL(x, yb - 26, 14, m.l); VL(x + w - 1, yb - 26, 14, m.dd);
     for (let i = x + 3; i < x + w - 3; i += 8) VL(i, yb - 24, 10, m.d);
     const tw = gfx.textWidth(label, 'small') + 4;
-    R(x + 6, yb - 46, tw, 8, '#f4f0e6'); gfx.text(label, x + 8, yb - 45, '#2a2440', { font: 'small' });
+    R(x + 6, yb - 47, tw, 9, '#f4f0e6'); gfx.text(label, x + 8, yb - 45, '#2a2440', { font: 'small' });
   };
   const albumCover = (x, y, s, seed) => {
     const r = rng(seed), bg = r.pick(['#c8352b', '#3a6ba8', '#e8b84a', '#4a8a5a', '#8a5aa8', '#f4f0e6', '#2a2a30', '#e8864a', '#2a5a6a']);
@@ -1194,7 +1194,7 @@
   const poster = (x, y, w, h, bg, lines, fg = '#1a1418') => {
     R(x + 1, y + 1, w, h, 'rgba(10,6,16,0.35)');
     R(x, y, w, h, bg); HL(x, y, w, sh(bg, 30)); P1(x + 2, y + 1, '#d8d8e0'); P1(x + w - 3, y + 1, '#d8d8e0');
-    lines.forEach((l, i) => gfx.text(l, x + w / 2, y + 3 + i * 7, i ? fg : sh(fg, 0), { align: 'center', font: 'small' }));
+    lines.forEach((l, i) => gfx.text(l, x + w / 2, y + 3 + i * 7, i ? fg : sh(fg, 0), { align: 'center', font: 'small', fit: w - 2 }));
   };
   const aquarium = (x, yb, w, h) => {
     R(x - 2, yb - 14, w + 4, 14, '#3a2418'); HL(x - 2, yb - 14, w + 4, '#6a4424'); for (let i = x + 2; i < x + w; i += 12) R(i, yb - 11, 8, 9, '#2a1a10');
@@ -1266,7 +1266,7 @@
         dressForm(x + 20, F);
         garment(x + 52, y + 16, 'dress', '#b04a6a', { seed: 3 }); garment(x + 62, y + 16, 'coat', '#3a6ba8', { seed: 4 }); HL(x + 46, y + 16, 28, '#c8ccd8');
         draw('hatCowboy', x + 20, F - 57);
-        R(x + 34, y + h - 14, 24, 9, '#f4f0e6'); gfx.text('ALL $5', x + 46, y + h - 13, '#b04a6a', { align: 'center', font: 'small' });
+        R(x + 31, y + h - 14, 30, 9, '#f4f0e6'); gfx.text('ALL $5', x + 46, y + h - 12, '#b04a6a', { align: 'center', font: 'small' });
         const m = K.ramp('#e8e2d6');
         R(x - 4, y + h + 4, w + 8, 4, m.m); HL(x - 4, y + h + 4, w + 8, m.h);
       },
@@ -1332,7 +1332,7 @@
       frame: '#3a3458', seed: 27,
       deco(x, y, w, h) {
         for (let i = 0; i < 4; i++) { const rx = x + 12 + i * 18, ry = y + 16 + (i % 2) * 8; VL(rx, y + 3, ry - y - 3, '#8a8f9c'); E(rx, ry + 6, 6, 6, '#0e0c12'); E(rx, ry + 6, 5, 5, '#1e1a24'); E(rx, ry + 6, 2, 2, ['#e05a9a', '#3ad6a0', '#ffd84a', '#9fdcff'][i]); P1(rx - 3, ry + 3, '#4a4454'); }
-        R(x + 18, y + h - 14, 44, 9, '#0e0c12'); gfx.text('USED VINYL', x + 40, y + h - 13, '#9fdcff', { align: 'center', font: 'small' });
+        R(x + 14, y + h - 14, 52, 9, '#0e0c12'); gfx.text('USED VINYL', x + 40, y + h - 12, '#9fdcff', { align: 'center', font: 'small' });
         const m = K.ramp('#241c38'); R(x - 4, y + h + 4, w + 8, 4, m.m); HL(x - 4, y + h + 4, w + 8, m.h);
       },
     },
@@ -1408,7 +1408,7 @@
     window: {
       frame: '#3a8a6a', seed: 31,
       deco(x, y, w, h) {
-        R(x + 6, y + 6, 28, 10, '#fff4e0'); gfx.text('FLU SHOTS', x + 20, y + 8, '#c8352b', { align: 'center', font: 'small' });
+        R(x + 4, y + 6, 46, 10, '#fff4e0'); gfx.text('FLU SHOTS', x + 27, y + 8, '#c8352b', { align: 'center', font: 'small' });
         draw('mortar', x + w - 20, y + h + 3); draw('rxBox', x + 20, y + h + 3); draw('rxBox', x + 29, y + h + 3); draw('pillBottle', x + 38, y + h + 3);
         const m = K.ramp('#e8eef0'); R(x - 4, y + h + 4, w + 8, 4, m.m); HL(x - 4, y + h + 4, w + 8, m.h);
         R(x + 36, y + h - 18, 30, 12, '#3a8a6a'); R(x + 49, y + h - 16, 4, 8, '#ffffff'); R(x + 47, y + h - 14, 8, 4, '#ffffff');
@@ -1471,7 +1471,7 @@
       E(318, 94, 24, 7, '#4a7a4a'); E(316, 92, 18, 4, '#7aaa6a'); E(300, 94, 3, 3, '#e8e2c0'); P1(300, 93, '#141018');
       for (let i = 0; i < 6; i++) VL(342 + (i % 3), 90 + i, 3, '#4a7a4a');
       for (let i = 0; i < 6; i++) P1(306 + i * 5, 96, '#2a4a2a');
-      R(300, 104, 36, 5, '#c8922f'); gfx.text('1994', 318, 104, '#3a2418', { align: 'center', font: 'small' });
+      R(300, 104, 36, 5, '#c8922f'); gfx.text('1994', 318, 104, '#3a2418', { align: 'center', font: 'tiny' });
       // behind the counter: reels, spools of line, boxes of hooks, the lake map
       K.wallShelf(364, 104, 100, '#6a4424'); K.wallShelf(364, 136, 100, '#6a4424');
       for (let i = 0; i < 10; i++) draw('reel', 370 + i * 10, 104);
@@ -1560,7 +1560,7 @@
   };
   const plates = (x, y) => {
     const P = [['#f4f0e6', '#2f5a9a', 'ONT'], ['#ffd84a', '#1e1a20', 'MOOSE'], ['#f4f0e6', '#c8352b', 'QC'], ['#9fdcff', '#1e1a20', 'NB'], ['#f4f0e6', '#4a9a4a', 'BC'], ['#ffd84a', '#3a3440', 'YUK']];
-    P.forEach(([bg, fg, t], i) => { const px0 = x + (i % 3) * 22, py = y + Math.floor(i / 3) * 12; R(px0 - 1, py - 1, 20, 11, '#1e1a20'); R(px0, py, 18, 9, bg); gfx.text(t, px0 + 9, py + 2, fg, { align: 'center', font: 'small' }); P1(px0 + 1, py + 1, '#8a8f9c'); P1(px0 + 16, py + 1, '#8a8f9c'); });
+    P.forEach(([bg, fg, t], i) => { const px0 = x + (i % 3) * 22, py = y + Math.floor(i / 3) * 12; R(px0 - 1, py - 1, 20, 11, '#1e1a20'); R(px0, py, 18, 9, bg); gfx.text(t, px0 + 9, py + 2, fg, { align: 'center', font: 'tiny' }); P1(px0 + 1, py + 1, '#8a8f9c'); P1(px0 + 16, py + 1, '#8a8f9c'); });
   };
   const barberChair = (cx, yb, c = '#b8352b') => {
     const m = K.ramp(c), ch = K.ramp('#c8ccd8');
@@ -1588,7 +1588,7 @@
     R(x, yb - 74, w, 74, '#141020'); R(x + 2, yb - 72, w - 4, 70, m.dd);
     for (let j = 0; j < 20; j++) P1(x + 2 + (j % 3), yb - 60 + j * 3, m.m);
     R(x + 2, yb - 80, w - 4, 10, m.m); HL(x + 2, yb - 80, w - 4, m.h); R(x + 4, yb - 78, w - 8, 6, '#0e0c14');
-    gfx.text(title, x + w / 2, yb - 77, m.h, { align: 'center', font: 'small' });
+    gfx.text(title, x + w / 2, yb - 77, m.h, { align: 'center', font: 'tiny' });
     R(x + 4, yb - 68, w - 8, 28, '#0e0c14');
     R(x + 2, yb - 38, w - 4, 10, '#2a2238'); HL(x + 2, yb - 38, w - 4, '#4a4260');
     R(x + 8, yb - 36, 2, 4, '#8a8f9c'); E(x + 9, yb - 37, 2, 2, '#e05a4a');
@@ -1673,7 +1673,7 @@
     window: {
       frame: '#5a5f6a', seed: 39,
       deco(x, y, w, h) {
-        R(x + 12, y + 8, 42, 10, '#ffd84a'); gfx.text('BOOST $20', x + 33, y + 10, '#1e1a20', { align: 'center', font: 'small' });
+        R(x + 8, y + 8, 50, 10, '#ffd84a'); gfx.text('BOOST $20', x + 33, y + 10, '#1e1a20', { align: 'center', font: 'small' });
         tireStack(x + 4, F, 3);
         for (let i = 0; i < 2; i++) { const jx = x + 40 + i * 14; R(jx, F - 16, 11, 16, '#c8352b'); HL(jx, F - 16, 11, '#e8604a'); R(jx + 2, F - 19, 4, 3, '#1e1a20'); R(jx + 3, F - 12, 5, 6, '#a82a22'); }
         const m = K.ramp('#5a5f6a'); R(x - 4, y + h + 4, w + 8, 4, m.m); HL(x - 4, y + h + 4, w + 8, m.h);
@@ -1823,7 +1823,7 @@
           else if (i === 2) { const hx = x + ((Math.floor(k * 24)) % (w + 10)) - 5; R(x, y + 22, w, 6, '#4a9a4a'); R(hx, y + 15, 6, 7, '#3a7ad8'); P1(hx + 4, y + 16, '#ffffff'); for (let j = 0; j < 3; j++) { const rx = x + ((j * 12 + 4 - Math.floor(k * 10)) % w + w) % w; E(rx, y + 10, 1.5, 1.5, '#ffd84a'); } }
           else if (i === 3) { for (let j = 0; j < 8; j++) { const sx = x + ((j * 7 + 3) % w), sy = y + ((j * 11 + Math.floor(k * 30)) % h); P1(sx, sy, '#ffffff'); } R(x + 12, y + 20, 6, 4, '#ffd84a'); P1(x + 14, y + 19, '#ffd84a'); }
           else { for (let yy = 0; yy < h; yy += 4) HL(x, y + yy, w, '#2a1a3a'); R(x + 4 + Math.round((Math.sin(k) + 1) * 10), y + 8 + Math.round((Math.cos(k * 1.3) + 1) * 6), 4, 4, '#e05a9a'); }
-          if (Math.floor(k * 1.5) % 4 === 0) gfx.text('INSERT', x + w / 2, y + 2, '#ffffff', { align: 'center', font: 'small' });
+          if (Math.floor(k * 1.5) % 4 === 0) gfx.text('INSERT', x + w / 2, y + 2, '#ffffff', { align: 'center', font: 'small', fit: w - 2 });
           gfx.unclip();
           withA(0.15, () => R(x + 2, y + 2, 5, h - 4, '#ffffff'));
           CH.emit(x + w / 2, y + h / 2, 9, ['#3ad6a0', '#e05a4a', '#4a8ad8', '#ffd84a', '#b86ae8'][i], 0.6);
@@ -1840,7 +1840,7 @@
       { id: 'marquee', draw(g, t) { const i = Math.floor(t * 8) % 12; for (let j = 0; j < 12; j++) P1(366 + j * 9, 70, j === i ? '#ffffff' : '#ffd84a'); } },
     ],
     counter: { wood: '#2a2238', top: '#4a3f62', stripe: '#9fdcff', items(x, top) {
-      R(20, top - 18, 14, 18, '#3a2f52'); HL(20, top - 18, 14, '#6a5a8a'); R(22, top - 15, 10, 6, '#0e0c14'); gfx.text('TKN', 27, top - 14, '#ffd84a', { align: 'center', font: 'small' }); R(25, top - 6, 4, 2, '#e8b84a');
+      R(20, top - 18, 14, 18, '#3a2f52'); HL(20, top - 18, 14, '#6a5a8a'); R(22, top - 15, 10, 6, '#0e0c14'); gfx.text('TKN', 27, top - 14, '#ffd84a', { align: 'center', font: 'tiny' }); R(25, top - 6, 4, 2, '#e8b84a');
       for (let i = 0; i < 5; i++) R(56 + i * 3, top - 2 - i, 8, 2, '#f07a9a');
     } },
     lights: [{ x: 244, y: 170, rx: 110, ry: 50, color: '#8a6aff', alpha: 0.12 }, { x: 420, y: 110, rx: 80, ry: 60, color: '#ff9ad8', alpha: 0.07 }, { x: 502, y: 170, rx: 30, ry: 50, color: '#ff6ad8', alpha: 0.1 }],

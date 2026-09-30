@@ -237,8 +237,6 @@
       const bedX = 50, bedY = this.floorY - 20;
       const sleeper = this.addCustom((g, x, y, t) => {
         CH.drawChubby(g, x, y, { sitting: true, sleep: this.sleeping, face: this.sleeping ? 'sleep' : 'tired', outfit: 'hoodie', noShadow: true, flip: false, arm: this.sleeping ? 'pocket' : 'belly', headDX: this.sleeping ? -2 : 0, headDY: this.sleeping ? 3 : 0, blink: false });
-        // blanket over lap
-        gfx.rect(x - 14, y - 12, 34, 10, '#5a7ac8'); gfx.hline(x - 14, y - 12, 34, '#7b9ae8'); for (let i = 0; i < 4; i++) gfx.hline(x - 10 + i * 8, y - 9 + (i % 2), 5, '#3b5390');
       }, bedX, bedY, 30, 30, { id: 'sleeper', layer: 'back' });
       this.sleeping = true;
       this.cam.x = 0;

@@ -32,14 +32,14 @@
   // ---- wall-mounted ----------------------------------------------------------
   function motivationalPoster(x, y, w, h, t) {
     gfx.rect(x + 2, y + 2, w, h, 'rgba(30,24,16,0.25)');
-    gfx.vgrad(x, y, w, h - 15, ['#3f6ea8', '#6c9acb', '#9dc2e2', '#c9dcec']);
+    gfx.vgrad(x, y, w, h - 20, ['#3f6ea8', '#6c9acb', '#9dc2e2', '#c9dcec']);
     gfx.circle(x + w - 14, y + 11, 5, '#fdf3c8');
-    gfx.tri(x + 4, y + h - 15, x + 38, y + h - 15, x + 21, y + 9, '#e6eef4');
-    gfx.tri(x + 8, y + h - 15, x + 30, y + h - 15, x + 21, y + 14, '#f8fbfe');
-    gfx.tri(x + 28, y + h - 15, x + w, y + h - 15, x + 50, y + 16, '#aec4d6');
-    gfx.rect(x, y + h - 15, w, 15, '#141a24');
-    gfx.text('SYNERGY', x + w / 2, y + h - 13, '#f5c33b', { align: 'center' });
-    gfx.text('TRY HARDER', x + w / 2, y + h - 6, '#9fb2c4', { align: 'center', font: 'small' });
+    gfx.tri(x + 4, y + h - 20, x + 38, y + h - 20, x + 21, y + 9, '#e6eef4');
+    gfx.tri(x + 8, y + h - 20, x + 30, y + h - 20, x + 21, y + 14, '#f8fbfe');
+    gfx.tri(x + 28, y + h - 20, x + w, y + h - 20, x + 50, y + 16, '#aec4d6');
+    gfx.rect(x, y + h - 20, w, 20, '#141a24');
+    gfx.text('SYNERGY', x + w / 2, y + h - 18, '#f5c33b', { align: 'center' });
+    gfx.text('TRY HARDER', x + w / 2, y + h - 8, '#9fb2c4', { align: 'center', font: 'small' });
     gfx.frame(x, y, w, h, '#7b7157');
     // the corner has been curling since before Kevin
     const c = 13 + Math.sin(t * 0.7) * 1.2;
@@ -474,7 +474,7 @@
       gfx.frame(186, 102, 54, 36, '#3d3a44');
       // the clock
       wallClock(288, 78, 21, S.hour, t, Math.max(urg * 0.8, panic));
-      gfx.rect(266, 104, 44, 8, '#efe6cf'); gfx.frame(266, 104, 44, 8, '#b8ab8c'); gfx.text('DO NOT TOUCH', 288, 105, '#7d6a4a', { align: 'center', font: 'small' });
+      gfx.rect(256, 104, 64, 9, '#efe6cf'); gfx.frame(256, 104, 64, 9, '#b8ab8c'); gfx.text('DO NOT TOUCH', 288, 106, '#7d6a4a', { align: 'center', font: 'small', fit: 62 });
 
       // ---- furniture -------------------------------------------------------------
       filingCabinet(16, FY);

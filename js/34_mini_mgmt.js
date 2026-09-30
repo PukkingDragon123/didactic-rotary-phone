@@ -406,8 +406,8 @@
       const parts = this.template.split('___'); let sx = 30, sy = 60; let txt = '';
       for (let i = 0; i < parts.length; i++) { txt += parts[i]; if (i < this.blanks) txt += this.filled[i] ? '[' + this.filled[i][0] + ']' : '[____]'; }
       const lines = gfx.wrap(txt, W - 72);
-      MG.panel(24, 52, W - 48, 10 + lines.length * 10, { r: 4, face: '#231b30' });
-      lines.forEach((l, i) => gfx.text(l, sx, sy + i * 10, '#f6f1e6', { shadow: '#0f0b16' }));
+      MG.panel(24, 52, W - 48, 12 + lines.length * 13, { r: 4, face: '#231b30' });
+      lines.forEach((l, i) => gfx.text(l, sx, sy + i * 13, '#f6f1e6', { shadow: '#0f0b16' }));
       const sc = `Sentence ${this.done + 1}/${this.sentences}`;
       MG.tag(sc, W - 8 - gfx.textWidth(sc, 'small') - 7, 27);
       // tiles
@@ -503,7 +503,7 @@
       });
       gfx.text(this.burger.name, bx, by + 12, '#f5c33b', { align: 'center', shadow: '#0f0b16' });
       const npatty = this.burger.layers.filter((l) => l === 'patty').length;
-      gfx.text(`${this.burger.layers.length} layers, ${npatty} patt${npatty === 1 ? 'y' : 'ies'}`, bx, by + 22, '#b8b2c4', { align: 'center', font: 'small' });
+      gfx.text(`${this.burger.layers.length} layers, ${npatty} patt${npatty === 1 ? 'y' : 'ies'}`, bx, by + 25, '#b8b2c4', { align: 'center', font: 'small' });
       if (MG.button(g, { x: 170, y: 236, w: 100, h: 20 }, 'REJECT ✗', { color: '#c8352b', font: 'main' })) this.decide(false);
       if (MG.button(g, { x: 350, y: 236, w: 100, h: 20 }, 'APPROVE ✓', { color: '#4f9d3a', font: 'main' })) this.decide(true);
       this.particles.draw(g);

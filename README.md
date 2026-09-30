@@ -57,6 +57,24 @@ around, a yawn, a shuffle or a scratch.
 Dialogue is a comic speech bubble anchored over whoever is talking, with a tail
 that points at them, and pages itself when a line runs long.
 
+### Fonts
+
+All text is set in two goofy pixel fonts by Nathan Scott (Caffinate), both
+free on itch.io:
+
+- **Fibberish** ([caffinate.itch.io/fibberish](https://caffinate.itch.io/fibberish)),
+  a fun n' fat 7x9 font, for dialogue, menus, buttons and titles.
+- **Quaver** ([caffinate.itch.io/quaver](https://caffinate.itch.io/quaver)),
+  a quirky 5x6 font, set in capitals for labels, the HUD and the phone.
+
+Their itch.io pages list them as CC0 and the readme that ships with them says
+CC BY 3.0, so they are credited here either way. The TTFs were converted into
+the row-string glyph tables in `js/01_font.js`, with the arrows, hearts, stars
+and other symbols the fonts lack drawn to match. The game's original 5x7 and
+3x5 fonts are kept as `plain` and `tiny` for price tags and signs too small
+for the new ones, and `gfx.text(..., { fit })` steps a label down a size
+rather than let it spill out of its sign.
+
 ## What's inside
 
 - **A closer, richer picture**: the canvas renders at the screen's real

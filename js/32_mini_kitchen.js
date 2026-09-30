@@ -623,7 +623,7 @@
         gfx.rect(n.x - 11, n.y - 19, 22, 18, '#5c616c');
         gfx.rect(n.x - 10, n.y - 18, 20, 12, FLAVORS[n.flavor]);
         gfx.hline(n.x - 10, n.y - 18, 20, gfx.mix(FLAVORS[n.flavor], '#fff', 0.35));
-        gfx.text(n.flavor.toUpperCase().slice(0, 5), n.x, n.y - 14, '#fff', { align: 'center', font: 'small' });
+        gfx.text(n.flavor.toUpperCase().slice(0, 5), n.x, n.y - 15, '#fff', { align: 'center', font: 'small', fit: 18 });
         gfx.rect(n.x - 3, n.y, 6, 8, '#2f333b');
         gfx.vline(n.x - 3, n.y, 8, '#5c616c');
         gfx.rect(n.x - 1, n.y + 8, 2, 4, '#4a4e58');
@@ -799,7 +799,7 @@
         } else {
           gfx.rect(b.x - 14, b.y - 22, 28, 22, 'rgba(20,14,26,0.14)');
           for (let i = 0; i < 4; i++) gfx.hline(b.x - 14, b.y - 22 + i * 7, 28, 'rgba(20,14,26,0.08)');
-          gfx.text('(empty)', b.x, b.y - 12, '#7d6a58', { align: 'center', font: 'small' });
+          gfx.text('(empty)', b.x, b.y - 13, '#7d6a58', { align: 'center', font: 'small', fit: 26 });
         }
       }
       this.ds.draw(g);

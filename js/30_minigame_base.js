@@ -80,7 +80,7 @@
   MG.tag = function (text, x, y, opts = {}) {
     const font = opts.font || 'small';
     const tw = gfx.textWidth(text, font);
-    const w = tw + 7, h = font === 'small' ? 10 : 12;
+    const w = tw + 7, h = font === 'small' ? 10 : 14;
     const ax = opts.align === 'center' ? Math.round(x - w / 2) : Math.round(x);
     MG.panel(ax, Math.round(y), w, h, { r: 3, face: opts.face || MG.CREAM, shadow: opts.shadow });
     gfx.text(text, ax + Math.round(w / 2), Math.round(y) + (h === 10 ? 2 : 3), opts.color || '#241c30', { align: 'center', font });
@@ -97,7 +97,10 @@
     gfx.rrect(r.x, r.y, r.w, r.h, 2, m.d);
     gfx.rrect(r.x, r.y, r.w, r.h - 2, 2, hover ? m.l : m.base);
     gfx.rrect(r.x + 1, r.y + 1, r.w - 2, 1, 1, gfx.mix(m.l, '#ffffff', 0.45));
-    gfx.text(label, r.x + r.w / 2, r.y + Math.floor((r.h - 7) / 2), opts.textColor || '#fff6e4', { align: 'center', font: opts.font || 'main', shadow: '#1d1424' });
+    // the label drops to a smaller font rather than spill off a narrow button
+    let font = gfx.fitFont(label, r.w - 6, opts.font || 'main');
+    if (font === 'main' && r.h - 2 < gfx.fontH('main') + 4) font = 'small';
+    gfx.text(label, r.x + r.w / 2, r.y + Math.floor((r.h - 2 - gfx.fontH(font)) / 2), opts.textColor || '#fff6e4', { align: 'center', font, shadow: '#1d1424' });
     if (opts.badge) { gfx.rrect(r.x + r.w - 9, r.y - 2, 10, 8, 2, MG.GOLD); gfx.text(opts.badge, r.x + r.w - 4, r.y - 1, '#3a2a08', { align: 'center', font: 'small' }); }
     if (hover) ui.cursor = 'hand';
     const clicked = inp.clicked(r);
@@ -244,10 +247,10 @@
         gfx.rect(0, H / 2 - 22, W, 44, '#160f20');
         g.globalAlpha = 1;
         gfx.hline(0, H / 2 - 22, W, MG.GOLD); gfx.hline(0, H / 2 + 21, W, MG.GOLD);
-        g.save(); g.translate(W / 2, H / 2 - 10); g.scale(2, 2);
+        g.save(); g.translate(W / 2, H / 2 - 14); g.scale(2, 2);
         gfx.text(this.title, 0, 0, MG.GOLD, { align: 'center', shadow: '#0d0912' });
         g.restore();
-        if (this.hint) gfx.text(this.hint, W / 2, H / 2 + 11, '#e8e0d0', { align: 'center', font: 'small' });
+        if (this.hint) gfx.text(this.hint, W / 2, H / 2 + 12, '#e8e0d0', { align: 'center', font: 'small' });
       }
       if (this.finished && this.result) {
         const k = Math.min(1, (this.resultT || 0) / 0.3);

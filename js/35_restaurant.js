@@ -128,7 +128,7 @@
   def('orderScreen', 44, 26, (g, x, y, t, st) => {
     gfx.rect(x - 1, y - 27, 46, 28, '#231f2c');
     gfx.rect(x + 1, y - 25, 42, 24, '#07200f');
-    gfx.text('NOW SERVING', x + 22, y - 22, '#3ecf6a', { align: 'center', font: 'small' });
+    gfx.text('NOW SERVING', x + 22, y - 22, '#3ecf6a', { align: 'center', font: 'small', fit: 40 });
     gfx.text(String((st && st.num) || 42), x + 22, y - 13, '#9cf0b0', { align: 'center' });
     g.globalAlpha = 0.12;
     for (let yy = -25; yy < 0; yy += 2) gfx.rect(x + 1, y + yy, 42, 1, '#000');
@@ -252,9 +252,9 @@
     gfx.rect(x + 2, y - 64, 26, 62, M.wood.base);
     gfx.rect(x + 4, y - 60, 22, 26, M.wood.d);
     gfx.rect(x + 4, y - 30, 22, 24, M.wood.d);
-    gfx.rrect(x + 4, y - 58, 22, 17, 1, '#f4f1ea');
-    gfx.text('OFFICE', x + 15, y - 56, '#3a3040', { align: 'center', font: 'small' });
-    gfx.text('BRENDA', x + 15, y - 48, '#c8352b', { align: 'center', font: 'small' });
+    gfx.rrect(x + 2, y - 58, 26, 17, 1, '#f4f1ea');
+    gfx.text('OFFICE', x + 15, y - 55, '#3a3040', { align: 'center', font: 'tiny' });
+    gfx.text('BRENDA', x + 15, y - 48, '#c8352b', { align: 'center', font: 'tiny' });
     gfx.ellipse(x + 25, y - 33, 2, 2, M.gold.base);
   });
 
@@ -263,8 +263,8 @@
     gfx.rect(x, y - 66, 30, 66, '#6e6e7c');
     gfx.rect(x + 2, y - 64, 26, 62, '#7d7d8c');
     for (let i = 0; i < 7; i++) { gfx.rect(x + 5, y - 60 + i * 5, 20, 2, '#5c5c68'); gfx.rect(x + 5, y - 60 + i * 5, 20, 1, '#8e8e9e'); }
-    gfx.rrect(x + 7, y - 34, 16, 9, 1, '#f4f1ea');
-    gfx.text('SUPPLY', x + 15, y - 32, '#3a3040', { align: 'center', font: 'small' });
+    gfx.rrect(x + 2, y - 34, 26, 9, 1, '#f4f1ea');
+    gfx.text('SUPPLY', x + 15, y - 32, '#3a3040', { align: 'center', font: 'tiny' });
     gfx.ellipse(x + 25, y - 33, 2, 2, '#c8c8d4');
     if (!(st && st.mopTaken)) {
       outlined(x + 36, y, 26, 62, 13, 60, () => {
@@ -458,7 +458,7 @@
       }
       // posters
       gfx.rect(180, 44, 60, 46, '#f5c33b'); gfx.rect(184, 48, 52, 38, '#c8352b'); gfx.text('MAN EGG', 210, 52, '#fff', { align: 'center', font: 'small' }); gfx.text('KIDS MEAL', 210, 60, '#fff', { align: 'center', font: 'small' }); gfx.text('TOY INSIDE', 210, 74, '#f5c33b', { align: 'center', font: 'small' }); gfx.ellipse(210, 68, 5, 6, '#e8dcc0'); gfx.rect(207, 67, 6, 1, '#5a3a1a');
-      gfx.rect(400, 44, 50, 40, '#fff'); gfx.frame(400, 44, 50, 40, '#c8352b'); gfx.text('EMPLOYEE', 425, 48, '#c8352b', { align: 'center', font: 'small' }); gfx.text('OF THE', 425, 55, '#c8352b', { align: 'center', font: 'small' }); gfx.text('MONTH', 425, 62, '#c8352b', { align: 'center', font: 'small' }); gfx.text('TAMMY (x71)', 425, 74, '#333', { align: 'center', font: 'small' });
+      gfx.rect(400, 44, 50, 40, '#fff'); gfx.frame(400, 44, 50, 40, '#c8352b'); gfx.text('EMPLOYEE', 425, 48, '#c8352b', { align: 'center', font: 'small' }); gfx.text('OF THE', 425, 55, '#c8352b', { align: 'center', font: 'small' }); gfx.text('MONTH', 425, 62, '#c8352b', { align: 'center', font: 'small' }); gfx.text('TAMMY (x71)', 425, 74, '#333', { align: 'center', font: 'small', fit: 46 });
       gfx.rect(1230, 50, 60, 30, '#f5c33b'); gfx.text('DAYS SINCE', 1260, 54, '#8f2419', { align: 'center', font: 'small' }); gfx.text('FRYER FIRE', 1260, 61, '#8f2419', { align: 'center', font: 'small' }); gfx.text('0', 1260, 69, '#c8352b', { align: 'center' });
       // wall menu chalkboard above dining + clock
       gfx.rect(480, 44, 70, 46, '#2a3a2a'); gfx.frame(480, 44, 70, 46, '#8a5a2b'); gfx.text('TODAY', 515, 48, '#f5c33b', { align: 'center', font: 'small' }); gfx.text('BIG DON', 515, 58, '#fff', { align: 'center', font: 'small' }); gfx.text('+ FRIES', 515, 66, '#fff', { align: 'center', font: 'small' }); gfx.text('$9.99', 515, 76, '#8bd06a', { align: 'center', font: 'small' });
@@ -811,11 +811,13 @@
       }
       // shift HUD
       const p = CH.clamp((S.hour - 8) / 8, 0, 1);
-      gfx.rect(4, 18, 120, 8, 'rgba(0,0,0,0.6)'); gfx.rect(5, 19, Math.round(118 * p), 6, this.isRush() ? '#c8352b' : '#f5c33b');
-      gfx.text('SHIFT ' + (this.isRush() ? '- RUSH HOUR!' : ''), 6, 27, this.isRush() && Math.sin(this.t * 8) > 0 ? '#ff8080' : '#fff', { font: 'small', outline: '#000' });
-      gfx.text(`${CH.JOB_INFO[this.job].title}  -  Day ${S.day}`, 6, 36, '#f5c33b', { font: 'small', outline: '#000' });
-      gfx.text(`Tasks ${this.tasksDone}  ★${this.stars}  Complaints ${this.complaints}`, 6, 44, '#fff', { font: 'small', outline: '#000' });
-      if (this.job !== 'janitor' && this.jobIdx <= 6) gfx.text(`Orders waiting: ${this.pendingOrders}`, 6, 52, this.pendingOrders > 3 ? '#ff8080' : '#fff', { font: 'small', outline: '#000' });
+      // sits under the objective banner, however many lines that took
+      const hy = Math.max(18, ui.objectiveBottom() + 2);
+      gfx.rect(4, hy, 120, 8, 'rgba(0,0,0,0.6)'); gfx.rect(5, hy + 1, Math.round(118 * p), 6, this.isRush() ? '#c8352b' : '#f5c33b');
+      gfx.text('SHIFT ' + (this.isRush() ? '- RUSH HOUR!' : ''), 6, hy + 10, this.isRush() && Math.sin(this.t * 8) > 0 ? '#ff8080' : '#fff', { font: 'small', outline: '#000' });
+      gfx.text(`${CH.JOB_INFO[this.job].title}  -  Day ${S.day}`, 6, hy + 19, '#f5c33b', { font: 'small', outline: '#000' });
+      gfx.text(`Tasks ${this.tasksDone}  ★${this.stars}  Complaints ${this.complaints}`, 6, hy + 28, '#fff', { font: 'small', outline: '#000' });
+      if (this.job !== 'janitor' && this.jobIdx <= 6) gfx.text(`Orders waiting: ${this.pendingOrders}`, 6, hy + 37, this.pendingOrders > 3 ? '#ff8080' : '#fff', { font: 'small', outline: '#000' });
     }
   }
   CH.RestaurantScene = RestaurantScene;

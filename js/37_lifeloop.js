@@ -215,23 +215,23 @@
   CH.drawShopApp = (ph, g, cw, ch, st, a) => {
     ph.header('Amazoon', '#f0a030', 'Prime Moose');
     let yy = 18;
-    if (st.msg) { gfx.rrect(6, yy, cw - 12, 12, 2, '#e8f8e8'); gfx.text(st.msg, cw / 2, yy + 3, '#3a9a5a', { align: 'center', font: 'small' }); yy += 16; }
+    if (st.msg) { const mh = 6 + gfx.wrap(st.msg, cw - 16, 'small').length * 8; gfx.rrect(6, yy, cw - 12, mh, 2, '#e8f8e8'); ph.cpara(st.msg, cw / 2, yy + 3, cw - 16, '#3a9a5a'); yy += mh + 4; }
     for (const it of CH.SHOP_ITEMS) {
       const owned = !it.repeat && (S.homeItems[it.id] || (it.id.startsWith('gift_') && S.homeItems[it.id]));
-      ph.row(yy, 30, () => { gfx.rect(6, yy + 4, 22, 22, '#fff8e8'); gfx.frame(6, yy + 4, 22, 22, '#e8d8c0'); gfx.text(it.name[0], 17, yy + 11, '#f0a030', { align: 'center' }); gfx.text(it.name.length > 24 ? it.name.slice(0, 24) + '…' : it.name, 32, yy + 4, '#1a1a2a', { font: 'small' }); gfx.text(it.desc.slice(0, 30), 32, yy + 12, '#666', { font: 'small' }); gfx.text(owned ? 'OWNED' : CH.fmtMoney(it.price), cw - 8, yy + 20, owned ? '#3a9a5a' : S.money >= it.price ? '#c8352b' : '#aaa', { align: 'right', font: 'small' }); }, owned ? null : () => { if (S.money >= it.price) { CH.addMoney(-it.price); it.apply(); CH.phoneData().bankTx.unshift(['Amazoon: ' + it.name, -it.price]); A.sfx('buy'); st.msg = 'Ordered: ' + it.name + ' (delivered instantly by moose)'; CH.save(); } else { A.sfx('error'); st.msg = 'Not enough money.'; } });
+      ph.row(yy, 30, () => { gfx.rect(6, yy + 4, 22, 22, '#fff8e8'); gfx.frame(6, yy + 4, 22, 22, '#e8d8c0'); gfx.text(it.name[0], 17, yy + 11, '#f0a030', { align: 'center' }); gfx.text(gfx.ellipsize(it.name, cw - 38, 'small'), 32, yy + 4, '#1a1a2a', { font: 'small' }); gfx.text(gfx.ellipsize(it.desc, cw - 38, 'small'), 32, yy + 12, '#666', { font: 'small' }); gfx.text(owned ? 'OWNED' : CH.fmtMoney(it.price), cw - 8, yy + 20, owned ? '#3a9a5a' : S.money >= it.price ? '#c8352b' : '#aaa', { align: 'right', font: 'small' }); }, owned ? null : () => { if (S.money >= it.price) { CH.addMoney(-it.price); it.apply(); CH.phoneData().bankTx.unshift(['Amazoon: ' + it.name, -it.price]); A.sfx('buy'); st.msg = 'Ordered: ' + it.name + ' (delivered instantly by moose)'; CH.save(); } else { A.sfx('error'); st.msg = 'Not enough money.'; } });
       yy += 30;
     }
     a.contentH = yy + 10;
   };
   CH.drawDonaldsApp = (ph, g, cw, ch, st, a) => {
-    ph.header("Donald's Crew", '#c8352b', CH.JOB_INFO[S.job].title);
+    ph.header("Donald's Crew", '#c8352b', gfx.ellipsize(CH.JOB_INFO[S.job].title, 60, 'small'));
     let yy = 20;
     gfx.rrect(6, yy, cw - 12, 40, 3, '#fff0f0'); gfx.frame(6, yy, cw - 12, 40, '#c8352b');
-    gfx.text('Employee: Chubby Q.', 10, yy + 4, '#333', { font: 'small' }); gfx.text('Role: ' + CH.JOB_INFO[S.job].title, 10, yy + 12, '#c8352b', { font: 'small' }); gfx.text('Wage: ' + CH.fmtMoney(CH.JOB_INFO[S.job].wage) + '/hr', 10, yy + 20, '#333', { font: 'small' }); gfx.text('Shifts: ' + S.shiftsWorked + '  Rep: ' + S.reputation, 10, yy + 28, '#333', { font: 'small' });
+    gfx.text('Employee: Chubby Q.', 10, yy + 4, '#333', { font: 'small' }); gfx.text(gfx.ellipsize('Role: ' + CH.JOB_INFO[S.job].title, cw - 20, 'small'), 10, yy + 12, '#c8352b', { font: 'small' }); gfx.text('Wage: ' + CH.fmtMoney(CH.JOB_INFO[S.job].wage) + '/hr', 10, yy + 20, '#333', { font: 'small' }); gfx.text('Shifts: ' + S.shiftsWorked + '  Rep: ' + S.reputation, 10, yy + 28, '#333', { font: 'small' });
     yy += 46;
     gfx.text('Career Tower: Floor ' + S.towerFloor, 8, yy, '#1a1a2a', { font: 'small' }); yy += 10;
     const idx = CH.JOBS.indexOf(S.job), next = CH.JOBS[idx + 1];
-    if (next) { const shifts = (S.jobShifts && S.jobShifts[S.job]) || 0; gfx.text('Next: ' + CH.JOB_INFO[next].title, 8, yy, '#333', { font: 'small' }); yy += 8; gfx.text(`- shifts at current role: ${shifts}/2`, 10, yy, shifts >= 2 ? '#3a9a5a' : '#c8352b', { font: 'small' }); yy += 8; gfx.text(`- tower floor ${CH.JOB_INFO[next].floor}: ${S.towerFloor >= CH.JOB_INFO[next].floor ? 'OK' : 'locked'}`, 10, yy, S.towerFloor >= CH.JOB_INFO[next].floor ? '#3a9a5a' : '#c8352b', { font: 'small' }); yy += 12; }
+    if (next) { const shifts = (S.jobShifts && S.jobShifts[S.job]) || 0; gfx.text(gfx.ellipsize('Next: ' + CH.JOB_INFO[next].title, cw - 16, 'small'), 8, yy, '#333', { font: 'small' }); yy += 8; gfx.text(`- shifts in this role: ${shifts}/2`, 10, yy, shifts >= 2 ? '#3a9a5a' : '#c8352b', { font: 'small' }); yy += 8; gfx.text(`- tower floor ${CH.JOB_INFO[next].floor}: ${S.towerFloor >= CH.JOB_INFO[next].floor ? 'OK' : 'locked'}`, 10, yy, S.towerFloor >= CH.JOB_INFO[next].floor ? '#3a9a5a' : '#c8352b', { font: 'small' }); yy += 12; }
     gfx.text('Stats', 8, yy, '#1a1a2a', { font: 'small' }); yy += 9;
     const st2 = S.stats; for (const [k, v] of [['Burgers made', st2.burgers], ['Spills mopped', st2.spillsMopped], ['Bins emptied', st2.binsEmptied], ['Customers served', st2.customersServed], ['Hours worked', st2.hours], ['Total earned', CH.fmtMoney(st2.earned)]]) { gfx.text(k, 10, yy, '#555', { font: 'small' }); gfx.text(String(v), cw - 8, yy, '#333', { align: 'right', font: 'small' }); yy += 8; }
     a.contentH = yy + 10;

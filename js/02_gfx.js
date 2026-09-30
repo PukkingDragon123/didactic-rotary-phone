@@ -267,6 +267,9 @@
     }
     return img;
   }
+  // cap height and line spacing of a font, for centring text in boxes
+  gfx.fontH = (font = 'main') => CH.FONTS[font].height;
+  gfx.lineH = (font = 'main') => CH.FONTS[font].lineHeight;
   gfx.textWidth = (str, font = 'main') => {
     const f = CH.FONTS[font];
     let w = 0;
@@ -286,9 +289,18 @@
     while (out.length && gfx.textWidth(out + '\u2026', font) > maxW) out = out.slice(0, -1);
     return out ? out + '\u2026' : '';
   };
-  // opts: {font, align:'left'|'center'|'right', shadow:color, outline:color, ctx}
+  // The biggest font that still fits a width: labels on buttons, signs and
+  // price tags step down main -> small -> tiny rather than spill out.
+  const FIT = { main: ['main', 'small', 'tiny'], small: ['small', 'tiny'], plain: ['plain', 'small', 'tiny'], tiny: ['tiny'] };
+  gfx.fitFont = (str, maxW, font = 'main') => {
+    const chain = FIT[font] || [font];
+    for (const f of chain) if (gfx.textWidth(str, f) <= maxW) return f;
+    return chain[chain.length - 1];
+  };
+  // opts: {font, align:'left'|'center'|'right', shadow:color, outline:color, ctx,
+  //        fit: max width - drop to a smaller font when the text is wider}
   gfx.text = (str, x, y, color = '#fff', opts = {}) => {
-    const font = opts.font || 'main';
+    const font = opts.fit ? gfx.fitFont(String(str), opts.fit, opts.font || 'main') : opts.font || 'main';
     const f = CH.FONTS[font];
     const ctx = opts.ctx || gfx.cur;
     str = String(str);
@@ -296,11 +308,14 @@
     x = Math.round(x); y = Math.round(y);
     if (opts.align === 'center') x -= Math.floor(w / 2);
     else if (opts.align === 'right') x -= w;
+    // fonts with an ascender row above their capitals draw a touch higher,
+    // so the capitals always start at the y that was asked for
+    const oy = f.oy || 0;
     const drawRun = (dx, dy, col) => {
       let cx = x + dx;
       for (const ch of str) {
         const im = glyph(font, ch, col);
-        ctx.drawImage(im, cx, y + dy);
+        ctx.drawImage(im, cx, y + dy + oy);
         cx += im.width + f.space;
       }
     };

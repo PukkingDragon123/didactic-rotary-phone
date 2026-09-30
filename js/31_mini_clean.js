@@ -842,7 +842,7 @@
       if (this.needPlunge) tasks.push(['Unclog toilet', this.tasks.plunge]);
       if (this.weirdItem) tasks.push(['Remove ' + this.weirdItem[0], this.tasks.weird]);
       const cy0 = H - 14 - tasks.length * 8;
-      MG.panel(W - 132, cy0 - 7, 128, 11 + tasks.length * 8, { r: 4 });
+      MG.panel(W - 132, cy0 - 7, 128, 12 + tasks.length * 8, { r: 4 });
       tasks.forEach(([n, done], i) => {
         const y = cy0 + i * 8;
         if (done) { gfx.text('✓', W - 128, y, '#3f8f3a', { font: 'small' }); gfx.text(n, W - 120, y, '#7a8d76', { font: 'small' }); gfx.hline(W - 120, y + 3, gfx.textWidth(n, 'small'), '#a9b8a4'); }
@@ -1016,7 +1016,7 @@
       // packing tape
       gfx.rect(W / 2 - 22, 156, 44, 9, 'rgba(236,222,190,0.55)');
       gfx.rect(60, 246, W - 120, 4, cm.dd);
-      gfx.text('SUPPLIES - HANDLE WITH CARE (or not)', W / 2, 240, '#7a4f16', { align: 'center', font: 'small' });
+      gfx.text('SUPPLIES - HANDLE WITH CARE (or not)', W / 2, 238, '#7a4f16', { align: 'center', font: 'small' });
       this.ds.draw(g);
       this.particles.draw(g);
       if (this.ds.held) this.drawPaw(g, true);

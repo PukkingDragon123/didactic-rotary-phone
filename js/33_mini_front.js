@@ -102,8 +102,8 @@
         g.globalAlpha = 0.12; gfx.rect(bx + 2, 26, 126, 12, '#8fb4ff'); g.globalAlpha = 1;
         const items = MENU.slice(i * 5, i * 5 + 5);
         items.forEach((m, k) => {
-          gfx.text(m.name, bx + 6, 28 + k * 7, '#f5c33b', { font: 'small' });
-          gfx.text('$' + m.price.toFixed(2), bx + 124, 28 + k * 7, '#f0ece2', { align: 'right', font: 'small' });
+          gfx.text(m.name, bx + 6, 27 + k * 7, '#f5c33b', { font: 'small' });
+          gfx.text('$' + m.price.toFixed(2), bx + 124, 27 + k * 7, '#f0ece2', { align: 'right', font: 'small' });
         });
         gfx.hline(bx + 2, 63, 126, '#4a4055');
       }
@@ -115,10 +115,10 @@
         c.npc.x = c.x; c.npc.y = 132; c.npc.draw(g);
         if (this.phase !== 'walkin') {
           const lines = gfx.wrap(c.text, 150, 'small');
-          const bw = Math.max(...lines.map((l) => gfx.textWidth(l, 'small'))) + 12, bh = lines.length * 7 + 8;
+          const bw = Math.max(...lines.map((l) => gfx.textWidth(l, 'small'))) + 12, bh = lines.length * 8 + 7;
           const bx = c.x + 20, by = 46;
           art.bubble(bx, by, bw, bh, c.x + 6, 120, { kind: 'say' });
-          lines.forEach((l, i) => gfx.text(l, bx + 6, by + 4 + i * 7, '#2c2419', { font: 'small' }));
+          lines.forEach((l, i) => gfx.text(l, bx + 6, by + 4 + i * 8, '#2c2419', { font: 'small' }));
           MG.meter(c.x - 15, 62, 30, 4, this.patience, this.patience < 0.3 ? '#c8352b' : '#4f9d3a');
         }
       }

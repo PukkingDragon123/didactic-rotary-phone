@@ -131,7 +131,7 @@
     R(x + 2, yb - h + Math.round(h * 0.55), w - 4, Math.round(h * 0.3), m.d); HL(x + 2, yb - h + Math.round(h * 0.55), w - 4, m.dd);
     P1(x + w - 3, yb - Math.round(h * 0.45), '#f5c33b'); P1(x + w - 3, yb - Math.round(h * 0.45) + 1, '#c8922f');
     if (o.wreath) { const cx = x + (w >> 1), cy = yb - h + 9; for (let a = 0; a < 12; a++) { const an = (a / 12) * Math.PI * 2; P1(Math.round(cx + Math.cos(an) * 3.5), Math.round(cy + Math.sin(an) * 3.5), a % 3 ? '#2f6a24' : '#4a8a34'); } P1(cx, cy + 4, '#d8263a'); P1(cx - 1, cy + 4, '#d8263a'); P1(cx + 1, cy + 4, '#f06a6a'); }
-    if (o.sign) { R(x + 2, yb - h + 6, w - 4, 4, '#f4f0e6'); gfx.text('OPEN', x + (w >> 1), yb - h + 5, '#c8352b', { align: 'center', font: 'small' }); }
+    if (o.sign) { R(x + 2, yb - h + 6, w - 4, 4, '#f4f0e6'); gfx.text('OPEN', x + (w >> 1), yb - h + 5, '#c8352b', { align: 'center', font: 'tiny' }); }
     R(x - 4, yb - 2, w + 8, 2, '#9aa4b4'); HL(x - 4, yb - 2, w + 8, '#c8ccd8');
     R(x - 1, yb - 1, w + 2, 1, '#6a4a3a');
   };
@@ -154,8 +154,8 @@
   const signBand = (x, y, w, name, bg, fg, p, o = {}) => {
     const m = K.ramp(bg);
     R(x, y, w, 10, m.m); HL(x, y, w, m.h); HL(x, y + 9, w, m.dd); R(x + 2, y + 2, w - 4, 6, m.d);
-    gfx.text(name, x + w / 2 + 1, y + 3, sh(bg, -50), { align: 'center', font: 'small' });
-    gfx.text(name, x + w / 2, y + 2, fg, { align: 'center', font: 'small' });
+    gfx.text(name, x + w / 2 + 1, y + 3, sh(bg, -50), { align: 'center', font: 'small', fit: w - 6 });
+    gfx.text(name, x + w / 2, y + 2, fg, { align: 'center', font: 'small', fit: w - 6 });
     if (o.lamps !== false) for (const lx of [x + 10, x + w - 11]) {
       VL(lx, y - 5, 4, '#2a2830'); HL(lx, y - 5, 3, '#2a2830'); R(lx + 2, y - 5, 3, 2, '#3a3440');
       if (p.lamp > 0.3) { P1(lx + 3, y - 3, '#ffe8a0'); withA(0.22 * p.lamp, () => E(lx + 3, y + 2, 7, 5, '#ffd98a')); }
@@ -183,7 +183,7 @@
   const aframe = (x, yb, lines) => {
     for (let j = 0; j < 22; j++) { P1(x + 1 + Math.round(j * 0.18), yb - 22 + j, '#6a4a2a'); P1(x + 19 - Math.round(j * 0.18), yb - 22 + j, '#6a4a2a'); }
     R(x + 2, yb - 22, 17, 15, '#140c10'); R(x + 3, yb - 21, 15, 13, '#2f2a22');
-    String(lines).split('|').forEach((l, i) => gfx.text(l, x + 10.5, yb - 20 + i * 6, i ? '#f6e7b0' : '#ffd84a', { align: 'center', font: 'small' }));
+    String(lines).split('|').forEach((l, i) => gfx.text(l, x + 10.5, yb - 20 + i * 6, i ? '#f6e7b0' : '#ffd84a', { align: 'center', font: 'tiny' }));
     HL(x + 2, yb - 23, 17, '#ffffff');
   };
   const downspout = (x, y, yb) => { VL(x, y, yb - y, '#5a5f6a'); VL(x + 1, y, yb - y, '#8a8f9c'); R(x - 1, yb - 3, 3, 3, '#5a5f6a'); R(x - 2, y - 1, 5, 2, '#5a5f6a'); };
@@ -204,7 +204,7 @@
     bait: (x, y, w, h, right) => { if (right) { for (let i = 0; i < 4; i++) draw('lure', x + 6 + i * 9, y + 5, { remap: { a: ['#e05a4a', '#3ad6a0', '#ffd84a', '#8a5aa8'][i] } }); draw('reel', x + 18, y + h - 1); } else { E(x + w / 2, y + h - 8, 14, 5, '#4a7a4a'); E(x + w / 2 - 2, y + h - 10, 9, 2, '#7aaa6a'); P1(x + w / 2 - 11, y + h - 9, '#141018'); } },
     barber: (x, y, w, h, right) => { if (right) { for (let i = 0; i < 3; i++) { const c = ['#3ad6a0', '#e8b84a', '#9fdcff'][i]; R(x + 8 + i * 9, y + h - 12, 6, 11, c); R(x + 9 + i * 9, y + h - 15, 4, 3, '#1e1a20'); } } else { R(x + 6, y + h - 20, 12, 3, '#b8352b'); R(x + 14, y + h - 30, 4, 12, '#b8352b'); R(x + 10, y + h - 17, 3, 16, '#c8ccd8'); } },
     arcade: (x, y, w, h, right) => { for (let i = 0; i < 2; i++) { const cx0 = x + 4 + i * 20; R(cx0, y + 2, 16, h - 3, '#141020'); R(cx0 + 2, y + 5, 12, 9, ['#3ad6a0', '#e05a9a', '#9fdcff', '#ffd84a'][i + (right ? 2 : 0)]); R(cx0 + 2, y + 16, 12, 3, '#2a2238'); } },
-    arena: (x, y, w, h, right) => { if (right) { R(x + 6, y + 4, 30, h - 8, '#f4f0e6'); gfx.text('GO', x + 21, y + 6, '#3a4a7a', { align: 'center', font: 'small' }); gfx.text('MALLARDS', x + 21, y + 13, '#3a4a7a', { align: 'center', font: 'small' }); } else { for (let i = 0; i < 3; i++) { gfx.line(x + 8 + i * 10, y + 4, x + 12 + i * 10, y + h - 5, '#c8844a'); HL(x + 10 + i * 10, y + h - 5, 6, '#1e1a20'); } } },
+    arena: (x, y, w, h, right) => { if (right) { R(x + 6, y + 4, 30, h - 8, '#f4f0e6'); gfx.text('GO', x + 21, y + 6, '#3a4a7a', { align: 'center', font: 'small' }); gfx.text('MALLARDS', x + 21, y + 14, '#3a4a7a', { align: 'center', font: 'tiny' }); } else { for (let i = 0; i < 3; i++) { gfx.line(x + 8 + i * 10, y + 4, x + 12 + i * 10, y + h - 5, '#c8844a'); HL(x + 10 + i * 10, y + h - 5, 6, '#1e1a20'); } } },
   };
   const ARCH = {
     general: { style: 'falsefront', body: 'clap', color: '#8a5a2b', h: 102, trim: '#e8d8b0', porch: true, door: '#6a3a1c', sprite: 'sack', signBg: '#3a2418' },
@@ -342,7 +342,7 @@
       if (A.body === 'brick' || A.body === 'block') downspout(ox + W0 - 3, top + 2, b - 1);
       // electric meter and a house number, because every building has them
       R(ox + 1, b - 22, 4, 6, '#8a8f9c'); E(ox + 3, b - 20, 1, 1, '#e8eef4');
-      R(ox + 53, b - gf + 4, 14, 5, '#f4f0e6'); gfx.text(String(100 + ((x | 0) >> 4) % 90), ox + 60, b - gf + 4, '#3a3440', { align: 'center', font: 'small' });
+      R(ox + 53, b - gf + 4, 14, 5, '#f4f0e6'); gfx.text(String(100 + ((x | 0) >> 4) % 90), ox + 60, b - gf + 4, '#3a3440', { align: 'center', font: 'tiny' });
     });
     for (const [ex, ey, er, ec, ea] of emits) CH.emitStatic(x + ex - 15, y + ey - 156, er, ec, ea);
     // ---- things standing on the sidewalk, outside the ink line ----------------------
@@ -502,7 +502,7 @@
       gfx.rrect(0, 0, 90, 40, 6, '#8f2419'); gfx.rrect(3, 3, 84, 34, 5, '#f5c33b');
       gfx.rrect(3, 3, 84, 8, 4, '#ffe08a');
       R(8, 8, 26, 26, '#c8352b'); R(10, 10, 22, 22, '#ffe08a');
-      const dc = gfx.cur; dc.save(); dc.translate(12, 11); dc.scale(3, 3);
+      const dc = gfx.cur; dc.save(); dc.translate(14, 12); dc.scale(2, 2);
       gfx.text('D', 0, 0, '#c8352b'); dc.restore();
       gfx.text("DONALD'S", 62, 10, '#8f2419', { align: 'center', font: 'small' });
       gfx.text('BURGERS', 62, 18, '#8f2419', { align: 'center', font: 'small' });

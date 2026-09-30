@@ -197,9 +197,9 @@
       const sp = this.worldToScreen(p.x + p.w / 2 + p.offsetX, wy);
       const px = Math.round(sp.x), py = Math.round(CH.clamp(sp.y, 22, CH.H - 8));
       const bob = Math.round(Math.sin(this.t * 6) * 1.5);
-      gfx.rrect(px - 5, py - 10 + bob, 11, 10, 2, '#fff'); gfx.rect(px - 1, py + bob, 3, 1, '#fff');
-      gfx.text('E', px + 1, py - 8 + bob, '#1a1420', { align: 'center' });
-      if (p.hint) { const w = gfx.textWidth(p.hint, 'small') + 6; gfx.rrect(px - w / 2, py - 20 + bob, w, 8, 2, 'rgba(0,0,0,0.75)'); gfx.text(p.hint, px, py - 18 + bob, '#fff', { align: 'center', font: 'small' }); }
+      gfx.rrect(px - 6, py - 13 + bob, 13, 13, 3, '#fff'); gfx.rect(px - 1, py + bob, 3, 1, '#fff');
+      gfx.text('E', px + 1, py - 11 + bob, '#1a1420', { align: 'center' });
+      if (p.hint) { const w = gfx.textWidth(p.hint, 'small') + 8; gfx.rrect(px - w / 2, py - 25 + bob, w, 10, 3, 'rgba(0,0,0,0.75)'); gfx.text(p.hint, px, py - 23 + bob, '#fff', { align: 'center', font: 'small' }); }
     }
     // ---- lighting ----------------------------------------------------------
     // Scenes push {x, y, rx, ry, color, alpha, flicker, cone} onto this.lights;

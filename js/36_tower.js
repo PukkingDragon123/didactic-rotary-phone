@@ -176,14 +176,14 @@
       gfx.line(rx + rw - 8, ry + 3, rx + rw - 6, ry + 5, '#fff0b8'); gfx.line(rx + rw - 6, ry + 5, rx + rw - 3, ry + 1, '#fff0b8');
     } else if (state !== 'locked') {
       const lbl = '$' + r.cost, lw = gfx.textWidth(lbl, 'small') + 4;
-      gfx.rect(rx + 1, ry + 1, lw, 7, C.tag);
+      gfx.rect(rx + 1, ry + 1, lw, 8, C.tag);
       gfx.rect(rx + 1, ry + 1, lw, 1, gfx.shade(C.tag, 26));
       gfx.text(lbl, rx + 1 + lw / 2, ry + 2, C.tagText, { align: 'center', font: 'small' });
     }
     gfx.rect(rx, ry + WINH, rw, rh - WINH, C.plaque);
     gfx.rect(rx, ry + WINH, rw, 1, gfx.shade(C.plaque, 24));
     gfx.rect(rx, ry + rh - 1, rw, 1, '#0b1020');
-    gfx.text(r.name.length > 9 ? r.name.slice(0, 8) + '.' : r.name, rx + rw / 2, ry + WINH + 1, C.text, { align: 'center', font: 'small' });
+    gfx.text(r.name.length > 9 ? r.name.slice(0, 8) + '.' : r.name, rx + rw / 2, ry + WINH + 1, C.text, { align: 'center', font: 'small', fit: rw - 2 });
     if (hov) gfx.frame(rx - 1, ry - 1, rw + 2, rh + 2, '#fff');
   }
 
@@ -334,13 +334,13 @@
         gfx.rect(lx, ly2 + lh - 1, lw, 1, '#0b0f1c');
         gfx.rect(lx + lw, ly2 + 9, 4, 3, unlocked ? F.color : '#262d40');
         gfx.text('F' + f, lx + lw / 2, ly2 + 5, unlocked ? '#fff' : '#4e5876', { align: 'center' });
-        gfx.text(F.name.slice(0, 10), lx + lw / 2, ly2 + 14, unlocked ? gfx.mix(F.color, '#ffffff', 0.55) : '#454e69', { align: 'center', font: 'small' });
+        gfx.text(F.name.slice(0, 10), lx + lw / 2, ly2 + 14, unlocked ? gfx.mix(F.color, '#ffffff', 0.55) : '#454e69', { align: 'center', font: 'small', fit: lw - 2 });
         for (let i = 0; i < 5; i++) gfx.rect(lx + 8 + i * 6, ly2 + 21, 4, 3, i < bought ? '#8bd06a' : unlocked ? '#39415c' : '#242b3d');
         if (unlocked && bought < 5 && f === S.towerFloor && f < 10) {
           const msg = `${5 - bought} more to unlock elevator`;
           const mw = gfx.textWidth(msg, 'small') + 6;
-          gfx.rect(tx + tw - 4 - mw, fy - 40, mw, 6, 'rgba(10,8,4,0.75)');
-          gfx.text(msg, tx + tw - 6, fy - 39, '#f5c33b', { align: 'right', font: 'small' });
+          gfx.rect(tx + tw - 4 - mw, fy - 42, mw, 8, 'rgba(10,8,4,0.75)');
+          gfx.text(msg, tx + tw - 6, fy - 41, '#f5c33b', { align: 'right', font: 'small' });
         }
       }
       // ---- elevator shaft ------------------------------------------------------

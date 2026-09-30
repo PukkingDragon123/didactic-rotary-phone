@@ -558,9 +558,9 @@
         art.blit(x, y, 40, 44, 5, 40, () => {
           gfx.rect(5, 6, 30, 32, '#5a5a66'); gfx.rect(5, 6, 30, 2, '#7c7c88');
           gfx.rect(7, 9, 26, 24, '#2f3340'); gfx.frame(7, 9, 26, 24, '#43434e');
-          gfx.text('BUS', 20, 13, '#f5c33b', { align: 'center', font: 'small' });
-          gfx.text('STOP', 20, 21, '#f5c33b', { align: 'center', font: 'small' });
-          gfx.text('12', 20, 28, '#9fdcff', { align: 'center', font: 'small' });
+          gfx.text('BUS', 20, 11, '#f5c33b', { align: 'center', font: 'small' });
+          gfx.text('STOP', 20, 18, '#f5c33b', { align: 'center', font: 'small' });
+          gfx.text('12', 20, 26, '#9fdcff', { align: 'center', font: 'small' });
           gfx.rect(4, 3, 32, 3, '#e9f1f7');
         });
       }, 2226, F, 30, 30, { id: 'townBus', anim: false });

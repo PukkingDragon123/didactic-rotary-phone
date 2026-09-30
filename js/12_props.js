@@ -279,8 +279,8 @@
         ell(bx + 23, top + 19, 4, 3, '#f2c9a0');
         px(bx + 23, top + 16, '#fff'); px(bx + 24, top + 16, '#221a2c'); px(bx + 26, top + 21, '#c8352b');
         ell(bx + 18, top + 27, 3, 1.6, '#c8352b');
-        txt('BLUE', bx + 18, top + 31, '#3a2408', { align: 'center', font: 'small' });
-        txt('HEDGEHOG', bx + 18, top + 38, '#3a2408', { align: 'center', font: 'small' });
+        txt('BLUE', bx + 18, top + 30, '#3a2408', { align: 'center', font: 'small', fit: 34 });
+        txt('HEDGEHOG', bx + 18, top + 37, '#3a2408', { align: 'center', font: 'small', fit: 34 });
         tri(bx + 28, top, bx + 36, top, bx + 36, top + 8, '#a87a20');
         tri(bx + 29, top, bx + 36, top, bx + 36, top + 7, '#d8b860');
       } else if (v === 1) {
@@ -291,13 +291,13 @@
         ell(bx + 14, top + 16, 4, 2.6, '#f5c33b'); ell(bx + 21, top + 24, 2.6, 1.8, '#9a3f10');
         ell(bx + 18, top + 20, 14, 3, 'rgba(240,200,120,0.4)');
         ell(bx + 18, top + 20, 12, 2, 'rgba(255,230,170,0.5)');
-        txt('MAN EGG', bx + 18, top + 36, '#fff', { align: 'center', font: 'small' });
+        txt('MAN EGG', bx + 18, top + 35, '#fff', { align: 'center', font: 'small', fit: 34 });
       } else {
         rect(bx, top, 36, 44, '#f4f1ea'); rect(bx + 2, top + 2, 32, 40, '#5aa83c'); hl(bx + 2, top + 2, 32, '#8bd06a');
         ell(bx + 18, top + 14, 10, 8, '#2f6a24'); ell(bx + 16, top + 12, 5, 3, '#8bd06a');
-        txt('HANG', bx + 18, top + 24, '#fff', { align: 'center', font: 'small' });
-        txt('IN', bx + 18, top + 31, '#fff', { align: 'center', font: 'small' });
-        txt('THERE', bx + 18, top + 38, '#fff', { align: 'center', font: 'small' });
+        txt('HANG', bx + 18, top + 23, '#fff', { align: 'center', font: 'small', fit: 32 });
+        txt('IN', bx + 18, top + 30, '#fff', { align: 'center', font: 'small', fit: 32 });
+        txt('THERE', bx + 18, top + 37, '#fff', { align: 'center', font: 'small', fit: 32 });
       }
       ao(bx, by - 4, 36, 4, '#160f1a', 0.14);
     }, { l: 4, r: 4, t: 4, b: 4 });
@@ -1391,7 +1391,7 @@
       rect(bx, by - 6, 24, 6, C.base); hl(bx, by - 6, 24, C.l); hl(bx, by - 1, 24, C.dd);
       vl(bx, by - 6, 6, mix(C.base, C.l, 0.5)); vl(bx + 23, by - 6, 6, C.d);
       ell(bx + 8, by - 6, 4, 1.2, C.d); px(bx + 6, by - 5, '#c8352b'); px(bx + 12, by - 4, '#c8352b');
-      txt('PIZZA', bx + 12, by - 5, '#a8542a', { align: 'center', font: 'small' });
+      txt('PIZZA', bx + 12, by - 5, '#a8542a', { align: 'center', font: 'small', fit: 20 });
     }, { l: 4, r: 4, t: 4, b: 3 });
   });
 
@@ -1476,7 +1476,7 @@
     if (sign) {
       rect(bx + Math.round(w / 2) - 8, by - Math.round(h * 0.78), 16, 8, '#f8f5ee');
       fr(bx + Math.round(w / 2) - 8, by - Math.round(h * 0.78), 16, 8, M.chrome.d);
-      txt(sign, bx + Math.round(w / 2), by - Math.round(h * 0.78) + 2, signCol || '#3a3a44', { align: 'center', font: 'small' });
+      txt(sign, bx + Math.round(w / 2), by - Math.round(h * 0.78) + 1, signCol || '#3a3a44', { align: 'center', font: 'small', fit: 14 });
     }
     rect(bx, by - 2, w, 2, F.dd);
   };
@@ -1630,7 +1630,7 @@
       dith(bx + 3, by - 12, 36, 9, '#6a7482', 0.3);
       if (st && st.label) {
         rect(bx + 12, by - 26, 18, 9, '#f8f5ee'); fr(bx + 12, by - 26, 18, 9, F.d);
-        txt(st.label, bx + 21, by - 24, '#2a3a4a', { align: 'center', font: 'small' });
+        txt(st.label, bx + 21, by - 25, '#2a3a4a', { align: 'center', font: 'small', fit: 16 });
       }
       ao(bx, by - 70, 2, 70, '#101820', 0.2);
     }, { l: 8, r: 8, t: 6, b: 4 });
@@ -1742,7 +1742,7 @@
         if (Math.abs(v) > 2) px(bx + 3 + i, by - 39 - Math.round(v), '#2a8a2a');
       }
       txt(flat ? '--' : String(58 + Math.round(Math.sin(t) * 2)), bx + 24, by - 47, '#ff6a6a', { align: 'right', font: 'small' });
-      txt('98', bx + 24, by - 38, '#8fdcff', { align: 'right', font: 'small' });
+      txt('98', bx + 24, by - 39, '#8fdcff', { align: 'right', font: 'small' });
       const gg = gfx.cur; gg.save(); gg.globalAlpha = 0.12; tri(bx + 3, by - 34, bx + 12, by - 47, bx + 18, by - 47, '#fff'); gg.restore();
       px(bx + 3, by - 31, '#6cf06c');
       // cable to the patient
@@ -1869,13 +1869,13 @@
       if (v === 0) {
         ell(bx + 10, top + 10, 6, 6, '#f0a0b0'); ell(bx + 10, top + 10, 4, 4, '#c8352b');
         for (let i = 0; i < 6; i++) { const a = i * Math.PI / 3; px(bx + 10 + Math.round(Math.cos(a) * 7), top + 10 + Math.round(Math.sin(a) * 7), '#9fdcff'); }
-        txt('WASH', bx + 10, top + 18, '#2a3a4a', { align: 'center', font: 'small' });
-        txt('PAWS', bx + 10, top + 24, '#2a3a4a', { align: 'center', font: 'small' });
+        txt('WASH', bx + 10, top + 17, '#2a3a4a', { align: 'center', font: 'small', fit: 18 });
+        txt('PAWS', bx + 10, top + 23, '#2a3a4a', { align: 'center', font: 'small', fit: 18 });
       } else {
         rect(bx + 2, top + 3, 16, 13, '#4f9d3a'); hl(bx + 2, top + 3, 16, '#8bd06a');
         ell(bx + 7, top + 10, 3.4, 3.4, '#c8352b'); ell(bx + 13, top + 11, 2.6, 2.6, '#e8752c'); ell(bx + 10, top + 7, 2.6, 1.8, '#f5c33b');
-        txt('EAT', bx + 10, top + 18, '#2a3a4a', { align: 'center', font: 'small' });
-        txt('VEG', bx + 10, top + 24, '#2a3a4a', { align: 'center', font: 'small' });
+        txt('EAT', bx + 10, top + 17, '#2a3a4a', { align: 'center', font: 'small', fit: 18 });
+        txt('VEG', bx + 10, top + 23, '#2a3a4a', { align: 'center', font: 'small', fit: 18 });
       }
       // curling bottom corner
       tri(bx + 15, top + 29, bx + 20, top + 29, bx + 20, top + 24, '#d8d2c6');
@@ -1910,8 +1910,8 @@
       const gg = gfx.cur; gg.save(); gg.globalAlpha = 0.14;
       tri(bx + 4, by - 10, bx + 24, by - 74, bx + 36, by - 74, '#fff'); gg.restore();
       // floor indicator
-      rect(bx + 18, by - 88, 20, 8, M.plastic.base); hl(bx + 18, by - 88, 20, M.plastic.l);
-      rect(bx + 20, by - 86, 16, 5, '#14141c');
+      rect(bx + 18, by - 89, 20, 10, M.plastic.base); hl(bx + 18, by - 89, 20, M.plastic.l);
+      rect(bx + 20, by - 87, 16, 8, '#14141c');
       txt(String((st && st.floor) || '4'), bx + 28, by - 86, '#ff6a4a', { align: 'center', font: 'small' });
       for (let i = 0; i < 3; i++) px(bx + 21 + i, by - 84, '#7a2a1a');
       // call panel

@@ -87,14 +87,14 @@
       g.globalAlpha = a;
       if (c.bg) gfx.rect(0, 0, CH.W, CH.H, c.bg);
       const y = CH.H / 2 - 12;
-      gfx.rect(0, y - 14, CH.W, 40 + (c.sub2 ? 10 : 0), 'rgba(0,0,0,0.75)');
-      gfx.hline(0, y - 14, CH.W, c.color); gfx.hline(0, y + 25 + (c.sub2 ? 10 : 0), CH.W, c.color);
+      gfx.rect(0, y - 16, CH.W, 46 + (c.sub2 ? 10 : 0), 'rgba(0,0,0,0.75)');
+      gfx.hline(0, y - 16, CH.W, c.color); gfx.hline(0, y + 29 + (c.sub2 ? 10 : 0), CH.W, c.color);
       // big text: letter-spaced by drawing twice size via scale
-      g.save(); g.translate(CH.W / 2, y - 6); g.scale(2, 2);
+      g.save(); g.translate(CH.W / 2, y - 8); g.scale(2, 2);
       gfx.text(c.big, 0, 0, c.color, { align: 'center', shadow: '#000' });
       g.restore();
-      if (c.small) gfx.text(c.small, CH.W / 2, y + 13, '#ddd', { align: 'center' });
-      if (c.sub2) gfx.text(c.sub2, CH.W / 2, y + 23, '#aaa', { align: 'center', font: 'small' });
+      if (c.small) gfx.text(c.small, CH.W / 2, y + 15, '#ddd', { align: 'center' });
+      if (c.sub2) gfx.text(c.sub2, CH.W / 2, y + 28, '#aaa', { align: 'center', font: 'small' });
       g.globalAlpha = 1;
     }
   };
@@ -224,7 +224,7 @@
   };
   function finish(d, v) { d.done = true; ui.dialog = null; d.sig.resolve(v); }
 
-  const BOX = { x: 12, y: CH.H - 78, w: CH.W - 24, h: 66 };
+  const BOX = { x: 12, y: CH.H - 81, w: CH.W - 24, h: 69 };
   ui.box = BOX;
   // ---- dialogue layout -------------------------------------------------------
   // Where the speaker is standing on screen, so the bubble can point at them.
@@ -272,10 +272,20 @@
   }
   function allLen(all) { let n = 0; for (const ln of all) n += ln.length + 1; return Math.max(0, n - 1); }
 
+  // the objective banner keeps left of the HUD clock at the top centre
+  const OBJ_W = 180;
+  function objectiveLines() {
+    const lines = gfx.wrap(ui.objective, OBJ_W, 'small');
+    if (lines.length > 2) lines.splice(1, lines.length - 1, gfx.ellipsize(lines.slice(1).join(' '), OBJ_W, 'small'));
+    return lines;
+  }
+  ui.objectiveBottom = () => (ui.objective && ui.objectiveShown ? 3 + 15 + (objectiveLines().length - 1) * 8 : 0);
+
   // One layout used by both hit-testing and drawing, so a click always lands
   // on the option the player can see.
   function dialogLayout(d) {
     const clean = d.text.replace(/\{[a-z]+\}/g, '');
+    const LH = gfx.lineH();
     const anchor = speakerAnchor(d);
     const L = { anchor, clean };
     if (anchor) {
@@ -285,11 +295,11 @@
       let tw = 0;
       for (const ln of page.lines) tw = Math.max(tw, gfx.textWidth(ln));
       L.mode = 'bubble';
-      L.w = CH.clamp(tw + 13, 44, maxW + 13);
-      L.h = page.lines.length * 10 + 9;
+      L.w = CH.clamp(tw + 18, 44, maxW + 18);
+      L.h = page.lines.length * LH + 8;
       L.x = CH.clamp(Math.round(anchor.x - L.w / 2), 6, CH.W - L.w - 6);
       // keep clear of the objective banner at the top and the choice column below
-      L.y = CH.clamp(Math.round(anchor.y - L.h - 9), ui.objective && ui.objectiveShown ? 23 : 14, CH.H - L.h - 44);
+      L.y = CH.clamp(Math.round(anchor.y - L.h - 9), ui.objective && ui.objectiveShown ? ui.objectiveBottom() + 12 : 14, CH.H - L.h - 44);
       L.lines = page.lines;
       L.skip = page.skip;
       L.pageEndChar = page.end;
@@ -312,8 +322,8 @@
       let tw = 0;
       for (const ln of L.lines) tw = Math.max(tw, gfx.textWidth(ln));
       // grow to the text, but never shorter than the portrait needs
-      L.w = CH.clamp(padL + tw + 12, L.portrait ? 150 : 90, b.w);
-      L.h = Math.max(L.portrait ? 46 : 24, L.lines.length * 10 + 14);
+      L.w = CH.clamp(padL + tw + 16, L.portrait ? 150 : 90, b.w);
+      L.h = Math.max(L.portrait ? 46 : 26, L.lines.length * LH + 13);
       L.x = b.x;
       L.y = b.y + b.h - L.h;
       L.tx = L.x + padL;
@@ -321,7 +331,7 @@
     }
     if (d.choices) {
       const n = d.choices.length;
-      const h = 14, gap = 3;
+      const h = 17, gap = 3;
       let w = 120;
       for (const c of d.choices) w = Math.max(w, gfx.textWidth(c) + 26);
       w = Math.min(w, CH.W - 24);
@@ -354,31 +364,33 @@
       const a = t.t < 0.2 ? t.t / 0.2 : t.t > t.dur - 0.4 ? (t.dur - t.t) / 0.4 : 1;
       g.globalAlpha = Math.max(0, a);
       const w = gfx.textWidth(t.text) + 12;
-      const y = 30 + i * 14 - (t.t < 0.2 ? Math.round((1 - t.t / 0.2) * 6) : 0);
-      gfx.rrect(CH.W / 2 - w / 2, y, w, 12, 3, 'rgba(0,0,0,0.8)');
+      const y = 30 + i * 18 - (t.t < 0.2 ? Math.round((1 - t.t / 0.2) * 6) : 0);
+      gfx.rrect(CH.W / 2 - w / 2, y, w, 16, 3, 'rgba(0,0,0,0.8)');
       gfx.text(t.text, CH.W / 2, y + 3, t.color, { align: 'center' });
       g.globalAlpha = 1;
     });
-    // objective
+    // objective - wraps onto a second line rather than run under the clock
     if (ui.objective && ui.objectiveShown) {
       const slide = ui.objectiveT < 0.5 ? Math.round((1 - CH.ease.outCubic(ui.objectiveT / 0.5)) * -80) : 0;
       const pulse = ui.objectiveT < 2 ? Math.sin(ui.objectiveT * 12) > 0 : false;
-      const w = gfx.textWidth(ui.objective, 'small') + 28;
+      const lines = objectiveLines();
+      const w = Math.max(...lines.map((l) => gfx.textWidth(l, 'small'))) + 28;
+      const h = 15 + (lines.length - 1) * 8;
       const bob = pulse ? Math.round(Math.sin(ui.objectiveT * 12)) : 0;
-      gfx.rrect(slide - 5, 3, w + 5, 15, 5, CH.art.INK);
-      gfx.rrect(slide - 4, 4, w + 4, 13, 4, '#2f2740');
+      gfx.rrect(slide - 5, 3, w + 5, h, 5, CH.art.INK);
+      gfx.rrect(slide - 4, 4, w + 4, h - 2, 4, '#2f2740');
       gfx.rrect(slide - 4, 4, w + 4, 3, 2, '#453a5e');
       gfx.rrect(slide + 1, 6, 9, 9, 3, pulse ? '#fff' : P.amber);
-      gfx.text('!', slide + 5, 7 + bob, '#2a1f33', { align: 'center', font: 'small' });
-      gfx.text(ui.objective, slide + 14, 7, pulse ? '#fff' : '#efe6d2', { font: 'small' });
+      gfx.text('!', slide + 6, 7 + bob, '#2a1f33', { align: 'center', font: 'small' });
+      lines.forEach((l, i) => gfx.text(l, slide + 14, 7 + i * 8, pulse ? '#fff' : '#efe6d2', { font: 'small' }));
     }
     // money
     if (ui.showMoney) {
       const s = CH.fmtMoney(CH.state.money);
       const w = gfx.textWidth(s) + 10;
       const col = ui.moneyFlash > 0 ? (Math.sin(ui.moneyFlash * 30) > 0 ? '#fff' : P.yellow) : '#b6f0a0';
-      gfx.rect(CH.W - w - 4, 4, w, 12, 'rgba(0,0,0,0.7)');
-      gfx.text(s, CH.W - 9, 6, col, { align: 'right' });
+      gfx.rect(CH.W - w - 4, 4, w, 14, 'rgba(0,0,0,0.7)');
+      gfx.text(s, CH.W - 9, 7, col, { align: 'right' });
     }
     // hint
     if (ui.hintT > 0 && ui.hint) {
@@ -445,7 +457,7 @@
         remaining -= ln.length + 1;
         if (d.opts.shaky) gfx.text(part, L.tx + CH.irand(-1, 1), ly + CH.irand(-1, 1), col);
         else gfx.text(part, L.tx, ly, col);
-        ly += 10;
+        ly += gfx.lineH();
       }
       if (d.waiting && !d.choices && d.opts.auto === undefined) {
         const bob = Math.sin(d.autoT * 6) > 0 ? 1 : 0;
@@ -479,7 +491,7 @@
         remaining -= ln.length + 1;
         if (d.opts.shaky) gfx.text(part, L.tx + CH.irand(-1, 1), ly + CH.irand(-1, 1), col);
         else gfx.text(part, L.tx, ly, col);
-        ly += 10;
+        ly += gfx.lineH();
       }
       if (d.waiting && !d.choices && d.opts.auto === undefined) {
         const bob = Math.sin(d.autoT * 6) > 0 ? 1 : 0;
@@ -496,10 +508,10 @@
         gfx.rrect(r.x - 1, r.y - 1, r.w + 2, r.h + 2, 5, CH.art.INK);
         gfx.rrect(r.x, r.y, r.w, r.h, 4, sel ? '#f5d76b' : '#f3eee2');
         if (sel) gfx.rrect(r.x, r.y, r.w, 3, 2, '#fbeaa8');
-        gfx.text(d.choices[i], r.x + 9 + slide, r.y + 3, sel ? '#221a2c' : '#4a4256');
+        gfx.text(d.choices[i], r.x + 9 + slide, r.y + 4, sel ? '#221a2c' : '#4a4256');
         if (sel) {
           const bob = Math.sin(CH.game.t * 9) > 0 ? 1 : 0;
-          gfx.tri(r.x + 3 + bob, r.y + 4, r.x + 3 + bob, r.y + 10, r.x + 7 + bob, r.y + 7, '#221a2c');
+          gfx.tri(r.x + 3 + bob, r.y + 5, r.x + 3 + bob, r.y + 11, r.x + 7 + bob, r.y + 8, '#221a2c');
         }
       });
       if (d.timerMax) {
@@ -539,7 +551,8 @@
     gfx.rrect(r.x, r.y + 1, r.w, r.h, 2, '#000');
     gfx.rrect(r.x, r.y, r.w, r.h, 2, hover ? gfx.shade(col, 30) : col);
     gfx.rrect(r.x + 1, r.y + 1, r.w - 2, 1, 1, gfx.shade(col, 60));
-    gfx.text(label, r.x + r.w / 2, r.y + Math.floor((r.h - 7) / 2), opts.textColor || '#fff', { align: 'center', font: opts.font || 'main' });
+    const font = gfx.fitFont(label, r.w - 4, opts.font || 'main');
+    gfx.text(label, r.x + r.w / 2, r.y + Math.floor((r.h - gfx.fontH(font)) / 2), opts.textColor || '#fff', { align: 'center', font });
     if (hover) ui.cursor = 'hand';
     const clicked = inp.clicked(r);
     if (clicked) { CH.audio.sfx(opts.sfx || 'tap'); inp.eat(); }
