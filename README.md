@@ -138,7 +138,7 @@ disco floor, plus `_party.gif` with the cast in a row; `node tools/gifs.mjs`
 re-renders them (the encoder in `tools/gif.mjs` has no dependencies).
 
 `art/thumbnail.png`, the animated `art/thumbnail.gif` (Chubby dancing one
-four-beat loop under the bouncing title) and `art/banner.png` are rendered by `tools/keyart.mjs`,
+four-beat loop, no text) and `art/banner.png` are rendered by `tools/keyart.mjs`,
 which paints them with the game's own primitives and characters - the same
 pixels the game draws, composed for a store page. Re-render with
 `node tools/keyart.mjs art`.

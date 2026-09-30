@@ -43,28 +43,6 @@
     ctx.restore();
   }
 
-  // a wobbly cartoon word: every letter its own size, tilt and bounce,
-  // with a fat ink outline, a drop shadow and a shine stripe
-  function cartoonWord(text, cx, y, scale, fill, ink, seed, u) {
-    const ctx = gfx.cur;
-    const widths = [...text].map((ch) => (ch === ' ' ? 4 : gfx.textWidth(ch)) + 1);
-    const total = widths.reduce((a, b) => a + b, 0) * scale;
-    let x = cx - total / 2;
-    [...text].forEach((ch, i) => {
-      const wch = widths[i] * scale;
-      if (ch !== ' ') {
-        const wave = u === undefined ? 0 : Math.sin(u * Math.PI * 4 - i * 0.7);
-        const rot = Math.sin(i * 1.9 + seed) * 0.12 + wave * 0.05, dy = Math.sin(i * 2.3 + seed) * scale * 1.2 - Math.max(0, wave) * scale * 1.6, sc = scale * (1 + Math.sin(i * 3.1 + seed) * 0.06 + Math.max(0, wave) * 0.05);
-        const px = x + wch / 2, py = y + dy;
-        const draw = (dx, dy2, col) => { ctx.save(); ctx.translate(px + dx, py + dy2); ctx.rotate(rot); ctx.scale(sc, sc); gfx.text(ch, 0, 0, col, { align: 'center' }); ctx.restore(); };
-        draw(scale * 0.9, scale * 1.4, '#2a1420');                                            // shadow
-        for (const [ox, oy] of [[-1, 0], [1, 0], [0, -1], [0, 1], [-1, -1], [1, -1], [-1, 1], [1, 1], [-2, 0], [2, 0], [0, 2]]) draw(ox * scale * 0.55, oy * scale * 0.55, ink);
-        draw(-scale * 0.22, -scale * 0.22, '#fffbe0');   // a lighter top edge, like a lit bubble
-        draw(scale * 0.06, scale * 0.06, fill);
-      }
-      x += wch;
-    });
-  }
   function sunburst(cx, cy, r, n, a, b, rot) {
     gfx.circle(cx, cy, r, a);
     for (let i = 0; i < n; i++) {
@@ -79,39 +57,54 @@
   }
 
   // the store thumbnail: just the name, and him, delighted about it
-  // u: loop phase 0..1 for the animated version (undefined = the still)
+  // The store thumbnail: no words at all, just him, huge and delighted.
+  // u: loop phase 0..1 for the animated version (undefined = the still).
   window.paintThumbnail = function (ctx, w, h, u) {
     const anim = u !== undefined, k = anim ? u : 0, TAU = Math.PI * 2;
+    const cx = w / 2, cy = h * 0.52;
     // the rays turn exactly two stripes per loop, so the loop is seamless
-    sunburst(w / 2, h * 0.62, w * 0.95, 28, '#ffcf4a', '#ffb23a', 0.1 + k * (TAU / 28) * 2);
+    sunburst(cx, cy, w * 0.98, 28, '#ffcf4a', '#ffb23a', 0.1 + k * (TAU / 28) * 2);
     const pulse = anim ? Math.sin(k * TAU * 4) * 0.5 + 0.5 : 0.5;
-    ctx.save(); ctx.globalAlpha = 0.3 + pulse * 0.1; gfx.circle(w / 2, h * 0.64, 146 + pulse * 8, '#fff3c0'); ctx.globalAlpha = 0.25; gfx.circle(w / 2, h * 0.64, 190, '#fff3c0'); ctx.restore();
-    gfx.ellipse(w / 2, h + 40, w * 0.75, 120, '#dfe8f4'); gfx.ellipse(w / 2, h + 44, w * 0.72, 112, '#ffffff');
-    for (let i = 0; i < 9; i++) gfx.ellipse(40 + i * 52, h - 44 + (i % 3) * 5, 30, 10, i % 2 ? '#eef4fa' : '#ffffff');
-    // Chubby dances through the loop (four beats), still one cheering pose otherwise
-    const cy = h - 36, S = 5.4;
+    ctx.save();
+    ctx.globalAlpha = 0.3 + pulse * 0.1; gfx.circle(cx, cy, 168 + pulse * 8, '#fff3c0');
+    ctx.globalAlpha = 0.22; gfx.circle(cx, cy, 214, '#fff3c0');
+    ctx.restore();
+    // snow drifting down: one frame height per loop, so it wraps without a seam
+    const rng = new CH.Rng(77);
+    for (let i = 0; i < 26; i++) {
+      const x = rng.range(0, w), y0 = rng.range(0, h), r = rng.range(1.5, 3.5);
+      const y = anim ? (y0 + k * h) % h : y0;
+      const xx = x + (anim ? Math.sin(k * TAU * 2 + i) * 6 : 0);
+      gfx.circle(xx, y, r, 'rgba(255,255,255,0.75)');
+    }
+    // a snowy hill to stand on
+    gfx.ellipse(cx, h + 40, w * 0.78, 110, '#dfe8f4'); gfx.ellipse(cx, h + 44, w * 0.75, 102, '#ffffff');
+    for (let i = 0; i < 9; i++) gfx.ellipse(40 + i * 52, h - 36 + (i % 3) * 5, 30, 10, i % 2 ? '#eef4fa' : '#ffffff');
+    // Chubby: filling the frame now there is no title to share it with
+    const feet = h - 26, S = 7.2;
     if (anim) {
       const d = CH.dance.pose(k * 4 * 60 / CH.dance.BPM, 3.1, 'chubby');
-      ctx.save(); ctx.translate(w / 2 + 6, cy); ctx.rotate(-0.04 + d.rot * 0.7); ctx.scale(S * d.sx, S * d.sy);
+      ctx.save(); ctx.translate(cx + 4, feet); ctx.rotate(-0.04 + d.rot * 0.7); ctx.scale(S * d.sx, S * d.sy);
       CH.drawChubby(ctx, 0, -d.dy, { face: 'grin', arm: d.arm === 'belly' ? 'cheer' : d.arm, outfit: 'hoodie', noShadow: true, flip: d.flip, walk: d.walk, moving: d.moving });
       ctx.restore();
     } else {
-      ctx.save(); ctx.translate(w / 2 + 6, cy); ctx.rotate(-0.06); ctx.scale(S, S);
+      ctx.save(); ctx.translate(cx + 4, feet); ctx.rotate(-0.06); ctx.scale(S, S);
       CH.drawChubby(ctx, 0, 0, { face: 'grin', arm: 'cheer', outfit: 'hoodie', noShadow: true });
       ctx.restore();
     }
     // hearts float and throb, sparkles twinkle in turn
     const hb = (ph) => (anim ? Math.sin(k * TAU * 2 + ph) : 0);
-    heart(88, 250 + hb(0) * 8, 14 * (1 + Math.max(0, Math.sin(k * TAU * 4)) * 0.15), '#ff6a8a', '#2a1420');
-    heart(398, 214 + hb(2) * 8, 11 * (1 + Math.max(0, Math.sin(k * TAU * 4 + 1)) * 0.15), '#ff6a8a', '#2a1420');
-    heart(420, 318 + hb(4) * 6, 8, '#ff9ab4', '#2a1420');
-    [[60, 180, 5], [424, 150, 6], [70, 330, 4], [384, 268, 4], [120, 140, 3], [360, 120, 3]].forEach(([x, y, sz], i) => {
+    const throb = (ph) => 1 + (anim ? Math.max(0, Math.sin(k * TAU * 4 + ph)) * 0.16 : 0);
+    heart(72, 150 + hb(0) * 8, 17 * throb(0), '#ff6a8a', '#2a1420');
+    heart(412, 118 + hb(2) * 8, 13 * throb(1), '#ff6a8a', '#2a1420');
+    heart(420, 300 + hb(4) * 6, 10 * throb(2), '#ff9ab4', '#2a1420');
+    heart(58, 318 + hb(1) * 6, 9 * throb(3), '#ff9ab4', '#2a1420');
+    [[112, 70, 6], [372, 52, 5], [44, 236, 4], [446, 212, 5], [150, 30, 3], [330, 20, 4], [96, 388, 3], [392, 380, 3]].forEach(([x, y, sz], i) => {
       const on = !anim || Math.sin(k * TAU * 2 + i * 1.3) > -0.2;
       if (on) sparkle(x, y, anim ? Math.max(1, Math.round(sz * (0.6 + 0.6 * Math.sin(k * TAU * 2 + i * 1.3)))) : sz, '#ffffff');
     });
-    cartoonWord('CHUBBY', w / 2, 22, 8.2, '#ffe95a', '#2a1420', 0.4, anim ? k : undefined);
-    cartoonWord('THE PORCUPINE', w / 2, 102, 3.7, '#7ae0d4', '#2a1420', 2.2, anim ? (k + 0.25) % 1 : undefined);
   };
+
 
 
   window.paintBanner = function (ctx, w, h) {
