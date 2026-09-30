@@ -36,4 +36,24 @@ const render = (name, w, h, scale, fnName) => page.evaluate(({ w, h, scale, fnNa
 await page.addScriptTag({ path: path.join(root, 'tools', 'keyart_paint.js') });
 await render('thumbnail.png', 480, 480, 2, 'paintThumbnail');
 await render('banner.png', 960, 300, 2, 'paintBanner');
+// the animated thumbnail: one four-beat dance loop
+{
+  const { encodeGif } = await import('./gif.mjs');
+  const N = 32, SW = 480, SC = 2, frames = [];
+  for (let f = 0; f < N; f++) {
+    const px = await page.evaluate(({ f, N, SW }) => {
+      const c = document.createElement('canvas'); c.width = SW; c.height = SW;
+      const ctx = c.getContext('2d'); ctx.imageSmoothingEnabled = false;
+      CH.gfx.pushTarget(ctx); try { window.paintThumbnail(ctx, SW, SW, f / N); } finally { CH.gfx.popTarget(); }
+      return Array.from(ctx.getImageData(0, 0, SW, SW).data);
+    }, { f, N, SW });
+    const up = new Uint8Array(SW * SC * SW * SC * 4);
+    for (let y = 0; y < SW * SC; y++) for (let x = 0; x < SW * SC; x++) { const si = (((y / SC) | 0) * SW + ((x / SC) | 0)) * 4, di = (y * SW * SC + x) * 4; up[di] = px[si]; up[di + 1] = px[si + 1]; up[di + 2] = px[si + 2]; up[di + 3] = 255; }
+    frames.push(up);
+  }
+  const loop = 4 * 60 / 124;   // four beats at the dance tempo
+  const buf = encodeGif(frames, SW * SC, SW * SC, { delay: Math.round((loop / N) * 100) });
+  fs.writeFileSync(path.join(out, 'thumbnail.gif'), buf);
+  console.log('wrote thumbnail.gif', `${SW * SC}x${SW * SC}`, Math.round(buf.length / 1024) + 'KB');
+}
 await browser.close();
