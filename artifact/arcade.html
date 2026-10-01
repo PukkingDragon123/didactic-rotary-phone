@@ -36,74 +36,10 @@
     object-fit: contain;
     box-shadow: 0 0 60px rgba(0, 0, 0, 0.8);
   }
-  /* Touch controls: only mounted on coarse pointers, never in the way on desktop. */
-  #pad {
-    position: fixed;
-    z-index: 5;   /* above the game, the shader layer and the UI layer */
-    left: 0;
-    right: 0;
-    bottom: 0;
-    display: none;
-    justify-content: space-between;
-    align-items: flex-end;
-    gap: 16px;
-    padding: 12px 16px;
-    padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
-    pointer-events: none;
-  }
-  body.is-touch #pad { display: flex; }
-  #dpad {
-    display: grid;
-    grid-template-columns: repeat(3, 52px);
-    grid-template-rows: repeat(3, 52px);
-  }
-  #pad_up { grid-area: 1 / 2; }
-  #pad_left { grid-area: 2 / 1; }
-  #pad_right { grid-area: 2 / 3; }
-  #pad_down { grid-area: 3 / 2; }
-  #acts {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-  }
-  #pad button {
-    pointer-events: auto;
-    -webkit-tap-highlight-color: transparent;
-    appearance: none;
-    font: inherit;
-    font-size: 13px;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--bone);
-    background: rgba(23, 21, 31, 0.78);
-    border: 2px solid rgba(232, 224, 200, 0.34);
-    border-radius: 10px;
-    touch-action: none;
-  }
-  #pad button.on { background: rgba(245, 195, 59, 0.34); border-color: var(--quill); }
-  #pad button:focus-visible { outline: 2px solid var(--quill); outline-offset: 2px; }
-  #btn_jump, #btn_use {
-    width: 66px;
-    height: 66px;
-    border-radius: 50%;
-  }
-  #btn_jump { border-color: rgba(200, 53, 43, 0.75); }
 </style>
 
 <div id="wrap">
   <canvas id="game" width="480" height="270"></canvas>
-</div>
-<div id="pad">
-  <div id="dpad">
-    <button id="pad_up" type="button" aria-label="Up">&#9650;</button>
-    <button id="pad_left" type="button" aria-label="Left">&#9664;</button>
-    <button id="pad_right" type="button" aria-label="Right">&#9654;</button>
-    <button id="pad_down" type="button" aria-label="Down">&#9660;</button>
-  </div>
-  <div id="acts">
-    <button id="btn_use" type="button" aria-label="Interact">E</button>
-    <button id="btn_jump" type="button" aria-label="Jump">Jump</button>
-  </div>
 </div>
 
 <script>window.CH_BOOT = 'hedgehog';</script>
@@ -146,6 +82,7 @@
 <script src="js/38_fishing3d.js"></script>
 <script src="js/40_title.js"></script>
 <script src="js/41_menu.js"></script>
+<script src="js/42_touch.js"></script>
 <script src="js/97_post.js"></script>
 <script src="js/98_tests.js"></script>
 <script src="js/99_main.js"></script>

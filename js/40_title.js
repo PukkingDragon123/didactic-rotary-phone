@@ -958,6 +958,7 @@
     }
   }
   CH.TitleScene = TitleScene;
+  CH.titleLogo = logoArt; // the key art reuses the logo
   CH.SCENES = CH.SCENES || {};
   CH.SCENES.title = () => new TitleScene();
 

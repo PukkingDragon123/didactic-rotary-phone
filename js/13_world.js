@@ -96,7 +96,7 @@
         if (Math.abs(d) < 3) { pl.x = this._walk.x; pl.vx = 0; this._walk.sig.resolve(); this._walk = null; }
         else ax = Math.sign(d) * this._walk.speedMul;
       } else if (!this.locked && !CH.ui.busy()) {
-        ax = inp.axisX();
+        ax = inp.moveX();
         if (inp.hit('jump') && this.py === 0 && this.allowHop !== false) { this.vy = -110; pl.hop(0.8); CH.audio.sfx('jump'); }
       }
       const target = ax * pl.speed * (this.locked || this._walk ? (this._walk ? this._walk.speedMul : 1) : 1);

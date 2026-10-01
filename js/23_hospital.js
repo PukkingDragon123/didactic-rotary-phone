@@ -179,6 +179,7 @@
       A.sfx('couch');
       const thoughts = ["She was fine. She was FINE. She was singing.", "The chair is bolted down. Everything here is bolted down.", "Someone left a magazine from 2019. 'Ten Ways To Relax'. Ha.", "My hoodie still smells like the fireplace.", "Tap tap tap tap tap tap.", "I should have gone for that walk with her.", "Is that... is that the doctor? No. Nurse. Okay. Okay."];
       ui.setHint('Press any direction to stand up', 3);
+      this.touchStick = true; // the scene is locked, but the stick still stands him up
       let tt = 0, nextThought = 1.5;
       while (true) {
         tt += 1 / 30;
@@ -194,6 +195,7 @@
         yield 1 / 30;
       }
       ui.clearDialog();
+      this.touchStick = false;
       pl.sitting = false; pl.y = this.floorY; pl.arm = 'idle'; pl.lookX = 0; this.sitting = false;
       this.locked = false;
     }

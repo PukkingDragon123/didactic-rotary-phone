@@ -83,6 +83,17 @@
   inp.rawHit = (k) => !!(inp.rawPressed && inp.rawPressed[k]);
   inp.axisX = () => (inp.down('left') ? -1 : 0) + (inp.down('right') ? 1 : 0);
   inp.axisY = () => (inp.down('up') ? -1 : 0) + (inp.down('down') ? 1 : 0);
+  // The on-screen touch controls hold keys down by name, exactly like a keyboard.
+  inp.press = (k) => { if (!inp.keys[k]) inp.pressed[k] = true; inp.keys[k] = true; inp.anyPressed = true; };
+  inp.release = (k) => { if (inp.keys[k]) { inp.keys[k] = false; inp.released[k] = true; } };
+  // The touch stick is analog: a gentle push walks, a full push runs. It still
+  // holds left/right too, so everything that reads keys keeps working.
+  inp.stick = { x: 0, y: 0, active: false };
+  inp.moveX = () => {
+    const s = inp.stick, k = inp.axisX();
+    if (!s.active || !k || Math.sign(s.x) !== k) return k;
+    return k * (0.5 + 0.5 * CH.clamp((Math.abs(s.x) - 0.25) / 0.45, 0, 1));
+  };
   inp.mouseIn = (r) => CH.pointIn(inp.mx, inp.my, r);
   inp.clicked = (r) => inp.mpressed && inp.mouseIn(r);
   // consume all input for this frame (e.g. after a UI element handled a click)

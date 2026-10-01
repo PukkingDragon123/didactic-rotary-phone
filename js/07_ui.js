@@ -215,6 +215,8 @@
       d.choiceHover = -1;
       rects.forEach((r, i) => { if (inp.mouseIn(r)) { d.choiceHover = i; if (inp.mmoved) d.choiceIdx = i; } });
       if (inp.hit('confirm') || inp.hit('interact') || inp.hit('jump') || (inp.mpressed && d.choiceHover >= 0)) {
+        // a tap lands on a choice without ever hovering it first
+        if (inp.mpressed && d.choiceHover >= 0) d.choiceIdx = d.choiceHover;
         finish(d, d.choiceIdx); CH.audio.sfx('select'); inp.eat();
       }
     } else {

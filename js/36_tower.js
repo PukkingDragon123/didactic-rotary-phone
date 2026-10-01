@@ -226,7 +226,7 @@
 
   class TowerScene extends CH.Scene {
     constructor(onDone) {
-      super(); this.overlay = true; this.onDone = onDone;
+      super(); this.name = 'tower'; this.overlay = true; this.onDone = onDone;
       this.floor = S.towerFloor; this.viewFloor = this.floor; this.scrollY = 0; this.sel = null; this.elevT = 0; this.elevating = false;
       this.stars = []; for (let i = 0; i < 40; i++) this.stars.push([Math.random() * W, Math.random() * 120]);
       this.confirm = null;

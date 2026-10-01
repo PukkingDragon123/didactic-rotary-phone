@@ -43,7 +43,8 @@
         if (inp.mouseIn(r)) {
           ui.cursor = 'hand';
           if (inp.mmoved && this.sel !== i) { this.sel = i; A.sfx('blip2'); }
-          if (inp.mpressed) { inp.eat(); this.pick(); }
+          // a tap picks what it lands on, hovered or not
+          if (inp.mpressed) { this.sel = i; inp.eat(); this.pick(); }
         }
       });
       if (inp.hit('confirm') || inp.hit('interact') || inp.hit('jump')) { inp.eat(); this.pick(); }
@@ -180,7 +181,7 @@
         if (inp.mouseIn(this.rect(i))) {
           ui.cursor = 'hand';
           if (inp.mmoved && this.sel !== i) { this.sel = i; A.sfx('blip2'); }
-          if (inp.mpressed) { inp.eat(); this.activate(); return; }
+          if (inp.mpressed) { this.sel = i; inp.eat(); this.activate(); return; }
         }
       }
       if (inp.hit('confirm') || inp.hit('interact') || inp.hit('jump')) { inp.eat(); this.activate(); return; }
@@ -262,6 +263,16 @@
     ['Mute sound', 'M'],
     ['Minigames', 'Mouse - click and drag'],
   ];
+  // the same list for the on-screen controls
+  const TOUCH_ROWS = [
+    ['Move', 'Stick (left side)'],
+    ['Jump', 'JUMP button'],
+    ['Interact, talk, advance', 'E button  /  tap'],
+    ['Open phone', 'Phone button'],
+    ['Pause menu', 'Pause button'],
+    ['Dance', 'Hold the note button'],
+    ['Minigames', 'Tap and drag'],
+  ];
   class ControlsScene extends CH.Scene {
     constructor(onDone) { super(); this.name = 'controls'; this.overlay = true; this.onDone = onDone || (() => {}); }
     update() {
@@ -272,7 +283,7 @@
     draw(g) {
       dim(0.72);
       panel(60, 34, 360, 196, 'CONTROLS');
-      CONTROL_ROWS.forEach((row, i) => {
+      (CH.touchMode ? TOUCH_ROWS : CONTROL_ROWS).forEach((row, i) => {
         const y = 58 + i * 21;
         gfx.rrect(74, y - 3, 332, 18, 4, i % 2 ? '#352b44' : '#3d3250');
         gfx.text(row[0], 84, y + 2, '#f2ecd8');

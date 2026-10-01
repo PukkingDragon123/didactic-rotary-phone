@@ -39,6 +39,31 @@ was written last.
 | Pause, save, load, quit | Esc or P |
 | Back / close | Esc |
 
+### On a phone or tablet
+
+Touch controls appear on their own on touch screens (and the moment you touch
+the screen anywhere else); a real keyboard puts them away again until the next
+touch. Add `?touch=1` to the URL to force them on at a desk, `?touch=0` to turn
+them off.
+
+| Action | Touch |
+| --- | --- |
+| Move | The stick: put a thumb down anywhere on the left side; a gentle push walks, a full push runs |
+| Interact / advance dialogue | **E** (it bobs when there is something to use), or tap the screen to advance |
+| Hop / jump | **JUMP** |
+| Dance | Hold the note button (or push the stick straight down) |
+| Smartphone, pause | The buttons down the right edge |
+| Menus, choices, phone, minigames | Tap and drag on the game itself |
+| Back (fishing, the TV game) | The red **✗** in the top-left corner |
+| Full screen, mute | On the title screen and in the pause menu |
+
+Only what the current screen can use is shown: walking gets the stick, E and
+JUMP, menus and dialogue get nothing but taps. Every hint in the game swaps its
+keys for the buttons ("Press E" becomes "Tap E"). Held upright, the game sits at
+the top of the screen with the controls in the space below it, like a handheld.
+Switching to another app pauses the game. The controls live in
+`js/42_touch.js`.
+
 ## Art
 
 Every sprite is assembled at run time. A drawing is composed on an offscreen
@@ -182,10 +207,31 @@ rather than let it spill out of its sign.
 `artifact/` holds the pages used for the hosted build: `index.html` (the full
 game) and `arcade.html` (Blue Hedgehog on its own, booted through the
 `window.CH_BOOT` scene hook). Both pull in the same `js/` sources and add
-`artifact/shell.js`, which takes keyboard focus inside an iframe and mounts an
-on-screen d-pad on touch devices.
+`artifact/shell.js`, which takes keyboard focus inside an iframe (the touch
+controls come with the game itself).
+
+### itch.io
+
+`dist/chubby-the-porcupine-itch.zip` is the upload: `index.html`, `style.css`
+and `js/`, nothing else. Build it from the repository root with
+
+```
+zip -q -r dist/chubby-the-porcupine-itch.zip index.html style.css js
+```
+
+On the itch page: kind of project **HTML**, tick *This file will be played in
+the browser*, viewport **960 x 540**, tick *Mobile friendly* with orientation
+**Landscape**, and tick *Fullscreen button*. Use `art/cover.png` (630 x 500) as
+the cover image.
 
 ## Key art
+
+`art/cover.png` is the itch.io cover (630 x 500, with a 1260 x 1000
+`art/cover-hires.png`): Chubby in his hoodie and a Donald's visor, cheering in
+the snow while burgers, fries, a soda and coins fly past, the big D glowing
+over the diner and the logo on top. The game draws it with its own sprites,
+logo and shader (`tools/cover_scene.js`); re-render with
+`node tools/cover.mjs art`.
 
 `art/gifs/` holds a looping GIF of every character in the game dancing on a
 disco floor, plus `_party.gif` with the cast in a row; `node tools/gifs.mjs`
@@ -217,6 +263,8 @@ Every position has a shift route: `?scene=restaurant_grill`,
 
 `tools/shot.mjs` and `tools/smoke.mjs` drive the game headlessly with
 Playwright for screenshots and error checks (`cd tools && npm install`).
+`tools/mobile.mjs` plays it as a phone would - touch only, a coarse pointer,
+real device pixels - and can tap the on-screen buttons and push the stick.
 `tools/flow.mjs`, `tools/chain.mjs`, `tools/systems.mjs` and `tools/spill.mjs`
 are scripted playthroughs of the opening, the job hunt and first shift, the
 phone/tower/promotion/ending systems, and the janitor mop loop.
