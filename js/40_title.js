@@ -31,7 +31,7 @@
   const CAB = { x0: 24, x1: 196, top: 166, base: 236, peak: 112, eave: 172 };
   const WIN = { x: 62, y: 178, w: 64, h: 48 };
   const CHIMNEY = { x: 150, top: 110 };
-  const LOGO_CX = 368;
+  const LOGO_CX0 = 368;
 
   const hexRGB = (h) => { const n = parseInt(h.slice(1), 16); return [(n >> 16) & 255, (n >> 8) & 255, n & 255]; };
   const BAYER = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5];
@@ -575,7 +575,7 @@
       });
       items.push({ label: 'Controls', action: () => CH.game.push(new CH.ControlsScene()) });
       const w = 124;
-      this.menu = new CH.MenuList(items, { x: Math.round(LOGO_CX - w / 2), y: 156, w, h: 20, gap: 6, sel: info ? 0 : 1 });
+      this.menu = new CH.MenuList(items, { x: Math.round(LOGO_CX0 - w / 2), y: 156, w, h: 20, gap: 6, sel: info ? 0 : 1 });
       this.lastSel = this.menu.sel;
     }
     newGame() {
@@ -599,7 +599,8 @@
         yield fx.fadeIn(0.9);
       })());
     }
-    cam() { return Math.sin(this.time * 0.085) * DRIFT; }
+    // key art mode (tools/keyart.mjs): a still camera, no menu, the logo wherever it is wanted
+    cam() { return this.still ? this.still.cam || 0 : Math.sin(this.time * 0.085) * DRIFT; }
     // light for the shader, in screen space - carried through the push-in zoom
     // so the glows stay on their windows as the camera closes in
     emit(x, y, r, c, a) {
@@ -741,7 +742,6 @@
         if (x > 150 && k2 > 0.05) { g.globalAlpha = Math.min(0.5, k2); g.drawImage(A2.curtain2, 0, 0, 1, 64, x, Math.round(b2 - h2), 2, Math.round(h2)); }
       }
       g.globalAlpha = 1;
-      for (let i = 0; i < 7; i++) { const x = 40 + i * 66; this.emit(x, 80 + 8 * Math.sin(x * 0.012 + t * 0.12), 16, '#3affb0', 0.1); }
     }
     drawMoon(g, t) {
       const { x, y, r } = MOON;
@@ -872,17 +872,20 @@
     drawTitleUI(g) {
       const t = this.time, fade = 1 - Math.min(1, this.push * 3);
       // the letterbox closes in as the film starts
-      const bar = Math.round(10 * Math.min(1, t / 1.2));
+      const st = this.still;
+      const bar = st ? 0 : Math.round(10 * Math.min(1, t / 1.2));
       R(0, 0, W, bar, '#000000'); R(0, H - bar, W, bar, '#000000');
       if (fade <= 0) return;
       g.save(); g.globalAlpha = fade;
-      this.drawLogo(g, t);
+      if (!st || st.logo) this.drawLogo(g, t);
+      if (st) { g.restore(); return; }
       this.drawMenu(g, t);
       if (t > 2 && CH.game.scene === this) withA(Math.min(1, (t - 2) * 2), () => gfx.text('↑↓ choose    Enter pick    M mute', W / 2, H - 8, '#8a84a8', { align: 'center', font: 'small' }));
       g.restore();
     }
     drawLogo(g, t) {
-      const L = logoArt(), top = 20;
+      const L = logoArt(), top = this.still && this.still.logoY !== undefined ? this.still.logoY : 20;
+      const LOGO_CX = this.still && this.still.logoX !== undefined ? this.still.logoX : LOGO_CX0;
       const x0 = Math.round(LOGO_CX - L.main.w / 2);
       L.main.letters.forEach((ch, i) => {
         const st = this.letters && this.letters[i];

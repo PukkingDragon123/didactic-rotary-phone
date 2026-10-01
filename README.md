@@ -192,9 +192,16 @@ disco floor, plus `_party.gif` with the cast in a row; `node tools/gifs.mjs`
 re-renders them (the encoder in `tools/gif.mjs` has no dependencies and stores
 only the pixels that change from one frame to the next).
 
-`art/thumbnail.png`, the animated `art/thumbnail.gif` (Chubby on the late shift
-at Donald's, mopping the checker floor in a two-stroke loop, no text) and
-`art/banner.png` are rendered by `tools/keyart.mjs`,
+`art/thumbnail.png` (Chubby asleep in his window under the moon, no text),
+`art/thumbnail-logo.png` (the same with the logo) and `art/banner.png` (the
+cabin, the town across the lake and the logo) are cut from the title screen
+itself - the game renders the night shot with the shader on, a still camera
+and no menu, at a whole 4x scale. Re-render with
+`node tools/keyart_title.mjs art`.
+
+The animated `art/thumbnail.gif` (Chubby on the late shift
+at Donald's, mopping the checker floor in a two-stroke loop, no text) is
+rendered by `tools/keyart.mjs`,
 which paints them with the game's own primitives and characters - the same
 pixels the game draws, composed for a store page. Re-render with
 `node tools/keyart.mjs art`.

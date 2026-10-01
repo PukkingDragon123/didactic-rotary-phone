@@ -34,8 +34,8 @@ const render = (name, w, h, scale, fnName) => page.evaluate(({ w, h, scale, fnNa
 });
 
 await page.addScriptTag({ path: path.join(root, 'tools', 'keyart_paint.js') });
-await render('thumbnail.png', 480, 480, 2, 'paintThumbnail');
-await render('banner.png', 960, 300, 2, 'paintBanner');
+// the still thumbnail and banner now come from the title screen: tools/keyart_title.mjs
+
 // the animated thumbnail: one four-beat dance loop
 {
   const { encodeGif } = await import('./gif.mjs');
